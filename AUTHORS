@@ -1,0 +1,29 @@
+///////////////////////////////////////////////////////////
+//                                                       //
+// Copyright (c) 2016-2017 by The School of Aerospace    //
+// Enginnering, Tsinghua University                      //
+//                                                       //
+// Contributor: B. Cheng, Y. Zhang, Y. Yu                //
+//                                                       //
+// DEMBody                                               //
+//                                                       //
+// Inverstigations of geological features, surface       //
+// modifications and topographic evolutions of           //
+// celestial bodies, e.g., granular convection in        //
+// asteroid, groove structures and rings in moonlets.    //
+//                                                       //
+///////////////////////////////////////////////////////////
+
+DEMBody is Open Source software for Granular Dynamics in Astronomy.
+
+The software implements the Discrete Element Method (DEM), coupled with NBody simulation in astronomy.
+DEMBody is designed for execution on parallel supercomputers, clusters or multi-core PCs running a 
+Linux(or Windows)-based operating system. 
+
+DEMBody software contributors include:
+
+Bin Cheng
+Yun Zhang
+Yang Yu
+
+For further information about DEMBody authors, email chengb16@mails.tsinghua.edu.cn
