@@ -3,7 +3,7 @@
 // Copyright (c) 2016-2017 by The School of Aerospace    //
 // Enginnering, Tsinghua University                      //
 //                                                       //
-// Contributor: B. Cheng, Y. Zhang, Y. Yu                //
+// Contributor: B. Cheng, Y. Yu, Y. Zhang                //
 //                                                       //
 // DEMBody                                               //
 //                                                       //
@@ -23,7 +23,7 @@ Linux(or Windows)-based operating system.
 DEMBody software contributors include:
 
 Bin Cheng
-Yun Zhang
 Yang Yu
+Yun Zhang
 
 For further information about DEMBody authors, email chengb16@mails.tsinghua.edu.cn
