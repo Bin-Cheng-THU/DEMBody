@@ -2,7 +2,7 @@
     !     DEMbody 2.0
     !     ***********
     !
-    !     Force for funnel walls.
+    !     Force for contactable walls.
     !     --------------------------
     !      
     !     @Using rolling friction similar to LIGGGHTS
@@ -11,7 +11,7 @@
     !     @Using damping model applicable for ice ball
     !
     !********************************************************************
-    subroutine forceFunnelWalls()
+    subroutine forceContactWalls()
 
     use global
     implicit none
@@ -33,28 +33,21 @@
     integer :: I,J,K,L,II,LenNode     !  Iterator
     type(Nodelink),pointer :: Temp    !  Temporary pointer
     type(Nodelink),pointer :: TempH   !  Contact pointer
-    integer :: OMP_funnelWallTag     !  Tag for walls in OMP
-    real(kind=8)  OMP_funnelWallPoint(3),OMP_funnelWallVector(3)  !  Point and Vector for walls in OMP
-    real(kind=8)  OMP_funnelWallRadius(2),OMP_funnelWallLength    !  Radius and Length for walls in OMP
-    real(kind=8)  RVb(3),RVu(3),RVg(3),RVn(3),RVc(3),norm
-    logical :: enterFlag
+    integer :: OMP_contactWallTag     !  Tag for walls in OMP
+    real(kind=8) OMP_contactWallPoint(3),OMP_contactWallVector(3)  !  Point and Vector for walls in OMP
 
-    do II = 1,funnelWallNum
+    do II = 1,contactWallNum
         !  Allocate to variables in OMP (stack memory)
-        OMP_funnelWallTag = funnelWallTag(II)
+        OMP_contactWallTag = contactWallTag(II)
         do K = 1,3
-            OMP_funnelWallPoint(K) = funnelWallPoint(K,II)
-            OMP_funnelWallVector(K) = funnelWallVector(K,II)
+            OMP_contactWallPoint(K) = contactWallPoint(K,II)
+            OMP_contactWallVector(K) = contactWallVector(K,II)
         end do
-        OMP_funnelWallRadius(1) = funnelWallRadius(1,II)
-        OMP_funnelWallRadius(2) = funnelWallRadius(2,II)
-        OMP_funnelWallLength = funnelWallLength(II)
         
         !  Loop over all bodies.
         !$OMP PARALLEL DO REDUCTION(+:F) REDUCTION(+:FM) &
         !$OMP& REDUCTION(+:Energy) &
-        !$OMP& firstprivate(OMP_funnelWallTag,OMP_funnelWallPoint,OMP_funnelWallVector,OMP_funnelWallRadius,OMP_funnelWallLength)&
-        !$OMP& PRIVATE(RVb,RVu,RVg,RVn,RVc,norm,enterFlag)&
+        !$OMP& firstprivate(OMP_contactWallTag,OMP_contactWallPoint,OMP_contactWallVector)&
         !$OMP& PRIVATE(Temp,TempH,LenNode,&
         !$OMP& I,J,K,L,II,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
         !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,&
@@ -62,51 +55,14 @@
         !$OMP& Kn,Cn,Kt,Ct,Kr,Cr,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,H,M,RV,&
         !$OMP& slipping,rolling,touching) SCHEDULE(DYNAMIC)
         do I = 1,N
-            enterFlag = .False.
             do K = 1,3
-                RV(K) = X(K,I) - OMP_funnelWallPoint(K)
+                RV(K) = X(K,I) - OMP_contactWallPoint(K)
             end do
-            ERR = RV(1)*OMP_funnelWallVector(1) + RV(2)*OMP_funnelWallVector(2) + RV(3)*OMP_funnelWallVector(3)
-            if (ERR > 0.0 .AND. ERR < OMP_funnelWallLength) then
-                do K = 1,3
-                    RVb(K) = RV(K) - ERR*OMP_funnelWallVector(K)
-                end do 
-                norm = sqrt(RVb(1)**2 + RVb(2)**2 + RVb(3)**2)
-                if (ERR > 1e-14) then
-                    do K = 1,3
-                        RVu(K) = RVb(K)/norm*OMP_funnelWallRadius(2)
-                        RVb(K) = RVb(K)/norm*OMP_funnelWallRadius(1)
-                        RVg(K) = - RVb(K) + OMP_funnelWallVector(K)*OMP_funnelWallLength + RVu(K)
-                    end do
-                    norm = sqrt(RVg(1)**2 + RVg(2)**2 + RVg(3)**2)
-                    do K= 1,3
-                        RVg(K) = RVg(K)/norm
-                    end do                
-                    ERR = RVg(1)*OMP_funnelWallVector(1) + RVg(2)*OMP_funnelWallVector(2) + RVg(3)*OMP_funnelWallVector(3)
-                    do K = 1,3
-                        RVn(K) = OMP_funnelWallVector(K) - ERR*RVg(K)
-                    end do
-                    norm = sqrt(RVn(1)**2 + RVn(2)**2 + RVn(3)**2)
-                    do K = 1,3
-                        RVn(K) = RVn(K)/norm
-                    end do
-                    do K = 1,3
-                        RVc(K) = RV(K) - RVb(K)
-                    end do
-                    ERR = RVc(1)*RVg(1) + RVc(2)*RVg(2) + RVc(3)*RVg(3)
-                    if (ERR > 0) then
-                        ERR = RVc(1)*RVn(1) + RVc(2)*RVn(2) + RVc(3)*RVn(3)
-                        if (ERR > 0) then
-                            enterFlag = .True.
-                        end if
-                    end if
-                end if
-            end if          
-            
-            if (enterFlag) then      
+            ERR = RV(1)*OMP_contactWallVector(1) + RV(2)*OMP_contactWallVector(2) + RV(3)*OMP_contactWallVector(3)
+            if (ERR .LE. Dx) then      
                 !  normal vector
                 do K = 1,3
-                    Dist(K) = ERR*RVn(K)
+                    Dist(K) = ERR*OMP_contactWallVector(K)
                     H(K) = 0.0
                     M(K) = 0.0
                 end do
@@ -123,7 +79,7 @@
                 if (LenNode .NE. 0) then
                     Temp => Head(I)%next
                     do L = 1,LenNode
-                        if (Temp%No .EQ. OMP_funnelWallTag) then
+                        if (Temp%No .EQ. OMP_contactWallTag) then
                             do K = 1,3
                                 H(K) = Temp%Hertz(K)
                                 M(K) = Temp%Mrot(K)
@@ -132,9 +88,9 @@
                             slipping = Temp%is_slipping
                             rolling = Temp%is_rolling
                             exit
-                        else if (Temp%No.LT.OMP_funnelWallTag .AND. associated(Temp%next)) then
+                        else if (Temp%No.LT.OMP_contactWallTag .AND. associated(Temp%next)) then
                             Temp => Temp%next
-                        else if (Temp%No .GT. OMP_funnelWallTag) then
+                        else if (Temp%No .GT. OMP_contactWallTag) then
                             Temp => Temp%prev
                             exit
                         end if
@@ -149,28 +105,27 @@
                         DistU(K) = Dist(K)*DistR
                     end do
                     Ap = DistL
-!#ifdef HertzMindlinVisco                    
-                    !!  calculate material constant
-                    !Rij = R(I)
-                    !Mij = Body(I)
-                    !Iij = 3.5*Inertia(I)
-                    !Kn = 2.0*m_E*sqrt(Rij)/(3.0*(1.0-m_nu*m_nu))
-                    !Cn = -Kn*m_A*sqrt(Dn)
-                    !Kt = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
-                    !!  select tangential damping mode
-                    !if (m_COR > 1.0) then
-                    !    Ct = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
-                    !elseif (m_COR >= 0.0) then
-                    !    lnCOR=log(m_COR)
-                    !    Ct = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                    !    & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
-                    !else
-                    !    Ct = 0
-                    !end if
-                    !Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
-                    !Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
-!#else
-!#ifdefine HertzMindlinResti
+#ifdef HertzMindlinVisco                    
+                    !  calculate material constant
+                    Rij = R(I)
+                    Mij = Body(I)
+                    Iij = 3.5*Inertia(I)
+                    Kn = 2.0*m_E*sqrt(Rij)/(3.0*(1.0-m_nu*m_nu))
+                    Cn = -Kn*m_A*sqrt(Dn)
+                    Kt = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                    !  select tangential damping mode
+                    if (m_COR > 1.0) then
+                        Ct = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
+                    elseif (m_COR >= 0.0) then
+                        lnCOR=log(m_COR)
+                        Ct = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
+                        & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                    else
+                        Ct = 0
+                    end if
+                    Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
+                    Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
+#elif HertzMindlinResti
                     !  calculate material constant
                     Rij = R(I)
                     Mij = Body(I)
@@ -184,8 +139,7 @@
                          & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
                     Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
                     Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
-!#endif
-!#endif
+#endif
                     !  translate relative velocity
                     do K = 1,3
                         Vrel(K) = Xdot(K,I)
@@ -326,7 +280,7 @@
                     !  memory the contact in the Hertz linklist.
                     if (associated(Temp%prev)) then
                         !  Temp is in center of linklist!!!
-                        if (Temp%No .EQ. OMP_funnelWallTag) then
+                        if (Temp%No .EQ. OMP_contactWallTag) then
                             !  Have contacted.
                             do K = 1,3
                                 Temp%Hertz(K) = tangential_force(K)
@@ -338,7 +292,7 @@
                         else
                             !  First contacted.
                             allocate(TempH)
-                            TempH = Nodelink(OMP_funnelWallTag,tangential_force,rolling_moment,&
+                            TempH = Nodelink(OMP_contactWallTag,tangential_force,rolling_moment,&
                             & touching,slipping,rolling,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
@@ -347,7 +301,7 @@
                     else
                         !  Temp is Head of linklist!!!
                         allocate(TempH)
-                        TempH = Nodelink(OMP_funnelWallTag,tangential_force,rolling_moment,&
+                        TempH = Nodelink(OMP_contactWallTag,tangential_force,rolling_moment,&
                         & touching,slipping,rolling,Temp,Temp%next)
                         if (associated(Temp%next)) Temp%next%prev => TempH
                         Temp%next => TempH
@@ -355,7 +309,7 @@
                     end if
                 else
                     !  memory the separation in the Hertz linklist.
-                    if (associated(Temp%prev) .AND. Temp%No.EQ.OMP_funnelWallTag) then
+                    if (associated(Temp%prev) .AND. Temp%No.EQ.OMP_contactWallTag) then
                         !  Temp is center of linklist!!!
                         Temp%prev%next => Temp%next
                         if(associated(Temp%next)) Temp%next%prev => Temp%prev

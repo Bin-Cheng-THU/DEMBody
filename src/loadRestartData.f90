@@ -18,12 +18,16 @@
 
     write(*,*) "RestartData loading..."
 
-    INQUIRE( File = 'RestartData.txt', EXIST = alive)
+    INQUIRE( File = '../input/RestartData.txt', EXIST = alive)
     IF (alive) then
-        Open( 12 , File = 'RestartData.txt' )
+        Open( 12 , File = '../input/RestartData.txt' )
         nRow = GetFileN( 12 )
-        write( * , * ) 'RestartData ',nRow,' rows!'
+        write( * , * ) 'RestartData ',nRow-1,' rows!'
 
+        !  refresh Time and Step
+        read(12,*) Time,Tnext,Step,CheckPointTnext
+        
+        !  read contact history
         Do I = 1 , nRow
             read( 12 , '(a2048)' ) cLine
             BACKSPACE(12)

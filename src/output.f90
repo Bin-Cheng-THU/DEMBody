@@ -21,7 +21,7 @@
     Tnext = Tnext + Deltat
 
     !  Output the position, velocity and radius of the projectile
-    open(10,FILE='Projectile.txt')
+    open(10,FILE='../Data/Projectile.txt')
     if (Time.LE.Tcrit) then
         write(10,'(14E20.8)') Time,(X(K,N),K=1,3),(Xdot(K,N),K=1,3),(F(K,N),K=1,3),(W(K,N),K=1,3),Energy(N)
     end if
@@ -32,7 +32,7 @@
 
         !  Output the position, velocity and force of all particles
         write(FileNameX,'(I4)') Step+1000
-        FileNameX = 'Data/'//FileNameX
+        FileNameX = '../Data/'//FileNameX
         FileNameX = trim(FileNameX)//'X.csv'
 
         if (isQuaternion) then
@@ -55,7 +55,7 @@
 
         !  Output the tangential contact history of all interactions
         write(FileNameF,'(I4)') Step+1000
-        FileNameF = 'Data/'//FileNameF
+        FileNameF = '../Data/'//FileNameF
         FileNameF = trim(FileNameF)//'F.txt'
 
         open(Step+1000,FILE=FileNameF)

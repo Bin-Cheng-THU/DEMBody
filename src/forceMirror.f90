@@ -96,28 +96,27 @@
                         end do
                         Ap = (R(I)*R(I)-R(J)*R(J)+DistS)/2.0*DistR
                         An = DistL-Ap
-!#ifdef HertzMindlinVisco                    
-                        !!  calculate material constant
-                        !Rij = R(I)*R(J)/(R(I)+R(J))
-                        !Mij = Body(I)*Body(J)/(Body(I)+Body(J))
-                        !Iij = 3.5*Inertia(I)*Inertia(J)/(Inertia(I)+Inertia(J))
-                        !Kn = 2.0*m_E*sqrt(Rij)/(3.0*(1.0-m_nu*m_nu))
-                        !Cn = -Kn*m_A*sqrt(Dn)
-                        !Kt = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
-                        !!  select tangential damping mode
-                        !if (m_COR > 1.0) then
-                        !    Ct = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
-                        !elseif (m_COR >= 0.0) then
-                        !    lnCOR=log(m_COR)
-                        !    Ct = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                        !    & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
-                        !else
-                        !    Ct = 0
-                        !end if
-                        !Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
-                        !Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
-!#else
-!#ifdefine HertzMindlinResti
+#ifdef HertzMindlinVisco                    
+                        !  calculate material constant
+                        Rij = R(I)*R(J)/(R(I)+R(J))
+                        Mij = Body(I)*Body(J)/(Body(I)+Body(J))
+                        Iij = 3.5*Inertia(I)*Inertia(J)/(Inertia(I)+Inertia(J))
+                        Kn = 2.0*m_E*sqrt(Rij)/(3.0*(1.0-m_nu*m_nu))
+                        Cn = -Kn*m_A*sqrt(Dn)
+                        Kt = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                        !  select tangential damping mode
+                        if (m_COR > 1.0) then
+                            Ct = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
+                        elseif (m_COR >= 0.0) then
+                            lnCOR=log(m_COR)
+                            Ct = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
+                            & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                        else
+                            Ct = 0
+                        end if
+                        Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
+                        Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
+#elif HertzMindlinResti
                         !  calculate material constant
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         Mij = Body(I)*Body(J)/(Body(I)+Body(J))
@@ -131,8 +130,7 @@
                         & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
                         Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
                         Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
-!#endif
-!#endif
+#endif
                         !  translate relative velocity
                         do K = 1,3
                             Vrel(K) = Xdot(K,J) - Xdot(K,I)
@@ -397,28 +395,27 @@
                         end do
                         Ap = (R(I)*R(I)-R(J)*R(J)+DistS)/2.0*DistR
                         An = DistL-Ap
-!#ifdef HertzMindlinVisco                    
-                        !!  calculate material constant
-                        !Rij = R(I)*R(J)/(R(I)+R(J))
-                        !Mij = Body(I)*Body(J)/(Body(I)+Body(J))
-                        !Iij = 3.5*Inertia(I)*Inertia(J)/(Inertia(I)+Inertia(J))
-                        !Kn = 2.0*m_E*sqrt(Rij)/(3.0*(1.0-m_nu*m_nu))
-                        !Cn = -Kn*m_A*sqrt(Dn)
-                        !Kt = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
-                        !!  select tangential damping mode
-                        !if (m_COR > 1.0) then
-                        !    Ct = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
-                        !elseif (m_COR >= 0.0) then
-                        !    lnCOR=log(m_COR)
-                        !    Ct = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                        !    & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
-                        !else
-                        !    Ct = 0
-                        !end if
-                        !Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
-                        !Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
-!#else
-!#ifdefine HertzMindlinResti
+#ifdef HertzMindlinVisco                    
+                        !  calculate material constant
+                        Rij = R(I)*R(J)/(R(I)+R(J))
+                        Mij = Body(I)*Body(J)/(Body(I)+Body(J))
+                        Iij = 3.5*Inertia(I)*Inertia(J)/(Inertia(I)+Inertia(J))
+                        Kn = 2.0*m_E*sqrt(Rij)/(3.0*(1.0-m_nu*m_nu))
+                        Cn = -Kn*m_A*sqrt(Dn)
+                        Kt = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                        !  select tangential damping mode
+                        if (m_COR > 1.0) then
+                            Ct = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
+                        elseif (m_COR >= 0.0) then
+                            lnCOR=log(m_COR)
+                            Ct = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
+                            & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                        else
+                            Ct = 0
+                        end if
+                        Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
+                        Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
+#elif HertzMindlinResti
                         !  calculate material constant
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         Mij = Body(I)*Body(J)/(Body(I)+Body(J))
@@ -432,8 +429,7 @@
                         & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
                         Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
                         Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
-!#endif
-!#endif
+#endif
                         !  translate relative velocity
                         do K = 1,3
                             Vrel(K) = Xdot(K,J) - Xdot(K,I)
@@ -701,28 +697,27 @@
                         end do
                         Ap = (R(I)*R(I)-R(J)*R(J)+DistS)/2.0*DistR
                         An = DistL-Ap
-!#ifdef HertzMindlinVisco                    
-                        !!  calculate material constant
-                        !Rij = R(I)*R(J)/(R(I)+R(J))
-                        !Mij = Body(I)*Body(J)/(Body(I)+Body(J))
-                        !Iij = 3.5*Inertia(I)*Inertia(J)/(Inertia(I)+Inertia(J))
-                        !Kn = 2.0*m_E*sqrt(Rij)/(3.0*(1.0-m_nu*m_nu))
-                        !Cn = -Kn*m_A*sqrt(Dn)
-                        !Kt = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
-                        !!  select tangential damping mode
-                        !if (m_COR > 1.0) then
-                        !    Ct = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
-                        !elseif (m_COR >= 0.0) then
-                        !    lnCOR=log(m_COR)
-                        !    Ct = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                        !    & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
-                        !else
-                        !    Ct = 0
-                        !end if
-                        !Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
-                        !Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
-!#else
-!#ifdefine HertzMindlinResti
+#ifdef HertzMindlinVisco                    
+                        !  calculate material constant
+                        Rij = R(I)*R(J)/(R(I)+R(J))
+                        Mij = Body(I)*Body(J)/(Body(I)+Body(J))
+                        Iij = 3.5*Inertia(I)*Inertia(J)/(Inertia(I)+Inertia(J))
+                        Kn = 2.0*m_E*sqrt(Rij)/(3.0*(1.0-m_nu*m_nu))
+                        Cn = -Kn*m_A*sqrt(Dn)
+                        Kt = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                        !  select tangential damping mode
+                        if (m_COR > 1.0) then
+                            Ct = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
+                        elseif (m_COR >= 0.0) then
+                            lnCOR=log(m_COR)
+                            Ct = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
+                            & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                        else
+                            Ct = 0
+                        end if
+                        Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
+                        Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
+#elif HertzMindlinResti
                         !  calculate material constant
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         Mij = Body(I)*Body(J)/(Body(I)+Body(J))
@@ -736,8 +731,7 @@
                         & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
                         Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
                         Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
-!#endif
-!#endif
+#endif
                         !  translate relative velocity
                         do K = 1,3
                             Vrel(K) = Xdot(K,J) - Xdot(K,I)
@@ -1006,28 +1000,27 @@
                         end do
                         Ap = (R(I)*R(I)-R(J)*R(J)+DistS)/2.0*DistR
                         An = DistL-Ap
-!#ifdef HertzMindlinVisco                    
-                        !!  calculate material constant
-                        !Rij = R(I)*R(J)/(R(I)+R(J))
-                        !Mij = Body(I)*Body(J)/(Body(I)+Body(J))
-                        !Iij = 3.5*Inertia(I)*Inertia(J)/(Inertia(I)+Inertia(J))
-                        !Kn = 2.0*m_E*sqrt(Rij)/(3.0*(1.0-m_nu*m_nu))
-                        !Cn = -Kn*m_A*sqrt(Dn)
-                        !Kt = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
-                        !!  select tangential damping mode
-                        !if (m_COR > 1.0) then
-                        !    Ct = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
-                        !elseif (m_COR >= 0.0) then
-                        !    lnCOR=log(m_COR)
-                        !    Ct = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                        !    & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
-                        !else
-                        !    Ct = 0
-                        !end if
-                        !Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
-                        !Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
-!#else
-!#ifdefine HertzMindlinResti
+#ifdef HertzMindlinVisco                    
+                        !  calculate material constant
+                        Rij = R(I)*R(J)/(R(I)+R(J))
+                        Mij = Body(I)*Body(J)/(Body(I)+Body(J))
+                        Iij = 3.5*Inertia(I)*Inertia(J)/(Inertia(I)+Inertia(J))
+                        Kn = 2.0*m_E*sqrt(Rij)/(3.0*(1.0-m_nu*m_nu))
+                        Cn = -Kn*m_A*sqrt(Dn)
+                        Kt = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                        !  select tangential damping mode
+                        if (m_COR > 1.0) then
+                            Ct = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
+                        elseif (m_COR >= 0.0) then
+                            lnCOR=log(m_COR)
+                            Ct = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
+                            & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                        else
+                            Ct = 0
+                        end if
+                        Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
+                        Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
+#elif HertzMindlinResti
                         !  calculate material constant
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         Mij = Body(I)*Body(J)/(Body(I)+Body(J))
@@ -1041,8 +1034,7 @@
                         & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
                         Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
                         Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
-!#endif
-!#endif
+#endif
                         !  translate relative velocity
                         do K = 1,3
                             Vrel(K) = Xdot(K,J) - Xdot(K,I)

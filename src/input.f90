@@ -18,7 +18,7 @@
 
     !  read control parameters
     !  initial the Dx & Dy & Dz of node (2xRmax to 4xRmax).
-    open (1000,FILE="systemControl.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
+    open (1000,FILE="../Input/systemControl.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
 
     read (1000,*)
     read (1000,*) Deltat,Tcrit         !  output time interval and termination time
@@ -87,7 +87,7 @@
     close(1000)
     
     !  read & print the main input parameters.
-    open(2000,FILE="input_points.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
+    open(2000,FILE="../Input/input_points.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
 
     read (2000,*)  N                  !  the number of all particles
     read (2000,*)  m_E,m_nu           !  Youngs module; Poisson ratio
@@ -117,7 +117,7 @@
     !  read properties of Saturn and Pan
     if (isPlanet) then
         write(*,*) 'is Planet system, loading...'
-        open (2000,FILE="planetProperties.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
+        open (2000,FILE="../Input/planetProperties.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
         read (2000,*)
         read (2000,*)  muS                 !  gravity constant of Saturn
         read (2000,*)  muP                 !  gravity constant of Pan
