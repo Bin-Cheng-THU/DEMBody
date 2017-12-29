@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMbody 2.0
+    !     DEMBody 2.0
     !     ***********
     !
     !     Generate mesh based partition of Particles.

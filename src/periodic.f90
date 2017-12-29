@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMbody 2.0
+    !     DEMBody 2.0
     !     ***********
     !
     !     Change position and velocity when crossing boundary.
