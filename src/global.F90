@@ -10,7 +10,7 @@
     implicit none
 
     !  Parameters
-    integer,parameter :: NMAX = 5000 !(Using Macro instead)
+    !integer,parameter :: NMAX = 5000 !(Using Macro instead)
     real(8),parameter :: PI = 3.141592653589793
 
     !  Define control parameters of Program
