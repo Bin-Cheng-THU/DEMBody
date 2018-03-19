@@ -5,7 +5,8 @@
     !     N-body integrator flow control.
     !     -------------------------------
     !     @New method to solve the intgret: mid-step velocities verlet algoritm
-    !     @Calculated x & xdot. & w from the previous values
+    !     @Calculated x & xdot & w from the previous values.
+
     !
     !********************************************************************
     subroutine intgrt()
@@ -19,6 +20,7 @@
 1   norm = 1
 
     !################         Part 1          ###################  
+    !  calculated the force from the current x & xdot.
     !$OMP PARALLEL DO PRIVATE(I,K)
     do I = 1,N
         do K = 1,3
@@ -28,6 +30,10 @@
         end do
     end do
     !$OMP END PARALLEL DO
+    
+    if (isBondedWall) then
+        call attitudeBondedWalls
+    end if
 
     if (isQuaternion) then
         call attitude
@@ -53,6 +59,16 @@
         end do       
     end do
     !$OMP END PARALLEL DO
+    
+    if (isBondedWall) then
+        do K = 1,3
+            bondedWallXdot(K) = bondedWallXdot(K) + bondedWallF(K) * Dt /2.0
+            bondedWallWB(K) = bondedWallWB(K) + bondedWallWdotB(K) * Dt /2.0
+        end do
+        do K = 1,3
+            bondedWallW(K) = bondedWallMatB(K,1)*bondedWallWB(1) + bondedWallMatB(K,2)*bondedWallWB(2) + bondedWallMatB(K,3)*bondedWallWB(3)
+        end do
+    end if
     
     if (isQuaternion) then
         call attitude

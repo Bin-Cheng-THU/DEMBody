@@ -14,8 +14,8 @@ MODEL=-DHertzMindlinResti
 
 COMPILER=ifort -openmp -O2 -fpp $(NUMBER) $(MESH) $(CASE) $(MODEL) 
 
-DEMBody: global.o loadFile.o main.o start.o zero.o loadRestartData.o input.o periodic.o meshGenerate.o force.o forceMirror.o forceContactWalls.o forceFunnelWalls.o planet.o output.o intgrt.o attitude.o
-	$(COMPILER)  -o DEMBody global.o loadFile.o main.o start.o zero.o loadRestartData.o input.o periodic.o meshGenerate.o force.o forceMirror.o forceContactWalls.o forceFunnelWalls.o planet.o output.o intgrt.o attitude.o
+DEMBody: global.o loadFile.o main.o start.o zero.o loadRestartData.o input.o attitudeBondedWallsQM.o periodic.o meshGenerate.o force.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceFunnelWalls.o planet.o output.o intgrt.o attitudeBondedWalls.o attitude.o
+	$(COMPILER)  -o DEMBody global.o loadFile.o main.o start.o zero.o loadRestartData.o input.o attitudeBondedWallsQM.o periodic.o meshGenerate.o force.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceFunnelWalls.o planet.o output.o intgrt.o attitudeBondedWalls.o attitude.o
 
 global.mod: global.o global.f90
 	$(COMPILER)  -c global.f90
@@ -33,8 +33,10 @@ zero.o: global.mod zero.f90
 	$(COMPILER)  -c zero.f90
 loadRestartData.o: global.mod loadfile.mod loadRestartData.f90
 	$(COMPILER)  -c loadRestartData.f90
-input.o: global.mod input.f90
+input.o: global.mod loadfile.mod input.f90
 	$(COMPILER)  -c input.f90
+attitudeBondedWallsQM.o: global.mod attitudeBondedWallsQM.f90
+	$(COMPILER)  -c attitudeBondedWallsQM.f90
 periodic.o: global.mod periodic.f90
 	$(COMPILER)  -c periodic.f90
 meshGenerate.o: global.mod meshGenerate.f90
@@ -45,6 +47,8 @@ forceMirror.o: global.mod forceMirror.f90
 	$(COMPILER)  -c forceMirror.f90
 forceContactWalls.o: global.mod forceContactWalls.f90
 	$(COMPILER)  -c forceContactWalls.f90
+forceBondedWalls.o: global.mod forceBondedWalls.f90
+	$(COMPILER)  -c forceBondedWalls.f90
 forceFunnelWalls.o: global.mod forceFunnelWalls.f90
 	$(COMPILER)  -c forceFunnelWalls.f90
 planet.o: global.mod planet.f90
@@ -53,9 +57,11 @@ output.o: global.mod output.f90
 	$(COMPILER)  -c output.f90
 intgrt.o: global.mod intgrt.f90
 	$(COMPILER)  -c intgrt.f90
+attitudeBondedWalls.o: global.mod attitudeBondedWalls.f90
+	$(COMPILER)  -c attitudeBondedWalls.f90
 attitude.o: global.mod attitude.f90
 	$(COMPILER)  -c attitude.f90
 
 clean:
-	rm global.mod loadfile.mod global.o loadFile.o main.o start.o zero.o loadRestartData.o input.o periodic.o meshGenerate.o force.o forceMirror.o forceContactWalls.o forceFunnelWalls.o planet.o output.o intgrt.o attitude.o
+	rm global.mod loadfile.mod global.o loadFile.o main.o start.o zero.o loadRestartData.o input.o attitudeBondedWallsQM.o periodic.o meshGenerate.o force.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceFunnelWalls.o planet.o output.o intgrt.o attitudeBondedWalls.o attitude.o
 # End of the makefile

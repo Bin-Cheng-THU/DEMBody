@@ -48,9 +48,9 @@
     
     !  CASE1-CASE13 (Preprocessor)
     
-    F = 0.0
-    FM = 0.0
-    Energy = 0.0
+    F = 0.0D0
+    FM = 0.0D0
+    Energy = 0.0D0
 
     !  Loop over all bodies through the NodeTree.
     !$OMP PARALLEL DO REDUCTION(+:F) REDUCTION(+:FM) &
@@ -69,6 +69,7 @@
             !!!!!!!!!!!!!!!!!!!
             select case(num1)
             case(CASE1,CASE2,CASE3,CASE4,CASE5,CASE6,CASE7,CASE8,CASE9,CASE10,CASE11,CASE12,CASE13)
+            !case(1,-65,-64,-63,-4096,-4095,-4033,-4032,-4031,-4097,-4159,-4160,-4161)
                 limit = 1
             case (0)
                 if (J .GT. I) then
@@ -350,36 +351,34 @@
                     Rij = R(I)*R(J)/(R(I)+R(J))
                     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     if (Dn > -Rij*(m_r_cut-1.0)*0.5) then
-
-                    DistR = 1.0/DistL
-                    !  calculate the normal vector
-                    do K=1,3
-                        DistU(K) = Dist(K)*DistR
-                    end do
-                    !  cohesive force
-                    do K = 1,3
-                        cohesive_force(K) = - 1.0*m_Beta*3.1415926*Rij**2*DistU(K)
-                    end do
-                    do K = 1,3
-                        F(K,J) = F(K,J) + cohesive_force(K)
-                        F(K,I) = F(K,I) - cohesive_force(K)
-                    end do                      
+                        DistR = 1.0/DistL
+                        !  calculate the normal vector
+                        do K=1,3
+                            DistU(K) = Dist(K)*DistR
+                        end do
+                        !  cohesive force
+                        do K = 1,3
+                            cohesive_force(K) = - 1.0*m_Beta*3.1415926*Rij**2*DistU(K)
+                        end do
+                        do K = 1,3
+                            F(K,J) = F(K,J) + cohesive_force(K)
+                            F(K,I) = F(K,I) - cohesive_force(K)
+                        end do                      
                     else if (Dn > -Rij*(m_r_cut-1.0)) then
-
-                    DistR = 1.0/DistL
-                    !  calculate the normal vector
-                    do K=1,3
-                        DistU(K) = Dist(K)*DistR
-                    end do
-                    !  cohesive force
-                    do K = 1,3
-                        cohesive_force(K) = - 1.0*m_Beta*3.1415926*Rij**2 &
-                        &*2.0*(Dn/(R(I)+R(J))/(m_r_cut-1) + 1.0)*DistU(K)
-                    end do
-                    do K = 1,3
-                        F(K,J) = F(K,J) + cohesive_force(K)
-                        F(K,I) = F(K,I) - cohesive_force(K)
-                    end do                                                   
+                        DistR = 1.0/DistL
+                        !  calculate the normal vector
+                        do K=1,3
+                            DistU(K) = Dist(K)*DistR
+                        end do
+                        !  cohesive force
+                        do K = 1,3
+                            cohesive_force(K) = - 1.0*m_Beta*3.1415926*Rij**2 &
+                            &*2.0*(Dn/(R(I)+R(J))/(m_r_cut-1) + 1.0)*DistU(K)
+                        end do
+                        do K = 1,3
+                            F(K,J) = F(K,J) + cohesive_force(K)
+                            F(K,I) = F(K,I) - cohesive_force(K)
+                        end do                                                   
                     end if
                     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 end if
@@ -397,6 +396,11 @@
     if (isContactWall) then
         call forceContactWalls
     end if
+    
+    !  calculate force of bonded walls if using bonded walls
+    if (isBondedWall) then                     
+        call forceBondedWalls 
+    end if    
 
     !  calculate force of funnel walls if using funnel walls
     if (isFunnelWall) then

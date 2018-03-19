@@ -15,6 +15,10 @@
     type(Nodelink),pointer :: Temp
     character(20) :: FileNameX
     character(20) :: FileNameF
+    character(25) :: FileNameW
+    integer(4) :: result
+    integer,external :: systemqq
+    real(8) :: temp_bondedWallMeshPoint(3)
 
     !################         Projectile          ################### 
     !  Update next output time
@@ -24,6 +28,14 @@
     open(10,FILE='../Data/Projectile.txt')
     if (Time.LE.Tcrit) then
         write(10,'(14E20.8)') Time,(X(K,N),K=1,3),(Xdot(K,N),K=1,3),(F(K,N),K=1,3),(W(K,N),K=1,3),Energy(N)
+    end if
+    
+    if (isBondedWall) then
+        !  Output the position, velocity and angular velocity of the Bonded Walls
+        open(11,FILE='../Data/BondedWalls.txt')
+        if (Time.LE.Tcrit) then
+            write(11,'(20E15.7)') Time,(bondedWallX(K),K=1,3),(bondedWallXdot(K),K=1,3),(bondedWallW(K),K=1,3),(bondedWallQ(K),K=1,4),(bondedWallF(K),K=1,3),(bondedWallFM(K),K=1,3)
+        end if
     end if
 
     if (Time .GE. CheckPointTnext) then
@@ -71,7 +83,24 @@
             write(Step+1000,*)
         end do
         close(Step+1000)
-
+        
+        !  Output the Bonded Wall Meshfile
+        if (isBondedWall) then
+            write(FileNameW,'(I4)') Step+1000
+            FileNameW = '../Data/Wall/'//FileNameW
+            FileNameW = trim(FileNameW)//'W.vtk'
+            
+            result = systemqq("cp ../Input/bondedWallMesh.vtk "//FileNameW)
+            open(Step+1000,FILE=FileNameW,position='Append')
+            do J=1,size(bondedWallMeshPoint,2)
+                do K = 1,3
+                    temp_bondedWallMeshPoint(K) = bondedWallX(K) + bondedWallMatB(K,1)*bondedWallMeshPoint(1,J) + bondedWallMatB(K,2)*bondedWallMeshPoint(2,J) + bondedWallMatB(K,3)*bondedWallMeshPoint(3,J)
+                end do
+                write(Step+1000,'(3F10.4)') (temp_bondedWallMeshPoint(K),K=1,3)
+            end do  
+            close(Step+1000)
+        end if
+        
         Step = Step + 1          
     end if
 

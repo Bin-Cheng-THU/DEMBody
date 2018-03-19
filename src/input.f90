@@ -9,10 +9,12 @@
     subroutine input()
 
     use global
+    use loadFile
     implicit none
     
     integer :: I,K
     integer :: numFlag
+    integer :: nRow
 
     write(*,*) "Input file loading..."
 
@@ -33,6 +35,7 @@
     read (1000,*) isQuaternion         !  whether intergrate Quaternion
     read (1000,*) isContactWall        !  whether use Contactable Walls
     read (1000,*) isMovingWall         !  whether use Moving Walls
+    read (1000,*) isBondedWall         !  whether use Bonded Walls
     read (1000,*) isFunnelWall         !  whether use Funnel Walls
     read (1000,*) isPeriodic           !  whether use Periodic function
     read (1000,*) MAX_ACC              !  maximum contact acceleration
@@ -54,8 +57,49 @@
             numFlag = numFlag + 1
             read (1000,*) (contactWallPoint(K,I),K=1,3),(contactWallVector(K,I),K=1,3)
         end do
+    else
+        read (1000,*) 
+        read (1000,*)
     end if
-
+    
+    !  initial the bonded walls
+    if (isBondedWall) then
+        write(*,*) 'is Bonded walls, loading...'
+        read (1000,*)
+        read (1000,*) (bondedWallX(K),K=1,3),(bondedWallXdot(K),K=1,3),(bondedWallW(K),K=1,3)
+        read (1000,*) (bondedWallQ(K),K=1,4)
+        read (1000,*) bondedWallBody,(bondedWallInertia(K),K=1,3)
+        read (1000,*) bondedWallNum
+        allocate (bondedWallTag(bondedWallNum))
+        allocate (bondedWallPoint(3,bondedWallNum))
+        allocate (bondedWallVectorN(3,bondedWallNum))
+        allocate (bondedWallVectorTx(3,bondedWallNum))
+        allocate (bondedWallVectorTy(3,bondedWallNum))
+        allocate (bondedWallLx(bondedWallNum))
+        allocate (bondedWallLy(bondedWallNum))
+        do I = 1,bondedWallNum
+            bondedWallTag(I) = N + numFlag
+            numFlag = numFlag + 1
+            read (1000,*) (bondedWallPoint(K,I),K=1,3),(bondedWallVectorN(K,I),K=1,3),(bondedWallVectorTx(K,I),K=1,3),(bondedWallVectorTy(K,I),K=1,3),bondedWallLx(I),bondedWallLy(I)
+        end do
+        call attitudeBondedWallsQM
+        !  unified input parameters
+        do K = 1,3
+            bondedWallWB(K) = bondedWallMatI(K,1)*bondedWallW(1) + bondedWallMatI(K,2)*bondedWallW(2) + bondedWallMatI(K,3)*bondedWallW(3)
+        end do
+        !  load bonded wall mesh
+        open (1500,File="../Input/bondedWallPoint.vtk")
+        nRow = GetFileN(1500)
+        allocate (bondedWallMeshPoint(3,nRow))
+        do I = 1,nRow
+            read (1500,*) (bondedWallMeshPoint(K,I),K=1,3)
+        end do
+        close(1500)
+    else
+        read (1000,*)
+        read (1000,*)
+    end if
+    
     !  initial the funnel walls
     if (isFunnelWall) then
         write(*,*) 'is Funnel walls, loading...'
@@ -71,6 +115,9 @@
             numFlag = numFlag + 1
             read (1000,*) (funnelWallPoint(K,I),K=1,3),(funnelWallVector(K,I),K=1,3),(funnelWallRadius(K,I),K=1,2),funnelWallLength(I)
         end do
+    else
+        read (1000,*)
+        read (1000,*)
     end if
     
     !  initial the geometry boundary of the Particle Box
@@ -83,6 +130,9 @@
         read (1000,*) (PlaSy2p(K),K=1,3),(PlaSy2v(K),K=1,3)
         read (1000,*) LenBox
         read (1000,*) gamma
+    else
+        read (1000,*)
+        read (1000,*)
     end if
     close(1000)
     

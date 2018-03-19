@@ -6,11 +6,29 @@
     !     ------------------
     !
     !********************************************************************
+
+    !#define NMAX  5000
+    !#define CASE1 1
+    !#define CASE2 -65
+    !#define CASE3 -64
+    !#define CASE4 -63
+    !#define CASE5 -4096
+    !#define CASE6 -4095
+    !#define CASE7 -4033
+    !#define CASE8 -4032
+    !#define CASE9 -4031
+    !#define CASE10 -4097
+    !#define CASE11 -4159
+    !#define CASE12 -4160
+    !#define CASE13 -4161
+    !#define CASE ALL
+    !#define MODEL HertzMindlinResti
+
     module global
     implicit none
 
     !  Parameters
-    !integer,parameter :: NMAX = 5000 !(Using Macro instead)
+    !integer,parameter :: NMAX = 10 !(Using Macro instead)
     real(8),parameter :: PI = 3.141592653589793
 
     !  Define control parameters of Program
@@ -18,6 +36,7 @@
     logical :: isQuaternion
     logical :: isContactWall
     logical :: isMovingWall
+    logical :: isBondedWall
     logical :: isFunnelWall
     logical :: isPeriodic
     real(8) :: Max_ACC
@@ -61,6 +80,23 @@
     integer,allocatable :: movingWallTag(:)
     real(8),allocatable :: movingWallPoint(:,:)
     real(8),allocatable :: movingWallVector(:,:)
+    
+    !  Define parameters of Bonded Walls
+    real(8) :: bondedWallX(3),bondedWallXdot(3),bondedWallW(3)
+    real(8) :: bondedWallQ(4),bondedWallMatI(3,3),bondedWallMatB(3,3)
+    real(8) :: bondedWallBody,bondedWallInertia(3)
+    real(8) :: bondedWallF(3),bondedWallFM(3)
+    !  body-fixed frame
+    real(8) :: bondedWallWB(3),bondedWallWdotB(3)    
+    real(8),allocatable :: bondedWallMeshPoint(:,:) 
+    integer :: bondedWallNum
+    integer,allocatable :: bondedWallTag(:)
+    real(8),allocatable :: bondedWallPoint(:,:)
+    real(8),allocatable :: bondedWallVectorN(:,:)
+    real(8),allocatable :: bondedWallVectorTx(:,:)
+    real(8),allocatable :: bondedWallVectorTy(:,:)
+    real(8),allocatable :: bondedWallLx(:),bondedWallLy(:)
+    
     
     !  Define parameters of Funnel Walls
     integer :: funnelWallNum
