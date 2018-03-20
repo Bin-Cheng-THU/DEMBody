@@ -23,6 +23,7 @@
     open (1000,FILE="../Input/systemControl.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
 
     read (1000,*)
+    read (1000,*)
     read (1000,*) Deltat,Tcrit         !  output time interval and termination time
     read (1000,*) CheckPointDt         !  check point time interval
     read (1000,*) Dt                   !  time step of second-step integral
