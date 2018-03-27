@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 2.0
+    !     DEMBody 3.0
     !     ***********
     !
     !     Polynomial initialization.
@@ -12,13 +12,13 @@
     implicit none
     
     !  Initialize global scalars, counters & useful constants.
-    call zero
+    call initialSystem
 
     !  Load Contact History
     call loadRestartData
 
     !  Read input parameters and set initial conditions: Body(I),X(K,I),Xdot(K,I); I=1,N & K=1,3.
-    call input
+    call loadData
 
     RETURN
     END

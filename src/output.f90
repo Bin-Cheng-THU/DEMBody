@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 2.0
+    !     DEMBody 3.0
     !     ***********
     !
     !     Output and data save.
@@ -7,8 +7,9 @@
     !
     !********************************************************************
     subroutine output()
-
+    
     use global
+    use omp_lib
     implicit none
     
     integer :: I,J,K
@@ -57,7 +58,7 @@
             close(Step+1000)
         else
             open(Step+1000,FILE=FileNameX)
-            write(Step+1000,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','F:1',',','F:2',',','F:3',',','R',',','Time',',','EN',',','W:1',',','W:2',',','W:3',',','X0',',','Y0',',','Z0'
+            write(Step+1000,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','F:1',',','F:2',',','F:3',',','R',',','Time',',','EN',',','W:1',',','W:2',',','W:3',',','X0',',','Y0',',','Z0',',','color'
             do  J=1,N
                 write(Step+1000,22)X(1,J),',',X(2,J),',',X(3,J),',',Xdot(1,J),',',Xdot(2,J),',',Xdot(3,J),',',F(1,J),',',F(2,J),',',F(3,J),',',R(J),',',Time,',',Energy(J),',',W(1,J),',',W(2,J),',',W(3,J),',',X0(1,J),',',X0(2,J),',',X0(3,J)
             end do
@@ -107,8 +108,8 @@
     !  Check termination time.
     if (Time<Tcrit) return
 
-    call CPU_TIME(T2)
-    write(*,*) "time cost: ", (T2-T1)/20/3600
+    T2 = omp_get_wtime()
+    write(*,*) "time cost: ", (T2-T1)
 
     stop
     end

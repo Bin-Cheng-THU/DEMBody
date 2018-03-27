@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 2.0
+    !     DEMBody 3.0
     !     ***********
     !
     !     Force for all particles.
@@ -39,15 +39,6 @@
     integer :: region                 !  Upper limit of Loops 
     logical :: check                  !  Check for meshgrid
 
-    !  check for All particles or Projectile impact (Preprocessor)
-#ifdef ALL 
-    region = N
-#elif PROJECTILE
-    region = N - 1
-#endif    
-    
-    !  CASE1-CASE13 (Preprocessor)
-    
     F = 0.0D0
     FM = 0.0D0
     Energy = 0.0D0
@@ -61,7 +52,7 @@
     !$OMP& rolling_moment,rolling_momentL,cohesive_force,Ap,An,Rij,Mij,Iij,&
     !$OMP& Kn,Cn,Kt,Ct,Kr,Cr,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,H,M,RV,&
     !$OMP& slipping,rolling,touching) SCHEDULE(DYNAMIC)
-    do I = 1,region  !  .OR. N-1
+    do I = 1,N
         do J = 1,N
             !  calculated the NodeTree to detect the overlaps.
             limit = 0
@@ -69,19 +60,16 @@
             !!!!!!!!!!!!!!!!!!!
             select case(num1)
             case(CASE1,CASE2,CASE3,CASE4,CASE5,CASE6,CASE7,CASE8,CASE9,CASE10,CASE11,CASE12,CASE13)
-            !case(1,-65,-64,-63,-4096,-4095,-4033,-4032,-4031,-4097,-4159,-4160,-4161)
                 limit = 1
             case (0)
                 if (J .GT. I) then
                     limit = 1
                 end if
             end select
-#ifdef ALL            
+
             check = limit.EQ.1
-#elif PROJECTILE
-            check = limit.EQ.1 .OR. J.EQ.N
-#endif
-            if (check) then   !  .OR. J.EQ.N
+            
+            if (check) then 
                 !  Initialize state params
                 do K = 1,3
                     Dist(K) = X(K,J) -  X(K,I)
@@ -128,7 +116,7 @@
                     end do
                     Ap = (R(I)*R(I)-R(J)*R(J)+DistS)/2.0*DistR
                     An = DistL-Ap
-#ifdef HertzMindlinVisco                    
+                    #ifdef HertzMindlinVisco                    
                     !  calculate material constant
                     Rij = R(I)*R(J)/(R(I)+R(J))
                     Mij = Body(I)*Body(J)/(Body(I)+Body(J))
@@ -148,7 +136,7 @@
                     end if
                     Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
                     Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
-#elif HertzMindlinResti
+                    #elif HertzMindlinResti
                     !  calculate material constant
                     Rij = R(I)*R(J)/(R(I)+R(J))
                     Mij = Body(I)*Body(J)/(Body(I)+Body(J))
@@ -162,7 +150,7 @@
                          & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
                     Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
                     Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
-#endif
+                    #endif
                     !  translate relative velocity
                     do K = 1,3
                         Vrel(K) = Xdot(K,J) - Xdot(K,I)
@@ -401,7 +389,7 @@
     if (isBondedWall) then                     
         call forceBondedWalls 
     end if    
-
+    
     !  calculate force of funnel walls if using funnel walls
     if (isFunnelWall) then
         call forceFunnelWalls

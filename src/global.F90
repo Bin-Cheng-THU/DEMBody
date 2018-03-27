@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 2.0
+    !     DEMBody 3.0
     !     ***********
     !
     !     Global parameters.
@@ -8,6 +8,7 @@
     !********************************************************************
 
     !#define NMAX  5000
+    !#define NLAT  100
     !#define CASE1 1
     !#define CASE2 -65
     !#define CASE3 -64
@@ -21,14 +22,14 @@
     !#define CASE11 -4159
     !#define CASE12 -4160
     !#define CASE13 -4161
-    !#define CASE ALL
     !#define MODEL HertzMindlinResti
 
     module global
     implicit none
 
     !  Parameters
-    !integer,parameter :: NMAX = 10 !(Using Macro instead)
+    !integer,parameter :: NMAX = 10000 !(Using Macro instead)
+    !integer,parameter :: NLAT = 5000 !(Using Macro instead)
     real(8),parameter :: PI = 3.141592653589793
 
     !  Define control parameters of Program
@@ -55,6 +56,26 @@
 
     !  Nodelink of Particle
     type(Nodelink),pointer :: Head(:)  
+    
+    !  Conduct lattice
+    type :: Lattice
+        integer :: ID(3)
+        real(8) :: PositionD(3)
+        real(8) :: PositionU(3)
+        integer :: NoInner
+        integer :: NoOuter
+        integer :: IDInner(NLAT)
+        integer :: IDOuter(NLAT)
+    end type Lattice
+    
+    !  DEM Lattice
+    type(Lattice),pointer :: DEM(:)
+    
+    !  Parallel Lattice params
+    real(8) :: LatDx,LatDy,LatDz
+    integer :: LatNx,LatNy,LatNz
+    integer :: LatNum
+    integer,allocatable :: ParallelLatticeColor(:,:)
     
     !  Define parameters of Particle
     real(8) :: X(3,NMAX),Xdot(3,NMAX),W(3,NMAX)
@@ -138,21 +159,3 @@
     integer :: Step
    
     end module
-    
-    !*
-    !历史遗留问题
-    !COMMON/NBODY/  X,Xdot,W,Body,R,Inertia,F,FM,Energy,Head,X0 ! Particle - Particle
-    !!
-    !COMMON/MATERIAL/ m_E,m_nu,m_mu_d,m_mu_s,m_COR,m_mu_r,m_nita_r,m_Beta,m_r_cut,m_A,G !Material param
-    !!
-    !COMMON/PROPERTIES/ muS,muP,rOrig,omiga  !  Dynamical system param
-    !!
-    !COMMON/WALLS/  PlaSx1p,PlaSx1v,PlaSx2p,PlaSx2v,PlaSy1p,PlaSy1v,PlaSy2p,PlaSy2v,& ! Particle - Wall  
-    !&LenBox,gamma,Tag1,Tag2,Tag3,Tag4 !Do not need to add the contact walls because these parameters are in Module
-    !!
-    !COMMON/MESH/  N,Dx,Dy,Dz,Mx,My,Mz,Nx,Ny,Nz,Linklist  ! Mesh param
-    !!
-    !COMMON/PARAMS/ T1,T2,Time,Deltat,Tcrit,Dt,Tnext,Step,CheckPointDt,CheckPointTnext ! Console param
-    !!
-    !COMMON/CONTROL/ isGravity,isPlanet,isPeriodic,Max_ACC  !  Control param   
-!* 

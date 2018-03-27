@@ -13,7 +13,7 @@ aviobj = VideoWriter('out.avi'); %初始化一个avi文件
 aviobj.FrameRate = fps;
 open(aviobj);
 
-for ii=1000:(1000+N)
+for ii=1000:(1000+N-1)
     filename = strcat(folderPath,'Scene');
     filename = strcat(filename,num2str(ii));
     filename = strcat(filename,'.png');

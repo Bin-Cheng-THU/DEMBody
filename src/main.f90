@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 2.0
+    !     DEMBody 3.0
     !     ***********
     !
     !     DEM & NBODY CODE
@@ -12,24 +12,22 @@
     program main
 
     use global
+    use omp_lib
     implicit none
     
     !$OMP PARALLEL
     write(*,*) "Parallel Succeed"
     !$OMP END PARALLEL
 
-    write(*,*) "Remember to change ParticleNumber !!!"
-    write(*,*) "Remember to change the input.txt  !!!"
-    write(*,*) "Remember to change the output.txt !!!"
-    write(*,*) "Remember to change the CPU - time !!!"
-    write(*,*) "Remember to change the Link-List  !!!"
-    write(*,*) "Remember to change the Node-link  !!!"
-    write(*,*) "Remember to change the Wall-Ground!!!"
+    write(*,*) "Remember to change the Makefile !!!"
+    write(*,*) "Remember to change input files  !!!"
+    write(*,*) "Remember to change system files !!!"
     
     !  Read input parameters and perform initial setup.
     call start
+    
     write(*,*) "Begin to calculate, good luck!"
-    call CPU_TIME(T1)
+    T1 = omp_get_wtime()
 
     !  Calculate total energy and produce output.
 3   call output

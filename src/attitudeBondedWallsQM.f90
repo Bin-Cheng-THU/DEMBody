@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 2.0
+    !     DEMBody 3.0
     !     ***********
     !
     !     N-body integrator of Quaternion.
@@ -11,7 +11,6 @@
     
     use global
     implicit none
-
 
     !  Attitude Matrix in inertial frame
     bondedWallMatI(1,1) = bondedWallQ(1)**2-bondedWallQ(2)**2-bondedWallQ(3)**2+bondedWallQ(4)**2

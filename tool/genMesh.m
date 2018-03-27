@@ -1,42 +1,37 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%           generate Mesh Parameters for DEMBody
+%           input: particle size; boundary size
+%           output: DEMBody Parallel Lattice Parameters
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc;clear;
-dx = 2.5; %2.5Rmax
-x = 75; %Boundary size
-y = 75; %Boundary size
-z = 0;
-% 为了防止颗粒一直位于网格边界上
-% 出现数值不稳定的现象（即两个网格）
-% 来回跑，因此将其设于网格内部
-% 因此需要长方体偏心网格
-% 上述说明错误！！！！！！
+format long;
+%% Input Parameters
+dx = 0.625; %2.5Rmax
+x = 7.5; %Boundary size
+y = 12.5; %Boundary size
+z = 12.5;
+NMAX = 500000;
 
-num1 = x/dx*2;
-num2 = num1*num1;
+%% Mesh Grid
+Nx = x/dx*2;
+Ny = y/dx*2;
+num = Nx*Ny;
 
 casenum(1) = 1;
-casenum(2) = -num1-1;
-casenum(3) = -num1;
-casenum(4) = -num1+1;
-casenum(5) = -num2;
-casenum(6) = -num2+1;
-casenum(7) = -num2+num1-1;
-casenum(8) = -num2+num1;
-casenum(9) = -num2+num1+1;
-casenum(10) = -num2-1;
-casenum(11) = -num2-num1+1;
-casenum(12) = -num2-num1;
-casenum(13) = -num2-num1-1;
-casenum = casenum';
-disp(round(casenum(1)))
-disp(round(casenum(2)))
-disp(round(casenum(3)))
-disp(round(casenum(4)))
-disp(round(casenum(5)))
-disp(round(casenum(6)))
-disp(round(casenum(7)))
-disp(round(casenum(8)))
-disp(round(casenum(9)))
-disp(round(casenum(10)))
-disp(round(casenum(11)))
-disp(round(casenum(12)))
-disp(round(casenum(13)))
+casenum(2) = -Nx-1;
+casenum(3) = -Nx;
+casenum(4) = -Nx+1;
+casenum(5) = -num;
+casenum(6) = -num+1;
+casenum(7) = -num+Nx-1;
+casenum(8) = -num+Nx;
+casenum(9) = -num+Nx+1;
+casenum(10) = -num-1;
+casenum(11) = -num-Nx+1;
+casenum(12) = -num-Nx;
+casenum(13) = -num-Nx-1;
+fprintf(1,'%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d',casenum(1:13));
+disp(Nx);
+disp(num);
 
+%% Parallel Lattice

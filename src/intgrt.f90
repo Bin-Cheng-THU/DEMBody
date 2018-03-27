@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 2.0
+    !     DEMBody 3.0
     !     ***********
     !
     !     N-body integrator flow control.
@@ -44,10 +44,12 @@
     end if
 
     call meshGenerate
+    
+    call latticeGenerate
 
     !################         Part 2          ################### 
     !  calculated the force from the current x & xdot.
-    call force
+    call forceLattice
 
     !################         Part 3          ################### 
     !  calculated the current xdot

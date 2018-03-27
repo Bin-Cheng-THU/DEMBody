@@ -1,8 +1,8 @@
     !********************************************************************
-    !     DEMBody 2.0
+    !     DEMBody 3.0
     !     ***********
     !
-    !     Generate mesh based partition of Particles.
+    !     Generate mesh based on partition of Particles.
     !     -------------------------------------------
     !
     !********************************************************************
@@ -16,7 +16,7 @@
     !$OMP PARALLEL DO PRIVATE(I)
     do I = 1,N
         !  calculate linklist employing X & Dx
-        Linklist(I) = int((X(1,I)+Mx)/Dx) + Nx + int((X(2,I)+My)/Dy)*Ny+ int((X(3,I)+Mz)/Dz)*Nz
+        Linklist(I) = floor((X(1,I)+Mx)/Dx) + Nx + floor((X(2,I)+My)/Dy)*Ny+ floor((X(3,I)+Mz)/Dz)*Nz
     end do
     !$OMP END PARALLEL DO
     

@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 2.0
+    !     DEMBody 3.0
     !     ***********
     !
     !     Force for funnel walls.
@@ -184,7 +184,7 @@
                     Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
                     Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
 #endif
-                   !  translate relative velocity
+                    !  translate relative velocity
                     do K = 1,3
                         Vrel(K) = Xdot(K,I)
                     end do
