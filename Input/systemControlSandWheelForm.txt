@@ -19,7 +19,8 @@ False
 *---Gravity
 980.0
 *---Contactable walls
-1	0.0	0.0	18.0	0.0	0.0	1.0
+1
+0.0	0.0	18.0	0.0	0.0	1.0
 *---Bonded walls
 0
 *---Funnel walls
