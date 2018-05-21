@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 3.0
+    !     DEMBody 4.0
     !     ***********
     !
     !     Force for funnel walls.
@@ -21,19 +21,20 @@
     real(kind=8)  normal_force(3),normal_forceL
     real(kind=8)  tangential_force(3),tangential_forceL
     real(kind=8)  rolling_moment(3),rolling_momentL
+    real(kind=8)  twisting_moment(3),twisting_momentL
     real(kind=8)  cohesive_force(3)
     real(kind=8)  Ap,An
     real(kind=8)  Rij,Mij,Iij
-    real(kind=8)  Kn,Cn,Kt,Ct,Kr,Cr,lnCOR
-    real(kind=8)  Dn,Ds(3),DsL,Dtheta(3),DthetaL
-    real(kind=8)  H(3),M(3)
+    real(kind=8)  Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR
+    real(kind=8)  Dn,Ds(3),DsL,Dtheta(3),DthetaL,DthetaR(3),DthetaRL,DthetaT(3),DthetaTL
+    real(kind=8)  H(3),Mr(3),Mt(3)
     real(kind=8)  RV(3)
-    logical :: slipping,rolling       !  State of friction of T
-    logical :: touching               !  State of touch of T
-    integer :: I,J,K,L,II,LenNode     !  Iterator
-    type(Nodelink),pointer :: Temp    !  Temporary pointer
-    type(Nodelink),pointer :: TempH   !  Contact pointer
-    integer :: OMP_funnelWallTag     !  Tag for walls in OMP
+    logical :: slipping,rolling,twisting                          !  State of friction of T
+    logical :: touching                                           !  State of touch of T
+    integer :: I,J,K,L,II,LenNode                                 !  Iterator
+    type(Nodelink),pointer :: Temp                                !  Temporary pointer
+    type(Nodelink),pointer :: TempH                               !  Contact pointer
+    integer :: OMP_funnelWallTag                                  !  Tag for walls in OMP
     real(kind=8)  OMP_funnelWallPoint(3),OMP_funnelWallVector(3)  !  Point and Vector for walls in OMP
     real(kind=8)  OMP_funnelWallRadius(2),OMP_funnelWallLength    !  Radius and Length for walls in OMP
     real(kind=8)  RVb(3),RVu(3),RVg(3),RVn(3),RVc(3),norm
@@ -51,16 +52,15 @@
         OMP_funnelWallLength = funnelWallLength(II)
         
         !  Loop over all bodies.
-        !$OMP PARALLEL DO REDUCTION(+:F) REDUCTION(+:FM) &
-        !$OMP& REDUCTION(+:Energy) &
+        !$OMP PARALLEL DO &
         !$OMP& firstprivate(OMP_funnelWallTag,OMP_funnelWallPoint,OMP_funnelWallVector,OMP_funnelWallRadius,OMP_funnelWallLength)&
         !$OMP& PRIVATE(RVb,RVu,RVg,RVn,RVc,norm,enterFlag)&
         !$OMP& PRIVATE(Temp,TempH,LenNode,&
         !$OMP& I,J,K,L,II,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
         !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,&
-        !$OMP& rolling_moment,rolling_momentL,cohesive_force,Ap,An,Rij,Mij,Iij,&
-        !$OMP& Kn,Cn,Kt,Ct,Kr,Cr,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,H,M,RV,&
-        !$OMP& slipping,rolling,touching) SCHEDULE(DYNAMIC)
+        !$OMP& rolling_moment,rolling_momentL,twisting_moment,twisting_momentL,cohesive_force,Ap,An,Rij,Mij,Iij,&
+        !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
+        !$OMP& slipping,rolling,twisting,touching) SCHEDULE(DYNAMIC)
         do I = 1,N
             enterFlag = .False.
             do K = 1,3
@@ -108,11 +108,13 @@
                 do K = 1,3
                     Dist(K) = ERR*RVn(K)
                     H(K) = 0.0
-                    M(K) = 0.0
+                    Mr(K) = 0.0
+                    Mt(K) = 0.0
                 end do
                 touching = .false.
                 slipping = .false.
-                rolling = .false.            
+                rolling = .false. 
+                twisting = .false.
                 !  Distance vector
                 DistS = Dist(1)*Dist(1) + Dist(2)*Dist(2) + Dist(3)*Dist(3)
                 DistL = sqrt(DistS)
@@ -126,11 +128,13 @@
                         if (Temp%No .EQ. OMP_funnelWallTag) then
                             do K = 1,3
                                 H(K) = Temp%Hertz(K)
-                                M(K) = Temp%Mrot(K)
+                                Mr(K) = Temp%Mrot(K)
+                                Mt(K) = Temp%Mtwist(K)
                             end do
                             touching = Temp%is_touching
                             slipping = Temp%is_slipping
                             rolling = Temp%is_rolling
+                            twisting = Temp%is_twisting
                             exit
                         else if (Temp%No.LT.OMP_funnelWallTag .AND. associated(Temp%next)) then
                             Temp => Temp%next
@@ -153,38 +157,40 @@
                     !  calculate material constant
                     Rij = R(I)
                     Mij = Body(I)
-                    Iij = 3.5*Inertia(I)
-                    Kn = 2.0*m_E*sqrt(Rij)/(3.0*(1.0-m_nu*m_nu))
-                    Cn = -Kn*m_A*sqrt(Dn)
-                    Kt = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                    Kn = 2.0*m_E*sqrt(Rij*Dn)/(3.0*(1.0-m_nu*m_nu))
+                    Cn = -Kn*m_A
+                    Ks = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
                     !  select tangential damping mode
                     if (m_COR > 1.0) then
-                        Ct = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
+                        Cs = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
                     elseif (m_COR >= 0.0) then
                         lnCOR=log(m_COR)
-                        Ct = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
+                        Cs = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
                         & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
                     else
-                        Ct = 0
+                        Cs = 0
                     end if
-                    Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
-                    Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
+                    Kr = 0.25*Kn*(m_Beta*Rij)**2
+                    Cr = 0.25*Cn*(m_Beta*Rij)**2
+                    Kt = 0.5*Ks*(m_Beta*Rij)**2
+                    Ct = 0.5*Cs*(m_Beta*Rij)**2
 #elif HertzMindlinResti
                     !  calculate material constant
                     Rij = R(I)
                     Mij = Body(I)
-                    Iij = 3.5*Inertia(I)
-                    Kn = 2.0*m_E*sqrt(Rij)/(3.0*(1.0-m_nu*m_nu))
+                    Kn = 2.0*m_E*sqrt(Rij*Dn)/(3.0*(1.0-m_nu*m_nu))
                     lnCOR = log(m_COR)
                     Cn = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
                           & *sqrt(Mij*m_E/(1.0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
-                    Kt = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
-                    Ct = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
+                    Ks = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                    Cs = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
                          & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
-                    Kr = 2.25*(Rij**2)*(m_mu_r**2)*Kn*sqrt(Dn)
-                    Cr = 2.0*m_nita_r*sqrt(Iij*Kr)
+                    Kr = 0.25*Kn*(m_Beta*Rij)**2
+                    Cr = 0.25*Cn*(m_Beta*Rij)**2
+                    Kt = 0.5*Ks*(m_Beta*Rij)**2
+                    Ct = 0.5*Cs*(m_Beta*Rij)**2
 #endif
-                    !  translate relative velocity
+                   !  translate relative velocity
                     do K = 1,3
                         Vrel(K) = Xdot(K,I)
                     end do
@@ -208,12 +214,12 @@
 
                     !  normal force of Particle I
                     do K = 1,3
-                        normal_force(K) = Kn*(Dn**1.5)*DistU(K) + Cn*Vnor(K)
+                        normal_force(K) = Kn*Dn*DistU(K) + Cn*Vnor(K)
                     end do
                     normal_forceL = sqrt(normal_force(1)*normal_force(1) + normal_force(2)*normal_force(2) + normal_force(3)*normal_force(3))
 
                     !  Add energy
-                    Energy(I) = Energy(I) + 0.2*Kn*(Dn**2.5)
+                    Energy(I) = Energy(I) + 0.4*Kn*(Dn**2)
                     
                     !  tangential deform
                     do K = 1,3
@@ -223,7 +229,7 @@
 
                     !  tangential force of Particle I
                     do K = 1,3
-                        tangential_force(K) = - Kt*Ds(K) + Ct*Vtan(K) + H(K)
+                        tangential_force(K) = - Ks*Ds(K) + Cs*Vtan(K) + H(K)
                     end do
                     tangential_forceL = sqrt(tangential_force(1)*tangential_force(1) + tangential_force(2)*tangential_force(2) + tangential_force(3)*tangential_force(3))
 
@@ -265,22 +271,32 @@
                     FM(2,I) = - Ap*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + FM(2,I) 
                     FM(3,I) = - Ap*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + FM(3,I) 
 
-                    !  rolling deform
+                    !  rolling
                     do K = 1,3
                         Dtheta(K) = (W(K,I))*Dt
                     end do
-                    DthetaL = sqrt(Dtheta(1)*Dtheta(1) + Dtheta(2)*Dtheta(2) + Dtheta(3)*Dtheta(3))
+                    DthetaL = Dtheta(1)*DistU(1) + Dtheta(2)*DistU(2) + Dtheta(3)*DistU(3)
+                    !  twisting deform
+                    do K = 1,3
+                        DthetaT(K) = DthetaL*DistU(K)
+                    end do
+                    DthetaTL = sqrt(DthetaT(1)*DthetaT(1) + DthetaT(2)*DthetaT(2) + DthetaT(3)*DthetaT(3))
+                    !  rolling deform
+                    do K = 1,3
+                        DthetaR(K) = Dtheta(K) - DthetaT(K)
+                    end do
+                    DthetaRL = sqrt(DthetaR(1)*DthetaR(1) + DthetaR(2)*DthetaR(2) + DthetaR(3)*DthetaR(3))
 
                     !  rolling moment of Particle I
                     do K = 1,3
-                        rolling_moment(K) = - Kr*Dtheta(K) + M(K)
+                        rolling_moment(K) = - Kr*DthetaR(K) + Mr(K)
                     end do
                     rolling_momentL = sqrt(rolling_moment(1)*rolling_moment(1) + rolling_moment(2)*rolling_moment(2) + rolling_moment(3)*rolling_moment(3))                
 
                     if (rolling) then  !  Have rolled
-                        if (DthetaL .GT. 1e-8) then  !  Still slipping
+                        if (DthetaRL .GT. 1e-8) then  !  Still slipping
                             do K = 1,3
-                                rolling_moment(K) = -m_mu_r*Rij*normal_forceL*Dtheta(K)/DthetaL  !  Particle I
+                                rolling_moment(K) = -2.1*0.25*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle I
                             end do
                         else  !  Approach sticking
                             do K = 1,3
@@ -289,11 +305,11 @@
                             rolling = .false.
                         end if
                     else
-                        if (rolling_momentL .GT. normal_forceL*Rij*m_mu_r) then  !  Rolling
+                        if (rolling_momentL .GT. 2.1*0.25*m_Beta*Rij*normal_forceL) then  !  Rolling
                             rolling = .true.
-                            if (DthetaL .GT. 1e-14) then
+                            if (DthetaRL .GT. 1e-14) then
                                 do K = 1,3
-                                    rolling_moment(K) = -m_mu_r*Rij*normal_forceL*Dtheta(K)/DthetaL
+                                    rolling_moment(K) = -2.1*0.25*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL
                                 end do
                             else
                                 do K = 1,3
@@ -303,19 +319,58 @@
                         else
                             rolling = .false. !  Sticking
                             do K = 1,3
-                                rolling_moment(K) = rolling_moment(K) - Cr*(W(K,I))
+                                rolling_moment(K) = rolling_moment(K) + Cr*DthetaR(K)/Dt
                             end do
                         end if
                     end if                                  
 
+                    !  twisting moment of Particle I
+                    do K = 1,3
+                        twisting_moment(K) = - Kt*DthetaT(K) + Mt(K)
+                    end do
+                    twisting_momentL = sqrt(twisting_moment(1)*twisting_moment(1) + twisting_moment(2)*twisting_moment(2) + twisting_moment(3)*twisting_moment(3))                
+
+                    if (twisting) then  !  Have twisted
+                        if (DthetaTL .GT. 1e-8) then  !  Still slipping
+                            do K = 1,3
+                                twisting_moment(K) = -0.65*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle I
+                            end do
+                        else  !  Approach sticking
+                            do K = 1,3
+                                twisting_moment(K) = 0.0  !  Particle I
+                            end do
+                            twisting = .false.
+                        end if
+                    else
+                        if (twisting_momentL .GT. 0.65*m_mu_s*m_Beta*Rij*normal_forceL) then  !  Rolling
+                            twisting = .true.
+                            if (DthetaTL .GT. 1e-14) then
+                                do K = 1,3
+                                    twisting_moment(K) = -0.65*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL
+                                end do
+                            else
+                                do K = 1,3
+                                    twisting_moment(K) = 0.0
+                                end do
+                            end if
+                        else
+                            twisting = .false. !  Sticking
+                            do K = 1,3
+                                twisting_moment(K) = twisting_moment(K) - Ct*DthetaT(K)/Dt
+                            end do
+                        end if
+                    end if                             
+
+                    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
                     !  Apply moment
                     do K = 1,3
-                        FM(K,I) = rolling_moment(K) + FM(K,I)
+                        FM(K,I) = rolling_moment(K) + twisting_moment(K) + FM(K,I)
                     end do
+                    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
                     !!  cohesive force
                     !do K = 1,3
-                    !    cohesive_force(K) = - 1.0*m_Beta*3.1415926*Rij**2*DistU(K)
+                    !    cohesive_force(K) = - m_c*(m_Beta*Rij)**2*DistU(K)
                     !end do
                     !do K = 1,3
                     !    F(K,I) = F(K,I) + cohesive_force(K)
@@ -329,15 +384,17 @@
                             do K = 1,3
                                 Temp%Hertz(K) = tangential_force(K)
                                 Temp%Mrot(K) = rolling_moment(K)
+                                Temp%Mtwist(K) = twisting_moment(K)
                             end do
                             Temp%is_touching = touching
                             Temp%is_slipping = slipping
                             Temp%is_rolling = rolling
+                            Temp%is_twisting = twisting
                         else
                             !  First contacted.
                             allocate(TempH)
-                            TempH = Nodelink(OMP_funnelWallTag,tangential_force,rolling_moment,&
-                            & touching,slipping,rolling,Temp,Temp%next)
+                            TempH = Nodelink(OMP_funnelWallTag,tangential_force,rolling_moment,twisting_moment,&
+                            & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
                             Head(I)%No = LenNode + 1
@@ -345,8 +402,8 @@
                     else
                         !  Temp is Head of linklist!!!
                         allocate(TempH)
-                        TempH = Nodelink(OMP_funnelWallTag,tangential_force,rolling_moment,&
-                        & touching,slipping,rolling,Temp,Temp%next)
+                        TempH = Nodelink(OMP_funnelWallTag,tangential_force,rolling_moment,twisting_moment,&
+                        & touching,slipping,rolling,twisting,Temp,Temp%next)
                         if (associated(Temp%next)) Temp%next%prev => TempH
                         Temp%next => TempH
                         Head(I)%No = LenNode + 1

@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 3.0
+    !     DEMBody 4.0
     !     ***********
     !
     !     N-body integrator flow control.
@@ -12,12 +12,17 @@
     subroutine intgrt()
 
     use global
+    use omp_lib
     implicit none
 
     integer :: I,J,K
     integer :: norm
+    real(8) :: ostart,oend
+    real(8) :: o1,o2
 
 1   norm = 1
+    
+    !o1 = omp_get_wtime()
 
     !################         Part 1          ###################  
     !  calculated the force from the current x & xdot.
@@ -34,6 +39,15 @@
     if (isBondedWall) then
         call attitudeBondedWalls
     end if
+    
+    if (isGravBody) then
+        do K = 1,3
+            gravBodyX(K) = gravBodyX(K) + gravBodyXdot(K) * Dt +  gravBodyF(K) * Dt * Dt /2.0
+            gravBodyXdot(K) = gravBodyXdot(K) + gravBodyF(K) * Dt /2.0
+            gravBodyW(K) = gravBodyW(K) + gravBodyFM(K) * Dt /2.0
+        end do
+        call attitudeGravBody
+    end if
 
     if (isQuaternion) then
         call attitude
@@ -43,9 +57,15 @@
         call periodic
     end if
 
+    !ostart = omp_get_wtime()
     call meshGenerate
+    !oend = omp_get_wtime()
+    !write(*,*) 'mesh', (oend-ostart)
     
+    !ostart = omp_get_wtime()
     call latticeGenerate
+    !oend = omp_get_wtime()
+    !write(*,*) 'lattice', (oend-ostart)
 
     !################         Part 2          ################### 
     !  calculated the force from the current x & xdot.
@@ -72,12 +92,25 @@
         end do
     end if
     
+    if (isGravBody) then
+        do K = 1,3
+            gravBodyXdot(K) = gravBodyXdot(K) + gravBodyF(K) * Dt /2.0
+            gravBodyW(K) = gravBodyW(K) + gravBodyFM(K) * Dt /2.0
+        end do
+        call attitudeGravBody
+    end if
+    
     if (isQuaternion) then
         call attitude
     end if
 
     !################         Part 4          ###################
     Time = Time + Dt 
+    
+    !o2 = omp_get_wtime()
+    !write(*,*) 'intgrt',(o2-o1)
+    !write(*,*)
+    !pause
 
     !  check next output time.
     if (Time .GE. Tnext) then

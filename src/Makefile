@@ -2,7 +2,7 @@
 # Start of the makefile
 # COMPILER=gfortran -fopenmp
 
-NUMBER=-DNMAX=500000 -DNLAT=5000
+NUMBER=-DNMAX=450000 -DNLAT=70
 
 MESH=-DCASE1=1 -DCASE2=-85 -DCASE3=-84 -DCASE4=-83 -DCASE5=-7056 -DCASE6=-7055 -DCASE7=-6973 -DCASE8=-6972 -DCASE9=-6971 -DCASE10=-7057 -DCASE11=-7139 -DCASE12=-7140 -DCASE13=-7141
 
@@ -11,8 +11,8 @@ MODEL=-DHertzMindlinResti
 
 COMPILER=ifort -openmp -O2 -fpp $(NUMBER) $(MESH) $(MODEL) 
 
-DEMBody: global.o loadFile.o main.o start.o initialSystem.o attitudeBondedWallsQM.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceFunnelWalls.o planet.o output.o intgrt.o attitudeBondedWalls.o attitude.o
-	$(COMPILER)  -o DEMBody global.o loadFile.o main.o start.o initialSystem.o attitudeBondedWallsQM.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceFunnelWalls.o planet.o output.o intgrt.o attitudeBondedWalls.o attitude.o
+DEMBody: global.o loadFile.o main.o start.o initialSystem.o attitudeBondedWallsQM.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceFunnelWalls.o forceGravBody.o planet.o output.o intgrt.o attitudeBondedWalls.o attitudeGravBody.o attitude.o
+	$(COMPILER)  -o DEMBody global.o loadFile.o main.o start.o initialSystem.o attitudeBondedWallsQM.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceFunnelWalls.o forceGravBody.o planet.o output.o intgrt.o attitudeBondedWalls.o attitudeGravBody.o attitude.o
 
 global.mod: global.o global.f90
 	$(COMPILER)  -c global.f90
@@ -50,6 +50,8 @@ forceBondedWalls.o: global.mod forceBondedWalls.f90
 	$(COMPILER)  -c forceBondedWalls.f90
 forceFunnelWalls.o: global.mod forceFunnelWalls.f90
 	$(COMPILER)  -c forceFunnelWalls.f90
+forceGravBody.o: global.mod forceGravBody.f90
+	$(COMPILER)  -c forceGravBody.f90
 planet.o: global.mod planet.f90
 	$(COMPILER)  -c planet.f90
 output.o: global.mod output.f90
@@ -58,9 +60,11 @@ intgrt.o: global.mod intgrt.f90
 	$(COMPILER)  -c intgrt.f90
 attitudeBondedWalls.o: global.mod attitudeBondedWalls.f90
 	$(COMPILER)  -c attitudeBondedWalls.f90
+attitudeGravBody.o: global.mod attitudeGravBody.f90
+	$(COMPILER)  -c attitudeGravBody.f90
 attitude.o: global.mod attitude.f90
 	$(COMPILER)  -c attitude.f90
 
 clean:
-	rm global.mod loadfile.mod global.o loadFile.o main.o start.o initialSystem.o attitudeBondedWallsQM.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceFunnelWalls.o planet.o output.o intgrt.o attitudeBondedWalls.o attitude.o
+	rm global.mod loadfile.mod global.o loadFile.o main.o start.o initialSystem.o attitudeBondedWallsQM.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceFunnelWalls.o forceGravBody.o planet.o output.o intgrt.o attitudeBondedWalls.o attitudeGravBody.o attitude.o
 # End of the makefile

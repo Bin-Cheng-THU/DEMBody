@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 3.0
+    !     DEMBody 4.0
     !     ***********
     !
     !     DEM & NBODY CODE
@@ -13,7 +13,7 @@
 
     use global
     use omp_lib
-    implicit none
+    implicit none   
     
     !$OMP PARALLEL
     write(*,*) "Parallel Succeed"

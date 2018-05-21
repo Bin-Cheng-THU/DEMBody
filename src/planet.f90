@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 3.0
+    !     DEMBody 4.0
     !     ***********
     !
     !     Planet system force.
@@ -12,6 +12,8 @@
     !
     !     Note that considering the movement of Pan nucleus, 
     !     the gravity of Pan must be transferred from the origin point.
+    !     So we use Gravity Body instead.
+    !
     !********************************************************************
     subroutine planet()
 
@@ -28,17 +30,16 @@
 
     !$OMP PARALLEL DO PRIVATE(I,K,rBody,rBodyV,rDust,rDustV,rP,center)
     do I = 1,N
-        if (I .NE. N) then
-            !  Gravity of Pan
-            do K = 1,3
-                rBodyV(K) = X(K,I) - X(K,N) ! whether we consider the movement of Pan
-            end do
-            rBody = sqrt(rBodyV(1)*rBodyV(1) + rBodyV(2)*rBodyV(2) + rBodyV(3)*rBodyV(3))
-            center = -muP/(rBody*rBody*rBody)
-            do K = 1,3
-                F(K,I) = F(K,I) + center*rBodyV(K)
-            end do
-        end if
+        !  Using GravBody instead.
+        !!  Gravity of Pan
+        !do K = 1,3
+        !    rBodyV(K) = X(K,I) - X(K,N) ! whether we consider the movement of Pan
+        !end do
+        !rBody = sqrt(rBodyV(1)*rBodyV(1) + rBodyV(2)*rBodyV(2) + rBodyV(3)*rBodyV(3))
+        !center = -muP/(rBody*rBody*rBody)
+        !do K = 1,3
+        !    F(K,I) = F(K,I) + center*rBodyV(K)
+        !end do
 
         !  Gravity of Saturn
         do K = 1,3

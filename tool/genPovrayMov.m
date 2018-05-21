@@ -6,10 +6,10 @@
 clc;clear;
 format long;
 %% parameters
-fps = 25;
-N = 200;
-folderPath = '';
-aviobj = VideoWriter('out.avi'); %初始化一个avi文件
+fps = 10;
+N = 70;
+folderPath = 'C:\Users\chengbin\Desktop\File\Data\';
+aviobj = VideoWriter('out-tumb-foot.avi'); %初始化一个avi文件
 aviobj.FrameRate = fps;
 open(aviobj);
 

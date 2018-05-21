@@ -6,10 +6,10 @@
 clc;clear;
 format long;
 %% Input Parameters
-dx = 0.625; %2.5Rmax
-x = 7.5; %Boundary size
-y = 12.5; %Boundary size
-z = 12.5;
+dx = 1.5; %2.5Rmax
+x = 63.0; %Boundary size
+y = 63.0; %Boundary size
+z = 0.0;
 NMAX = 500000;
 
 %% Mesh Grid

@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 3.0
+    !     DEMBody 4.0
     !     ***********
     !
     !     Global parameters.
@@ -9,6 +9,7 @@
 
     !#define NMAX  5000
     !#define NLAT  100
+    
     !#define CASE1 1
     !#define CASE2 -65
     !#define CASE3 -64
@@ -22,14 +23,22 @@
     !#define CASE11 -4159
     !#define CASE12 -4160
     !#define CASE13 -4161
+    
     !#define MODEL HertzMindlinResti
+    !#define Grav self_gravity
+    
+    !#define dims 100
+    !#define GravNx 7
+    !#define GravNy 7
+    !#define GravNz 4
 
     module global
     implicit none
 
     !  Parameters
     !integer,parameter :: NMAX = 10000 !(Using Macro instead)
-    !integer,parameter :: NLAT = 5000 !(Using Macro instead)
+    !integer,parameter :: NLAT = 100 !(Using Macro instead)
+    real(8),parameter :: GravConst = 6.674D-11
     real(8),parameter :: PI = 3.141592653589793
 
     !  Define control parameters of Program
@@ -40,6 +49,7 @@
     logical :: isBondedWall
     logical :: isFunnelWall
     logical :: isPeriodic
+    logical :: isGravBody
     real(8) :: Max_ACC
 
     !  Conduct linklist
@@ -47,9 +57,11 @@
         integer :: No
         real    :: Hertz(3)
         real    :: Mrot(3)
+        real    :: Mtwist(3)
         logical :: is_touching
         logical :: is_slipping
         logical :: is_rolling
+        logical :: is_twisting
         type(Nodelink),pointer :: prev
         type(Nodelink),pointer :: next
     end type Nodelink
@@ -57,7 +69,7 @@
     !  Nodelink of Particle
     type(Nodelink),pointer :: Head(:)  
     
-    !  Conduct lattice
+    !  Conduct Lattice
     type :: Lattice
         integer :: ID(3)
         real(8) :: PositionD(3)
@@ -66,6 +78,11 @@
         integer :: NoOuter
         integer :: IDInner(NLAT)
         integer :: IDOuter(NLAT)
+!!#ifdef self_gravity
+!        integer :: GravID
+!        real(8) :: Mass
+!        real(8) :: MassCenter(3)
+!!#endif
     end type Lattice
     
     !  DEM Lattice
@@ -76,7 +93,27 @@
     integer :: LatNx,LatNy,LatNz
     integer :: LatNum
     integer,allocatable :: ParallelLatticeColor(:,:)
-    
+
+!!#ifdef self_gravity
+!    !  Gravity Lattice params
+!    real(8) :: GravDx,GravDy,GravDz
+!    integer :: GravNum
+!    integer,parameter :: dims = 196
+!    integer,parameter :: GravNx = 10
+!    integer,parameter :: GravNy = 10
+!    integer,parameter :: GravNz = 8
+!    
+!    !  Conduct Gravity Lattice
+!    type :: GravityLattice
+!        integer :: num
+!        integer :: ID(dims)
+!        real(8) :: Mass
+!        real(8) :: MassCenter(3)
+!    end type
+!    
+!    type(GravityLattice),pointer :: Gravity(:)
+!!#endif
+
     !  Define parameters of Particle
     real(8) :: X(3,NMAX),Xdot(3,NMAX),W(3,NMAX)
     real(8) :: Body(NMAX),R(NMAX),Inertia(NMAX)
@@ -88,7 +125,11 @@
     real(8) :: Quaternion(4,NMAX)
     
     !  Define material parameters
-    real(8) :: m_E,m_nu,m_mu_d,m_mu_s,m_COR,m_mu_r,m_nita_r,m_Beta,m_r_cut,m_A
+    real(8) :: m_E,m_nu,m_mu_d,m_mu_s,m_COR
+    real(8) :: m_Beta
+    real(8) :: m_c,m_r_cut
+    real(8) :: m_A
+    real(8) :: m_mu_r,m_nita_r
     
     !  Define parameters of Contactable Walls
     integer :: contactWallNum
@@ -132,10 +173,18 @@
     real(8) :: PlaSx2p(3),PlaSx2v(3)   !  Position of WallX2
     real(8) :: PlaSy1p(3),PlaSy1v(3)   !  Position of WallY1
     real(8) :: PlaSy2p(3),PlaSy2v(3)   !  Position of WallY2
-    real(8) :: LenBox
+    real(8) :: LenBoxX
+    real(8) :: LenBoxY
     real(8) :: gamma
     integer :: Tag1(NMAX),Tag2(NMAX),Tag3(NMAX),Tag4(NMAX)
     
+    !Define parameters of GravBody
+    integer :: gravBodyTag
+    real(8) :: gravBodyX(3),gravBodyXdot(3),gravBodyW(3)
+    real(8) :: gravBodyQ(4)
+    real(8) :: gravBodyBody,gravBodyR,gravBodyInertia
+    real(8) :: gravBodyF(3),gravBodyFM(3)
+        
     !  Define parameters of Saturn and Pan
     real(8) :: muS
     real(8) :: muP
