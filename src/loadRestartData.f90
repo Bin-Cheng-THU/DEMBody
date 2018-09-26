@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.0
+    !     DEMBody 4.1
     !     ***********
     !
     !     Load restart data including Hertz contact history.

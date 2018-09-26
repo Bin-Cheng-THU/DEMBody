@@ -6,10 +6,10 @@
 clc;clear;
 format long;
 %% Input Parameters
-dx = 1.5; %2.5Rmax
-x = 63.0; %Boundary size
-y = 63.0; %Boundary size
-z = 0.0;
+dx = 0.75; %2.5Rmax
+x = 24.0; %Boundary size
+y = 24.0; %Boundary size
+z = 24.0;
 NMAX = 500000;
 
 %% Mesh Grid
@@ -30,7 +30,7 @@ casenum(10) = -num-1;
 casenum(11) = -num-Nx+1;
 casenum(12) = -num-Nx;
 casenum(13) = -num-Nx-1;
-fprintf(1,'%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d',casenum(1:13));
+fprintf(1,'%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d\n',abs(casenum(1:13)));
 disp(Nx);
 disp(num);
 

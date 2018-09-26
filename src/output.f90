@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.0
+    !     DEMBody 4.1
     !     ***********
     !
     !     Output and data save.
@@ -20,6 +20,7 @@
     integer(4) :: result
     integer,external :: systemqq
     real(8) :: temp_bondedWallMeshPoint(3)
+    integer :: days,hours,minutes,seconds
 
     !################         Projectile          ################### 
     !  Update next output time
@@ -28,7 +29,7 @@
     !  Output the position, velocity and radius of the projectile
     open(10,FILE='../Data/Projectile.txt')
     if (Time.LE.Tcrit) then
-        write(10,'(14E20.8)') Time,(X(K,N),K=1,3),(Xdot(K,N),K=1,3),(F(K,N),K=1,3),(W(K,N),K=1,3),Energy(N)
+        write(10,'(14E20.8)') Time,(X(K,PP),K=1,3),(Xdot(K,PP),K=1,3),(F(K,PP),K=1,3),(W(K,PP),K=1,3),Energy(PP)
     end if
     
     if (isBondedWall) then
@@ -91,7 +92,7 @@
             if (Head(J)%No .GT. 0) then
                 Temp => Head(J)
                 do I = 1,Head(J)%No
-                    write(Step+1000,'(I8,2X,6F15.5,2X,3I8)',advance='no') Temp%next%No,Temp%next%Hertz(1),Temp%next%Hertz(2),Temp%next%Hertz(3),Temp%next%Mrot(1),Temp%next%Mrot(2),Temp%next%Mrot(3),Temp%next%Mtwist(1),Temp%next%Mtwist(2),Temp%next%Mtwist(3),Temp%next%is_touching,Temp%next%is_slipping,Temp%next%is_rolling,Temp%next%is_twisting
+                    write(Step+1000,'(I8,2X,10F18.10,2X,4L8)',advance='no') Temp%next%No,Temp%next%recordTime,Temp%next%Hertz(1),Temp%next%Hertz(2),Temp%next%Hertz(3),Temp%next%Mrot(1),Temp%next%Mrot(2),Temp%next%Mrot(3),Temp%next%Mtwist(1),Temp%next%Mtwist(2),Temp%next%Mtwist(3),Temp%next%is_touching,Temp%next%is_slipping,Temp%next%is_rolling,Temp%next%is_twisting
                     Temp => Temp%next
                 end do
             end if
@@ -105,7 +106,7 @@
             FileNameW = '..\Data\Wall\'//FileNameW
             FileNameW = trim(FileNameW)//'W.vtk'
             
-            result = systemqq("copy ..\Input\bondedWallMesh.vtk "//FileNameW)
+            result = systemqq("cp ..\Input\bondedWallMesh.vtk "//FileNameW)
             open(Step+1000,FILE=FileNameW,position='Append')
             do J=1,size(bondedWallMeshPoint,2)
                 do K = 1,3
@@ -122,8 +123,16 @@
     !  Check termination time.
     if (Time<Tcrit) return
 
+#ifdef openmp
     T2 = omp_get_wtime()
-    write(*,*) "time cost: ", (T2-T1)
+#endif
+    days = int((T2-T1)/3600/24)
+    hours = int(((T2-T1)-days*3600*24)/3600)
+    minutes = int(((T2-T1)-days*3600*24-hours*3600)/60)
+    seconds = int((T2-T1)-days*3600*24-hours*3600-minutes*60)
+    
+    write(*,"(A11,I4,1X,A4,I4,1X,A4,I4,1X,A4,I4,1X,A4)") "time cost: ", days, "days", hours, "hours", minutes, "minutes", seconds, "seconds"        
+    write(*,*) "refresh frequency: ", dble(refreshNum)/(Tcrit/Dt)
 
     stop
     end

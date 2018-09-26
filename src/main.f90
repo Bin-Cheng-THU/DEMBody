@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.0
+    !     DEMBody 4.1
     !     ***********
     !
     !     DEM & NBODY CODE
@@ -27,7 +27,10 @@
     call start
     
     write(*,*) "Begin to calculate, good luck!"
+    
+#ifdef openmp
     T1 = omp_get_wtime()
+#endif
 
     !  Calculate total energy and produce output.
 3   call output

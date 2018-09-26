@@ -1,5 +1,6 @@
     program main
-
+    
+    implicit none
     integer :: I,J,K,L
     real(8) :: RadiusBound  !mesh grid
     real(8) :: R,width  !particle params
@@ -8,7 +9,8 @@
     real(8) :: tol
     real(8) :: gamma
     real(8),parameter :: PI = 3.1415926 
-
+    integer :: shooting
+    
     integer :: Tag
     integer :: Flag
     integer :: nRow
@@ -17,17 +19,19 @@
     real(8) :: dx,dist(3)
     real(8) :: radius
     real(8) :: velocity(3)
+    real(8) :: rho
 
     !--- Params initialize
-    RadiusBound = 150.0
+    RadiusBound = 5.5
 
-    R = 4.5
-    width = 0.5
-    number = 20000
+    R = 0.2
+    width = 0.05
+    rho = 2.5
+    number = 3000
     tol = 0.1
-    iterate = 100
+    iterate = 200
     gamma = 0
-    shooting = 15
+    shooting = 50
     allocate(points(4,number))
     
     points = 0.0    
@@ -35,7 +39,9 @@
     open(10,FILE='particles.txt')
     call random_seed()
     do I = 1,number
-        write(*,*) I
+        if (mod(I,50)==0) then
+            write(*,*) I
+        end if
         Tag = 1
         do while (Tag < iterate)
             call random_number(radius)
@@ -73,10 +79,6 @@
                     do K = 1,3
                         point(K) = point(K) + dist(K)*dx*2.0
                     end do
-                    
-                    if (abs(point(1)).GE.D .OR. abs(point(2)).GE.D) then
-                        exit
-                    end if
 
                     Flag = 1
                     if (I > 1) then
@@ -116,7 +118,18 @@
 
             Tag = Tag + 1
         end do
-
+    end do
+    close(10)
+    
+    !################         Part 3          ###################
+    open(10,FILE='particles.txt')
+    open(11,FILE='output.txt')
+    open(12,FILE='paraview.csv')
+    write(12,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','R' 
+    do I = 1,number
+        read (10,*) (point(K),K=1,3),radius,(velocity(K),K=1,3)
+        write(11,'(12F15.5)') 4./3.*3.1415926*radius**3*Rho,0.4*4./3.*3.1415926*radius**3*Rho,(point(K),K=1,3),(velocity(K),K=1,3),0.0,0.0,0.0,radius
+        write(12,'(F12.5,A2,F12.5,A2,F12.5,A2,F12.5,A2,F12.5,A2,F12.5,A2,F12.5)') point(1),',',point(2),',',point(3),',',velocity(1),',',velocity(2),',',velocity(3),',',radius
     end do
 
     end

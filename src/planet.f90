@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.0
+    !     DEMBody 4.1
     !     ***********
     !
     !     Planet system force.
@@ -30,7 +30,7 @@
 
     !$OMP PARALLEL DO PRIVATE(I,K,rBody,rBodyV,rDust,rDustV,rP,center)
     do I = 1,N
-        !  Using GravBody instead.
+        !  Note that using GravBody instead.
         !!  Gravity of Pan
         !do K = 1,3
         !    rBodyV(K) = X(K,I) - X(K,N) ! whether we consider the movement of Pan

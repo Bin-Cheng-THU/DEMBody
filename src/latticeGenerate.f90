@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.0
+    !     DEMBody 4.1
     !     ***********
     !
     !     Generate lattice based on partition of Particles.
@@ -9,6 +9,8 @@
     !     @Second, put it into outer region, i.e., neighbor Parallel Lattice.
     !     @To speed up the DEM compution, we just use Top Left lattice to memory
     !     @particle IDs, and use Lower Right lattice to conduct force.
+    !     @Tests show that half-search method is not suitable for this question,
+    !     @so we change the code to full-search method.    
     !
     !     @Allocate particles into Gravity Lattice.
     !     @Memory the total mass and mass center of particles in Gravity Lattices.
@@ -43,7 +45,7 @@
     !write(*,*) (o2-o1)
        
     !o1 = omp_get_wtime()
-    !$OMP PARALLEL DO PRIVATE(I,J,K,Tag,Flag,positionD,positionU) SCHEDULE(GUIDED)
+    ! $OMP PARALLEL DO PRIVATE(I,J,K,Tag,Flag,positionD,positionU) SCHEDULE(GUIDED)
     do I = 1,N
         
         !################         Part 1          ###################        
@@ -57,7 +59,7 @@
 
         if (Tag.GE.1 .AND. Tag.LE.LatNum) then
             
-            Flag = .True.
+            Flag = .true.
 
             !  check position of the particle
             positionD = DEM(Tag)%PositionD
@@ -66,7 +68,7 @@
             !  out of the region
             if (X(1,I).LT.positionD(1) .OR. X(1,I).GT.positionU(1) .OR. X(2,I).LT.positionD(2) .OR. X(2,I).GT.positionU(2) &
             .OR. X(3,I).LT.positionD(3) .OR. X(3,I).GT.positionU(3)) then
-                Flag = .False.
+                Flag = .false.
             end if
 
             if (Flag) then
@@ -178,13 +180,131 @@
                         DEM(Tag-1-LatNx+LatNx*LatNy)%IDOuter(DEM(Tag-1-LatNx+LatNx*LatNy)%NoOuter) = I
                     end if
                 end if
+                
+                !  Right lattice
+                if (DEM(Tag)%ID(1) .NE. LatNx) then
+                    if (X(1,I) .GT. (positionU(1)-Dx)) then
+                        DEM(Tag+1)%NoOuter = DEM(Tag+1)%NoOuter + 1
+                        DEM(Tag+1)%IDOuter(DEM(Tag+1)%NoOuter) = I
+                    end if
+                end if
+                
+                !  Right Below lattice
+                if (DEM(Tag)%ID(1).NE.LatNx .AND. DEM(Tag)%ID(2).NE.1) then
+                    if (X(1,I).GT.(positionU(1)-Dx) .AND. X(2,I).LT.(positionD(2)+Dy)) then
+                        DEM(Tag+1-LatNx)%NoOuter = DEM(Tag+1-LatNx)%NoOuter + 1
+                        DEM(Tag+1-LatNx)%IDOuter(DEM(Tag+1-LatNx)%NoOuter) = I
+                    end if
+                end if
+                
+                !  Below lattice
+                if (DEM(Tag)%ID(2) .NE. 1) then
+                    if (X(2,I) .LT. (positionD(2)+Dy)) then
+                        DEM(Tag-LatNx)%NoOuter = DEM(Tag-LatNx)%NoOuter + 1
+                        DEM(Tag-LatNx)%IDOuter(DEM(Tag-LatNx)%NoOuter) = I
+                    end if
+                end if            
+                
+                !  Left Below lattice
+                if (DEM(Tag)%ID(1).NE.1 .AND. DEM(Tag)%ID(2).NE.1) then
+                    if (X(1,I).LT.(positionD(1)+Dx) .AND. X(2,I).LT.(positionD(2)+Dy)) then
+                        DEM(Tag-1-LatNx)%NoOuter = DEM(Tag-1-LatNx)%NoOuter + 1
+                        DEM(Tag-1-LatNx)%IDOuter(DEM(Tag-1-LatNx)%NoOuter) = I
+                    end if
+                end if
+                
+                !  Center Under lattice
+                if (DEM(Tag)%ID(3) .NE. 1) then
+                    if (X(3,I) .LT. (positionD(3)+Dz)) then
+                        DEM(Tag-LatNx*LatNy)%NoOuter = DEM(Tag-LatNx*LatNy)%NoOuter + 1
+                        DEM(Tag-LatNx*LatNy)%IDOuter(DEM(Tag-LatNx*LatNy)%NoOuter) = I
+                    end if
+                end if
+                
+                !  Right Under lattice
+                if (DEM(Tag)%ID(1).NE.LatNx .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(1,I).GT.(positionU(1)-Dx) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        DEM(Tag+1-LatNx*LatNy)%NoOuter = DEM(Tag+1-LatNx*LatNy)%NoOuter + 1
+                        DEM(Tag+1-LatNx*LatNy)%IDOuter(DEM(Tag+1-LatNx*LatNy)%NoOuter) = I
+                    end if
+                end if
+                
+                !  Right Below Under lattice
+                if (DEM(Tag)%ID(1).NE.LatNx .AND. DEM(Tag)%ID(2).NE.1 .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(1,I).GT.(positionU(1)-Dx) .AND. X(2,I).LT.(positionD(2)+Dy) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        DEM(Tag+1-LatNx-LatNx*LatNy)%NoOuter = DEM(Tag+1-LatNx-LatNx*LatNy)%NoOuter + 1
+                        DEM(Tag+1-LatNx-LatNx*LatNy)%IDOuter(DEM(Tag+1-LatNx-LatNx*LatNy)%NoOuter) = I
+                    end if
+                end if
+                
+                !  Below Under lattice
+                if (DEM(Tag)%ID(2).NE.1 .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(2,I).LT.(positionD(2)+Dy) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        DEM(Tag-LatNx-LatNx*LatNy)%NoOuter = DEM(Tag-LatNx-LatNx*LatNy)%NoOuter + 1
+                        DEM(Tag-LatNx-LatNx*LatNy)%IDOuter(DEM(Tag-LatNx-LatNx*LatNy)%NoOuter) = I
+                    end if
+                end if             
+                
+                !  Left Below Under lattice
+                if (DEM(Tag)%ID(1).NE.1 .AND. DEM(Tag)%ID(2).NE.1 .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(1,I).LT.(positionD(1)+Dx) .AND. X(2,I).LT.(positionD(2)+Dy) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        DEM(Tag-1-LatNx-LatNx*LatNy)%NoOuter = DEM(Tag-1-LatNx-LatNx*LatNy)%NoOuter + 1
+                        DEM(Tag-1-LatNx-LatNx*LatNy)%IDOuter(DEM(Tag-1-LatNx-LatNx*LatNy)%NoOuter) = I
+                    end if
+                end if
+                
+                !  Left Under lattice
+                if (DEM(Tag)%ID(1).NE.1 .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(1,I).LT.(positionD(1)+Dx) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        DEM(Tag-1-LatNx*LatNy)%NoOuter = DEM(Tag-1-LatNx*LatNy)%NoOuter + 1
+                        DEM(Tag-1-LatNx*LatNy)%IDOuter(DEM(Tag-1-LatNx*LatNy)%NoOuter) = I
+                    end if
+                end if
+                
+                !  Left Upper Under lattice
+                if (DEM(Tag)%ID(1).NE.1 .AND. DEM(Tag)%ID(2).NE.LatNy .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(1,I).LT.(positionD(1)+Dx) .AND. X(2,I).GT.(positionU(2)-Dy) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        DEM(Tag-1+LatNx-LatNx*LatNy)%NoOuter = DEM(Tag-1+LatNx-LatNx*LatNy)%NoOuter + 1
+                        DEM(Tag-1+LatNx-LatNx*LatNy)%IDOuter(DEM(Tag-1+LatNx-LatNx*LatNy)%NoOuter) = I
+                    end if
+                end if
+                
+                !  Upper Under lattice
+                if (DEM(Tag)%ID(2).NE.LatNy .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(2,I).GT.(positionU(2)-Dy) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        DEM(Tag+LatNx-LatNx*LatNy)%NoOuter = DEM(Tag+LatNx-LatNx*LatNy)%NoOuter + 1
+                        DEM(Tag+LatNx-LatNx*LatNy)%IDOuter(DEM(Tag+LatNx-LatNx*LatNy)%NoOuter) = I
+                    end if
+                end if            
+                
+                !  Right Upper Under lattice
+                if (DEM(Tag)%ID(1).NE.LatNx .AND. DEM(Tag)%ID(2).NE.LatNy .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(1,I).GT.(positionU(1)-Dx) .AND. X(2,I).GT.(positionU(2)-Dy) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        DEM(Tag+1+LatNx-LatNx*LatNy)%NoOuter = DEM(Tag+1+LatNx-LatNx*LatNy)%NoOuter + 1
+                        DEM(Tag+1+LatNx-LatNx*LatNy)%IDOuter(DEM(Tag+1+LatNx-LatNx*LatNy)%NoOuter) = I
+                    end if
+                end if
             end if
         end if
     end do
-    !$OMP END PARALLEL DO
+    ! $OMP END PARALLEL DO
     !o2 = omp_get_wtime()
     !write(*,*) (o2-o1)
     
+    !  reset Position array
+    !$OMP PARALLEL DO PRIVATE(I,K)
+    do I = 1,N
+        do K = 1,3
+            XT(K,I) = 0.0D0
+        end do
+    end do
+    !$OMP END PARALLEL DO
+    
+    !  reset Lattice flag
+    refreshNum = refreshNum + 1
+    refreshLattice = .false.
+        
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 !!#ifdef self_gravity
 !    !o1 = omp_get_wtime()
 !    !$OMP PARALLEL DO PRIVATE(I,J,K,tmp_Mass,tmp_MassCenter)
@@ -240,6 +360,7 @@
 !    !o2 = omp_get_wtime()
 !    !write(*,*) (o2-o1)
 !!#endif    
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !****************
     !Test Parallel Lattice Method using color visualization.

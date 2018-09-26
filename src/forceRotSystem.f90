@@ -1,0 +1,49 @@
+    !********************************************************************
+    !     DEMBody 4.1
+    !     ***********
+    !
+    !     Rotary system force.
+    !     --------------------------
+    !
+    !     @Convected inertial force
+    !     @Coriolis force
+    !
+    !     Note that here we use a simply sphere to conduct the gravity of
+    !     the TriMesh. It should be replaced with polyhedral method instead.
+    !
+    !********************************************************************
+    subroutine forceRotSystem()
+
+    use global
+    implicit none
+
+    integer I,J,K
+    
+    real(8) :: dist(3),distS,distL,center
+
+    !$OMP PARALLEL DO PRIVATE(I,K,distS,distL,center)
+    do I = 1,N
+        !  Centrifugal force
+        do K = 1,2
+            F(K,I) = F(K,I) + sysOmiga*sysOmiga*X(K,I)
+        end do
+
+        !  Coriolis force
+        F(1,I) = F(1,I) + 2.0D0*sysOmiga*Xdot(2,I)
+        F(2,I) = F(2,I) - 2.0D0*sysOmiga*Xdot(1,I)
+        
+        !  Gravity
+        do K = 1,3
+            dist(K) = 0.0 - X(K,I)
+        end do
+        distS = Dist(1)*Dist(1) + Dist(2)*Dist(2) + Dist(3)*Dist(3)
+        distL = sqrt(DistS)
+        center = sysGrav/distS/distL
+        do K = 1,3
+            F(K,I) = F(K,I) + center*dist(K)
+        end do
+    end do
+    !$OMP END PARALLEL DO
+
+    return
+    end

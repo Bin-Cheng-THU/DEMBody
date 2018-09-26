@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.0
+    !     DEMBody 4.1
     !     ***********
     !
     !     Force for Gravity Body.
@@ -358,10 +358,11 @@
                         Temp%is_slipping = slipping
                         Temp%is_rolling = rolling
                         Temp%is_twisting = twisting
+                        Temp%recordTime = Time + Dt
                     else
                         !  First contacted.
                         allocate(TempH)
-                        TempH = Nodelink(gravBodyTag,tangential_force,rolling_moment,twisting_moment,&
+                        TempH = Nodelink(gravBodyTag,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
                         & touching,slipping,rolling,twisting,Temp,Temp%next)
                         if (associated(Temp%next)) Temp%next%prev => TempH
                         Temp%next => TempH
@@ -370,7 +371,7 @@
                 else
                     !  Temp is Head of linklist!!!
                     allocate(TempH)
-                    TempH = Nodelink(gravBodyTag,tangential_force,rolling_moment,twisting_moment,&
+                    TempH = Nodelink(gravBodyTag,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
                     & touching,slipping,rolling,twisting,Temp,Temp%next)
                     if (associated(Temp%next)) Temp%next%prev => TempH
                     Temp%next => TempH

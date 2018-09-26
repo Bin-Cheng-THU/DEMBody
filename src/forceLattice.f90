@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.0
+    !     DEMBody 4.1
     !     ***********
     !
     !     Force for all Parallel Lattice.
@@ -18,28 +18,29 @@
     use omp_lib
     implicit none
 
-    real(kind=8)  Dist(3),DistS,DistL,DistR,DistU(3)
-    real(kind=8)  Vrel(3),Vrot(3),Vtot(3),ERR,Vnor(3),Vtan(3)
-    real(kind=8)  normal_force(3),normal_forceL
-    real(kind=8)  tangential_force(3),tangential_forceL
-    real(kind=8)  rolling_moment(3),rolling_momentL
-    real(kind=8)  twisting_moment(3),twisting_momentL
-    real(kind=8)  cohesive_force(3)
-    real(kind=8)  gravity_force(3)
-    real(kind=8)  Ap,An
-    real(kind=8)  Rij,Mij,Iij
-    real(kind=8)  Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR
-    real(kind=8)  Dn,Ds(3),DsL,Dtheta(3),DthetaL,DthetaR(3),DthetaRL,DthetaT(3),DthetaTL
-    real(kind=8)  H(3),Mr(3),Mt(3)
-    real(kind=8)  RV(3)
+    real(8) ::  Dist(3),DistS,DistL,DistR,DistU(3)
+    real(8) ::  Vrel(3),Vrot(3),Vtot(3),ERR,Vnor(3),Vtan(3)
+    real(8) ::  normal_force(3),normal_forceL
+    real(8) ::  tangential_force(3),tangential_forceL
+    real(8) ::  rolling_moment(3),rolling_momentL
+    real(8) ::  twisting_moment(3),twisting_momentL
+    real(8) ::  cohesive_force(3)
+    real(8) ::  gravity_force(3)
+    real(8) ::  Ap,An
+    real(8) ::  Rij,Mij,Iij
+    real(8) ::  Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR
+    real(8) ::  Dn,Ds(3),DsL,Dtheta(3),DthetaL,DthetaR(3),DthetaRL,DthetaT(3),DthetaTL
+    real(8) ::  H(3),Mr(3),Mt(3)
+    real(8) ::  RV(3)
     logical :: slipping,rolling,twisting    !  State of friction of T
     logical :: touching                     !  State of touch of T
-    integer :: I,J,K,L,LenNode              !  Linklist
+    integer :: I,J,K,L,LenNodeJ,LenNode     !  Linklist
     integer :: num1,num2,limit              !  Neighbor
+    type(Nodelink),pointer :: TempJ         !  Temporary pointer
     type(Nodelink),pointer :: Temp          !  Temporary pointer
     type(Nodelink),pointer :: TempH         !  Contact pointer
-    real(kind=8) ShearPBC                   !  shearPBC
-    real(kind=8) accMag                     !  Magtitude of contact acceleration                
+    real(8) ShearPBC                        !  shearPBC
+    real(8) accMag                          !  Magtitude of contact acceleration                
     integer :: region                       !  Upper limit of Loops 
     logical :: check                        !  Check for meshgrid
 
@@ -51,22 +52,27 @@
     
     real(8) :: ostart,oend
 
+    character(20) :: FileName
+    
     F = 0.0D0
     FM = 0.0D0
     Energy = 0.0D0
+    
+    !write(FileName,'(F10.5)') Time
+    !FileName = trim(FileName)//'Head.txt'
+    !open(123,FILE=FileName)
 
     !ostart = omp_get_wtime()
     !  Loop over all bodies through the NodeTree.
-    !$OMP PARALLEL DO REDUCTION(+:F) REDUCTION(+:FM) &
-    !$OMP REDUCTION(+:Energy) &
-    !$OMP& PRIVATE(check,shearPBC,Temp,TempH,LenNode,num1,num2,limit,&
+    !$OMP PARALLEL DO &
+    !$OMP& PRIVATE(check,shearPBC,TempJ,LenNodeJ,LenNode,Temp,TempH,num1,num2,limit,&
     !$OMP& I,J,K,L,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
     !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,&
     !$OMP& rolling_moment,rolling_momentL,twisting_moment,twisting_momentL,cohesive_force,gravity_force,Ap,An,Rij,Mij,Iij,&
     !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
     !$OMP& slipping,rolling,twisting,touching,&
     !$OMP& II,NoInner,NoOuter,IDInner,IDOuter,particleI,particleJ,Mass,MassCenter) SCHEDULE(GUIDED)
-    !  Loop over all lattices
+    ! Loop over all lattices
     do II = 1,LatNum
         
         NoInner = DEM(II)%NoInner
@@ -77,6 +83,7 @@
         if (NoInner .NE. 0) then
             !  Loop over inner region
             do I = 1,NoInner
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!#ifdef self_gravity
 !                do J = 1,GravNum
 !                    particleI = IDInner(I)
@@ -157,11 +164,15 @@
 !                    end if                                          
 !                end do
 !!#endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
                 do J = 1,NoInner                    
                     particleI = IDInner(I)
                     particleJ = IDInner(J)
-                    
+                    !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
+                    !    write(123,'(F15.5,2X,A5,2X,2I5,2X)',advance='no') Time,'Inner',particleI,particleJ
+                    !end if
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                    
 !!#ifdef self_gravity
 !                    if (particleJ .GT. particleI) then
 !                        do K = 1,3
@@ -182,29 +193,33 @@
 !                        end do
 !                    end if
 !!#endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     !  calculated the NodeTree to detect the overlaps.
                     limit = 0
-                    num1 = Linklist(particleJ) - Linklist(particleI)
+                    num1 = ABS(Linklist(particleJ) - Linklist(particleI))
                     !!!!!!!!!!!!!!!!!!!
                     select case(num1)
-                        case(CASE1,CASE2,CASE3,CASE4,CASE5,CASE6,CASE7,CASE8,CASE9,CASE10,CASE11,CASE12,CASE13)
-                    !case(1,     -21,     -20,     -19,    -800,    -799,    -781,    -780,    -779,    -801,    -819,    -820,    -821)
+                    case(CASE1,CASE2,CASE3,CASE4,CASE5,CASE6,CASE7,CASE8,CASE9,CASE10,CASE11,CASE12,CASE13)
                         limit = 1
                     case (0)
-                        if (particleJ .GT. particleI) then
+                        if (particleJ .NE. particleI) then
                             limit = 1
                         end if
                     end select
 
                     check = limit.EQ.1
                     
+                    !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
+                    !    write(123,'(A6,2X,I5,2X)',advance='no') 'check:',check
+                    !end if
+                    
                     if (check) then   !  .OR. J.EQ.N
                         !  Initialize state params
                         do K = 1,3
                             Dist(K) = X(K,particleJ) -  X(K,particleI)
-                            H(K) = 0.0
-                            Mr(K) = 0.0
-                            Mt(K) = 0.0
+                            H(K) = 0.0D0
+                            Mr(K) = 0.0D0
+                            Mt(K) = 0.0D0
                         end do
                         touching = .false.
                         slipping = .false.
@@ -214,13 +229,14 @@
                         DistS = Dist(1)*Dist(1) + Dist(2)*Dist(2) + Dist(3)*Dist(3)
                         DistL = sqrt(DistS)
                         Dn = R(particleI) + R(particleJ) - DistL
-                        !  lookup this contact(or not) in the Hertz list
+                        !  lookup this contact(or not) in the Hertz list I
                         LenNode = Head(particleI)%No
                         Temp => Head(particleI)
                         if (LenNode .NE. 0) then
                             Temp => Head(particleI)%next
                             do L = 1,LenNode
                                 if (Temp%No .EQ. particleJ) then
+                                    !if (abs(Temp%recordTime-Time) .LT. 1e-8) then
                                     do K = 1,3
                                         H(K) = Temp%Hertz(K)
                                         Mr(K) = Temp%Mrot(K)
@@ -230,6 +246,9 @@
                                     slipping = Temp%is_slipping
                                     rolling = Temp%is_rolling
                                     twisting = Temp%is_twisting
+                                    !else
+                                    !   write(*,*) "Error!" 
+                                    !end if
                                     exit
                                 else if (Temp%No.LT.particleJ .AND. associated(Temp%next)) then
                                     Temp => Temp%next
@@ -239,16 +258,46 @@
                                 end if
                             end do
                         end if
+                        !!  lookup this contact(or not) in the Hertz list J
+                        !LenNodeJ = Head(particleJ)%No
+                        !TempJ => Head(particleJ)
+                        !if (LenNodeJ .NE. 0) then
+                        !    TempJ => Head(particleJ)%next
+                        !    do L = 1,LenNodeJ
+                        !        if (TempJ%No .EQ. particleI) then
+                        !            if (abs(TempJ%recordTime-Time) .LT. 1e-8) then
+                        !                do K = 1,3
+                        !                    H(K) = -TempJ%Hertz(K)
+                        !                    Mr(K) = -TempJ%Mrot(K)
+                        !                    Mt(K) = -TempJ%Mtwist(K)
+                        !                end do
+                        !                touching = TempJ%is_touching
+                        !                slipping = TempJ%is_slipping
+                        !                rolling = TempJ%is_rolling
+                        !                twisting = TempJ%is_twisting
+                        !            end if
+                        !            exit
+                        !        else if (TempJ%No.LT.particleI .AND. associated(TempJ%next)) then
+                        !            TempJ => TempJ%next
+                        !        else if (TempJ%No .GT. particleI) then
+                        !            TempJ => TempJ%prev
+                        !            exit
+                        !        end if
+                        !    end do
+                        !end if       
+                        !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
+                        !    write(123,'(F15.5,2X)',advance='no') Dn
+                        !end if
                         !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hooke's law
-                        if (Dn .GT. 0.0) then
-                            DistR = 1.0/DistL
+                        if (Dn .GT. 0.0D0) then
+                            DistR = 1.0D0/DistL
                             !  calculate the normal vector
                             do K=1,3
                                 DistU(K) = Dist(K)*DistR
                             end do
                             Ap = (R(particleI)*R(particleI)-R(particleJ)*R(particleJ)+DistS)/2.0*DistR
                             An = DistL-Ap
-#ifdef HertzMindlinVisco                    
+#ifdef HertzMindlinVisco    
                             !  calculate material constant
                             Rij = R(particleI)*R(particleJ)/(R(particleI)+R(particleJ))
                             Mij = Body(particleI)*Body(particleJ)/(Body(particleI)+Body(particleJ))
@@ -315,7 +364,7 @@
 
                             !  Add energy
                             Energy(particleI) = Energy(particleI) + 0.4*Kn*(Dn**2)
-                            Energy(particleJ) = Energy(particleJ) + 0.4*Kn*(Dn**2)
+                            !Energy(particleJ) = Energy(particleJ) + 0.4*Kn*(Dn**2)
 
                             !  tangential deform
                             do K = 1,3
@@ -328,6 +377,10 @@
                                 tangential_force(K) = - Ks*Ds(K) + Cs*Vtan(K) + H(K)
                             end do
                             tangential_forceL = sqrt(tangential_force(1)*tangential_force(1) + tangential_force(2)*tangential_force(2) + tangential_force(3)*tangential_force(3))
+
+                            !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
+                            !    write(123,'(14F15.5,2X)',advance='no') normal_forceL,tangential_forceL,(H(K),K=1,3),(Vtan(K),K=1,3),(Ds(K),K=1,3),(tangential_force(K),K=1,3)
+                            !end if
 
                             if (slipping) then  !  Have slipped
                                 if (DsL .GT. 1e-8) then  !  Still slipping
@@ -360,13 +413,13 @@
                             touching = .true.
                             !  Apply force
                             do K = 1,3
-                                F(K,particleJ) = + normal_force(K) + tangential_force(K) + F(K,particleJ)
+                                !F(K,particleJ) = + normal_force(K) + tangential_force(K) + F(K,particleJ)
                                 F(K,particleI) = - normal_force(K) - tangential_force(K) + F(K,particleI)
                             end do
                             !  Apply moment
-                            FM(1,particleJ) = - An*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + FM(1,particleJ) 
-                            FM(2,particleJ) = - An*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + FM(2,particleJ) 
-                            FM(3,particleJ) = - An*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + FM(3,particleJ)                     
+                            !FM(1,particleJ) = - An*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + FM(1,particleJ) 
+                            !FM(2,particleJ) = - An*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + FM(2,particleJ) 
+                            !FM(3,particleJ) = - An*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + FM(3,particleJ)                     
                             FM(1,particleI) = - Ap*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + FM(1,particleI) 
                             FM(2,particleI) = - Ap*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + FM(2,particleI) 
                             FM(3,particleI) = - Ap*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + FM(3,particleI)
@@ -464,7 +517,7 @@
                             !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
                             !  Apply moment
                             do K = 1,3
-                                FM(K,particleJ) = + rolling_moment(K) + twisting_moment(K) + FM(K,particleJ) 
+                                !FM(K,particleJ) = + rolling_moment(K) + twisting_moment(K) + FM(K,particleJ) 
                                 FM(K,particleI) = - rolling_moment(K) - twisting_moment(K) + FM(K,particleI) 
                             end do                                          
                             !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
@@ -474,7 +527,7 @@
                                 cohesive_force(K) = - m_c*(m_Beta*Rij)**2*DistU(K)
                             end do
                             do K = 1,3
-                                F(K,particleJ) = F(K,particleJ) + cohesive_force(K)
+                                !F(K,particleJ) = F(K,particleJ) + cohesive_force(K)
                                 F(K,particleI) = F(K,particleI) - cohesive_force(K)
                             end do
                             !  memory the contact in the Hertz linklist.
@@ -491,10 +544,11 @@
                                     Temp%is_slipping = slipping
                                     Temp%is_rolling = rolling
                                     Temp%is_twisting = twisting
+                                    Temp%recordTime = Time + Dt
                                 else
                                     !  First contacted.
                                     allocate(TempH)
-                                    TempH = Nodelink(particleJ,tangential_force,rolling_moment,twisting_moment,&
+                                    TempH = Nodelink(particleJ,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
                                     & touching,slipping,rolling,twisting,Temp,Temp%next)
                                     if (associated(Temp%next)) Temp%next%prev => TempH
                                     Temp%next => TempH
@@ -503,7 +557,7 @@
                             else
                                 !  Temp is Head of linklist!!!
                                 allocate(TempH)
-                                TempH = Nodelink(particleJ,tangential_force,rolling_moment,twisting_moment,&
+                                TempH = Nodelink(particleJ,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
                                 & touching,slipping,rolling,twisting,Temp,Temp%next)
                                 if (associated(Temp%next)) Temp%next%prev => TempH
                                 Temp%next => TempH
@@ -534,7 +588,7 @@
                                 end do
                                 !  apply force
                                 do K = 1,3
-                                    F(K,particleJ) = F(K,particleJ) + cohesive_force(K)
+                                    !F(K,particleJ) = F(K,particleJ) + cohesive_force(K)
                                     F(K,particleI) = F(K,particleI) - cohesive_force(K)
                                 end do
                             else if (Dn > -Rij*(m_r_cut-1.0)) then
@@ -549,13 +603,16 @@
                                     &*2.0*(Dn/(m_r_cut-1.0) + Rij)*DistU(K)
                                 end do
                                 do K = 1,3
-                                    F(K,particleJ) = F(K,particleJ) + cohesive_force(K)
+                                    !F(K,particleJ) = F(K,particleJ) + cohesive_force(K)
                                     F(K,particleI) = F(K,particleI) - cohesive_force(K)
                                 end do 
                             end if
                             !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         end if
                     end if
+                    !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
+                    !    write(123,*)
+                    !end if
                 end do    
             end do          
         end if
@@ -566,20 +623,26 @@
                 do J = 1,NoOuter                    
                     particleI = IDInner(I)
                     particleJ = IDOuter(J)
+                    !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
+                    !    write(123,'(F15.5,2X,A5,2X,2I5,2X)',advance='no') Time,'outer',particleI,particleJ
+                    !end if
                     !  calculated the NodeTree to detect the overlaps.
                     limit = 0
                     num1 = ABS(Linklist(particleJ) - Linklist(particleI))
                     !!!!!!!!!!!!!!!!!!!
                     select case(num1)
-                        case(CASE1,-CASE2,-CASE3,-CASE4,-CASE5,-CASE6,-CASE7,-CASE8,-CASE9,-CASE10,-CASE11,-CASE12,-CASE13)
-                    !case(1,     21,     20,     19,    800,    799,    781,    780,    779,    801,    819,    820,    821)
+                        case(CASE1,CASE2,CASE3,CASE4,CASE5,CASE6,CASE7,CASE8,CASE9,CASE10,CASE11,CASE12,CASE13)
                         limit = 1
                     case (0)
                         limit = 1
                     end select
 
                     check = limit.EQ.1
-                    
+
+                    !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
+                    !    write(123,'(A6,2X,I5,2X)',advance='no') 'check:',check
+                    !end if
+                                        
                     if (check) then   !  .OR. J.EQ.N
                         !  Initialize state params
                         do K = 1,3
@@ -596,13 +659,14 @@
                         DistS = Dist(1)*Dist(1) + Dist(2)*Dist(2) + Dist(3)*Dist(3)
                         DistL = sqrt(DistS)
                         Dn = R(particleI) + R(particleJ) - DistL
-                        !  lookup this contact(or not) in the Hertz list
+                        !  lookup this contact(or not) in the Hertz list I
                         LenNode = Head(particleI)%No
                         Temp => Head(particleI)
                         if (LenNode .NE. 0) then
                             Temp => Head(particleI)%next
                             do L = 1,LenNode
                                 if (Temp%No .EQ. particleJ) then
+                                    !if (abs(Temp%recordTime-Time) .LT. 1e-8) then
                                     do K = 1,3
                                         H(K) = Temp%Hertz(K)
                                         Mr(K) = Temp%Mrot(K)
@@ -612,6 +676,7 @@
                                     slipping = Temp%is_slipping
                                     rolling = Temp%is_rolling
                                     twisting = Temp%is_twisting
+                                    !end if
                                     exit
                                 else if (Temp%No.LT.particleJ .AND. associated(Temp%next)) then
                                     Temp => Temp%next
@@ -621,6 +686,40 @@
                                 end if
                             end do
                         end if
+                        !!  lookup this contact(or not) in the Hertz list J
+                        !LenNodeJ = Head(particleJ)%No
+                        !TempJ => Head(particleJ)
+                        !if (LenNodeJ .NE. 0) then
+                        !    TempJ => Head(particleJ)%next
+                        !    do L = 1,LenNodeJ
+                        !        if (TempJ%No .EQ. particleI) then
+                        !            if (abs(TempJ%recordTime-Time) .LT. 1e-8) then
+                        !                do K = 1,3
+                        !                    H(K) = -TempJ%Hertz(K)
+                        !                    Mr(K) = -TempJ%Mrot(K)
+                        !                    Mt(K) = -TempJ%Mtwist(K)
+                        !                end do
+                        !                touching = TempJ%is_touching
+                        !                slipping = TempJ%is_slipping
+                        !                rolling = TempJ%is_rolling
+                        !                twisting = TempJ%is_twisting
+                        !            end if
+                        !            exit
+                        !        else if (TempJ%No.LT.particleI .AND. associated(TempJ%next)) then
+                        !            TempJ => TempJ%next
+                        !        else if (TempJ%No .GT. particleI) then
+                        !            if (associated(TempJ%prev)) then
+                        !                TempJ => TempJ%prev
+                        !            else
+                        !                write(*,*) "Error in Head(",particleJ,")"
+                        !            end if
+                        !            exit
+                        !        end if
+                        !    end do
+                        !end if          
+                        !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
+                        !    write(123,'(F15.5,2X)',advance='no') Dn
+                        !end if
                         !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hooke's law
                         if (Dn .GT. 0.0) then
                             DistR = 1.0/DistL
@@ -697,7 +796,7 @@
 
                             !  Add energy
                             Energy(particleI) = Energy(particleI) + 0.4*Kn*(Dn**2)
-                            Energy(particleJ) = Energy(particleJ) + 0.4*Kn*(Dn**2)
+                            !Energy(particleJ) = Energy(particleJ) + 0.4*Kn*(Dn**2)
 
                             !  tangential deform
                             do K = 1,3
@@ -711,6 +810,10 @@
                             end do
                             tangential_forceL = sqrt(tangential_force(1)*tangential_force(1) + tangential_force(2)*tangential_force(2) + tangential_force(3)*tangential_force(3))
 
+                            !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
+                            !    write(123,'(14F15.5,2X)',advance='no') normal_forceL,tangential_forceL,(H(K),K=1,3),(Vtan(K),K=1,3),(Ds(K),K=1,3),(tangential_force(K),K=1,3)
+                            !end if
+                                                        
                             if (slipping) then  !  Have slipped
                                 if (DsL .GT. 1e-8) then  !  Still slipping
                                     do K = 1,3
@@ -742,13 +845,13 @@
                             touching = .true.
                             !  Apply force
                             do K = 1,3
-                                F(K,particleJ) = + normal_force(K) + tangential_force(K) + F(K,particleJ)
+                                !F(K,particleJ) = + normal_force(K) + tangential_force(K) + F(K,particleJ)
                                 F(K,particleI) = - normal_force(K) - tangential_force(K) + F(K,particleI)
                             end do
                             !  Apply moment
-                            FM(1,particleJ) = - An*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + FM(1,particleJ) 
-                            FM(2,particleJ) = - An*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + FM(2,particleJ) 
-                            FM(3,particleJ) = - An*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + FM(3,particleJ)                     
+                            !FM(1,particleJ) = - An*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + FM(1,particleJ) 
+                            !FM(2,particleJ) = - An*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + FM(2,particleJ) 
+                            !FM(3,particleJ) = - An*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + FM(3,particleJ)                     
                             FM(1,particleI) = - Ap*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + FM(1,particleI) 
                             FM(2,particleI) = - Ap*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + FM(2,particleI) 
                             FM(3,particleI) = - Ap*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + FM(3,particleI)
@@ -846,7 +949,7 @@
                             !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
                             !  Apply moment
                             do K = 1,3
-                                FM(K,particleJ) = + rolling_moment(K) + twisting_moment(K) + FM(K,particleJ) 
+                                !FM(K,particleJ) = + rolling_moment(K) + twisting_moment(K) + FM(K,particleJ) 
                                 FM(K,particleI) = - rolling_moment(K) - twisting_moment(K) + FM(K,particleI) 
                             end do                                          
                             !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
@@ -856,7 +959,7 @@
                                 cohesive_force(K) = - m_c*(m_Beta*Rij)**2*DistU(K)
                             end do
                             do K = 1,3
-                                F(K,particleJ) = F(K,particleJ) + cohesive_force(K)
+                                !F(K,particleJ) = F(K,particleJ) + cohesive_force(K)
                                 F(K,particleI) = F(K,particleI) - cohesive_force(K)
                             end do
                             !  memory the contact in the Hertz linklist.
@@ -873,10 +976,11 @@
                                     Temp%is_slipping = slipping
                                     Temp%is_rolling = rolling
                                     Temp%is_twisting = twisting
+                                    Temp%recordTime = Time + Dt
                                 else
                                     !  First contacted.
                                     allocate(TempH)
-                                    TempH = Nodelink(particleJ,tangential_force,rolling_moment,twisting_moment,&
+                                    TempH = Nodelink(particleJ,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
                                     & touching,slipping,rolling,twisting,Temp,Temp%next)
                                     if (associated(Temp%next)) Temp%next%prev => TempH
                                     Temp%next => TempH
@@ -885,7 +989,7 @@
                             else
                                 !  Temp is Head of linklist!!!
                                 allocate(TempH)
-                                TempH = Nodelink(particleJ,tangential_force,rolling_moment,twisting_moment,&
+                                TempH = Nodelink(particleJ,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
                                 & touching,slipping,rolling,twisting,Temp,Temp%next)
                                 if (associated(Temp%next)) Temp%next%prev => TempH
                                 Temp%next => TempH
@@ -915,7 +1019,7 @@
                                 end do
                                 !  apply force
                                 do K = 1,3
-                                    F(K,particleJ) = F(K,particleJ) + cohesive_force(K)
+                                    !F(K,particleJ) = F(K,particleJ) + cohesive_force(K)
                                     F(K,particleI) = F(K,particleI) - cohesive_force(K)
                                 end do                                     
                             else if (Dn > -Rij*(m_r_cut-1.0)) then
@@ -930,13 +1034,16 @@
                                     &*2.0*(Dn/(m_r_cut-1.0) + Rij)*DistU(K)
                                 end do
                                 do K = 1,3
-                                    F(K,particleJ) = F(K,particleJ) + cohesive_force(K)
+                                    !F(K,particleJ) = F(K,particleJ) + cohesive_force(K)
                                     F(K,particleI) = F(K,particleI) - cohesive_force(K)
                                 end do      
                             end if
                             !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         end if
                     end if
+                    !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
+                    !    write(123,*)
+                    !end if
                 end do    
             end do
         end if          
@@ -951,7 +1058,7 @@
         call forceMirror
     end if
     !oend = omp_get_wtime()
-    !write(*,*) (oend-ostart)
+    !write(*,*) "Mirror",(oend-ostart)
     
     !ostart = omp_get_wtime()
     !  calculate force of contactable walls if using contactable walls
@@ -959,7 +1066,7 @@
         call forceContactWalls
     end if
     !oend = omp_get_wtime()
-    !write(*,*) "Contact Wall", (oend-ostart)
+    !write(*,*) "Contact walls", (oend-ostart)
     
     !ostart = omp_get_wtime()
     !  calculate force of bonded walls if using bonded walls
@@ -967,7 +1074,15 @@
         call forceBondedWalls 
     end if
     !oend = omp_get_wtime()
-    !write(*,*) (oend-ostart)
+    !write(*,*) "Bonded walls",(oend-ostart)
+
+    !ostart = omp_get_wtime()
+    !  calculate force of trimesh walls if using trimesh walls
+    if (isTriMeshWall) then                     
+        call forceTriMeshWalls 
+    end if
+    !oend = omp_get_wtime()
+    !write(*,*) "Tri meshes",(oend-ostart)
     
     !ostart = omp_get_wtime()
     !  calculate force of funnel walls if using funnel walls
@@ -975,7 +1090,7 @@
         call forceFunnelWalls
     end if
     !oend = omp_get_wtime()
-    !write(*,*) (oend-ostart)
+    !write(*,*) "Funnel walls",(oend-ostart)
     
     !ostart = omp_get_wtime()
     !  calculate force of gravity body if using GravBody
@@ -983,7 +1098,7 @@
         call forceGravBody
     end if
     !oend = omp_get_wtime()
-    !write(*,*) (oend-ostart)
+    !write(*,*) "Grav bodies",(oend-ostart)
 
     !ostart = omp_get_wtime()
     !$OMP PARALLEL DO PRIVATE(I,K,accMag)
@@ -1005,17 +1120,29 @@
     !oend = omp_get_wtime()
     !write(*,*) 'accelerate', (oend-ostart)    
 
+    !ostart = omp_get_wtime()
     !  calculate Planet force if in Planet system
     if (isPlanet) then
         call Planet
     end if
+    !oend = omp_get_wtime()
+    !write(*,*) 'Planet', (oend-ostart)  
     
-    !open(10000,FILE="../Data/Force.txt")
+    !ostart = omp_get_wtime()
+    !  calculate Noninertial force if in Rotary system
+    if (isRotSystem) then
+        call forceRotSystem
+    end if
+    !oend = omp_get_wtime()
+    !write(*,*) 'Rot system', (oend-ostart)  
+    
+    !open(10000,FILE="Force.txt")
     !do I = 1,N
     !    write(10000,'(3F30.15)') (F(K,I),K=1,3)
     !end do
-    !
-    !call output
+    !close(10000)
+    !close(123)
+    !pause
     !
     !stop
 

@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.0
+    !     DEMBody 4.1
     !     ***********
     !
     !     Force for funnel walls.
@@ -62,7 +62,7 @@
         !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
         !$OMP& slipping,rolling,twisting,touching) SCHEDULE(DYNAMIC)
         do I = 1,N
-            enterFlag = .False.
+            enterFlag = .false.
             do K = 1,3
                 RV(K) = X(K,I) - OMP_funnelWallPoint(K)
             end do
@@ -97,7 +97,7 @@
                     if (ERR > 0) then
                         ERR = RVc(1)*RVn(1) + RVc(2)*RVn(2) + RVc(3)*RVn(3)
                         if (ERR > 0) then
-                            enterFlag = .True.
+                            enterFlag = .true.
                         end if
                     end if
                 end if
@@ -390,10 +390,11 @@
                             Temp%is_slipping = slipping
                             Temp%is_rolling = rolling
                             Temp%is_twisting = twisting
+                            Temp%recordTime = Time + Dt
                         else
                             !  First contacted.
                             allocate(TempH)
-                            TempH = Nodelink(OMP_funnelWallTag,tangential_force,rolling_moment,twisting_moment,&
+                            TempH = Nodelink(OMP_funnelWallTag,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
                             & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
@@ -402,7 +403,7 @@
                     else
                         !  Temp is Head of linklist!!!
                         allocate(TempH)
-                        TempH = Nodelink(OMP_funnelWallTag,tangential_force,rolling_moment,twisting_moment,&
+                        TempH = Nodelink(OMP_funnelWallTag,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
                         & touching,slipping,rolling,twisting,Temp,Temp%next)
                         if (associated(Temp%next)) Temp%next%prev => TempH
                         Temp%next => TempH

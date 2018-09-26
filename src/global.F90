@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.0
+    !     DEMBody 4.1
     !     ***********
     !
     !     Global parameters.
@@ -7,24 +7,6 @@
     !
     !********************************************************************
 
-    !#define NMAX  5000
-    !#define NLAT  100
-    
-    !#define CASE1 1
-    !#define CASE2 -65
-    !#define CASE3 -64
-    !#define CASE4 -63
-    !#define CASE5 -4096
-    !#define CASE6 -4095
-    !#define CASE7 -4033
-    !#define CASE8 -4032
-    !#define CASE9 -4031
-    !#define CASE10 -4097
-    !#define CASE11 -4159
-    !#define CASE12 -4160
-    !#define CASE13 -4161
-    
-    !#define MODEL HertzMindlinResti
     !#define Grav self_gravity
     
     !#define dims 100
@@ -36,17 +18,17 @@
     implicit none
 
     !  Parameters
-    !integer,parameter :: NMAX = 10000 !(Using Macro instead)
-    !integer,parameter :: NLAT = 100 !(Using Macro instead)
     real(8),parameter :: GravConst = 6.674D-11
-    real(8),parameter :: PI = 3.141592653589793
+    real(8),parameter :: PI = 3.141592653589793D0
 
     !  Define control parameters of Program
     logical :: isPlanet
+    logical :: isRotSystem
     logical :: isQuaternion
     logical :: isContactWall
     logical :: isMovingWall
     logical :: isBondedWall
+    logical :: isTriMeshWall
     logical :: isFunnelWall
     logical :: isPeriodic
     logical :: isGravBody
@@ -55,9 +37,10 @@
     !  Conduct linklist
     type :: Nodelink 
         integer :: No
-        real    :: Hertz(3)
-        real    :: Mrot(3)
-        real    :: Mtwist(3)
+        real(8) :: recordTime
+        real(8) :: Hertz(3)
+        real(8) :: Mrot(3)
+        real(8) :: Mtwist(3)
         logical :: is_touching
         logical :: is_slipping
         logical :: is_rolling
@@ -78,11 +61,13 @@
         integer :: NoOuter
         integer :: IDInner(NLAT)
         integer :: IDOuter(NLAT)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!#ifdef self_gravity
 !        integer :: GravID
 !        real(8) :: Mass
 !        real(8) :: MassCenter(3)
 !!#endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     end type Lattice
     
     !  DEM Lattice
@@ -94,6 +79,7 @@
     integer :: LatNum
     integer,allocatable :: ParallelLatticeColor(:,:)
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!#ifdef self_gravity
 !    !  Gravity Lattice params
 !    real(8) :: GravDx,GravDy,GravDz
@@ -113,6 +99,7 @@
 !    
 !    type(GravityLattice),pointer :: Gravity(:)
 !!#endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !  Define parameters of Particle
     real(8) :: X(3,NMAX),Xdot(3,NMAX),W(3,NMAX)
@@ -120,6 +107,7 @@
     real(8) :: F(3,NMAX),FM(3,NMAX)
     real(8) :: Energy(NMAX)
     real(8) :: X0(3,NMAX)
+    real(8) :: XT(3,NMAX)
     
     !  Define quaternion of Particle
     real(8) :: Quaternion(4,NMAX)
@@ -159,6 +147,14 @@
     real(8),allocatable :: bondedWallVectorTy(:,:)
     real(8),allocatable :: bondedWallLx(:),bondedWallLy(:)
     
+    !  Define parameters of TriMesh Walls
+    integer :: trimeshWallNum
+    integer,allocatable :: trimeshWallTag(:)
+    real(8),allocatable :: trimeshWallPoint(:,:)
+    real(8),allocatable :: trimeshWallVectorN(:,:)
+    real(8),allocatable :: trimeshWallVectorTx(:,:)
+    real(8),allocatable :: trimeshWallVectorTy(:,:)
+    real(8),allocatable :: trimeshWallLength(:,:)  !  Tx2, Tx*Ty, Ty2, L
     
     !  Define parameters of Funnel Walls
     integer :: funnelWallNum
@@ -191,6 +187,10 @@
     real(8) :: rOrig(3)
     real(8) :: omiga
     
+    !  Define parameters of Rotary system
+    real(8) :: sysOmiga
+    real(8) :: sysGrav
+    
     !  Define parameters of Gravity
     real(8) :: G
     
@@ -200,11 +200,14 @@
     real(8) :: Mx,My,Mz
     integer :: Nx,Ny,Nz
     integer :: Linklist(NMAX)
+    real(8) :: verlet
 
     !  Define parameters of Program
     real(8) :: T1,T2
     real(8) :: Time,Deltat,Tcrit,Dt,Tnext
     real(8) :: CheckPointDt, CheckPointTnext
     integer :: Step
+    logical :: refreshLattice
+    integer :: refreshNum
    
     end module

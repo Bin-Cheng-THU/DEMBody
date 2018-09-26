@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.0
+    !     DEMBody 4.1
     !     ***********
     !
     !     N-body integrator flow control.
@@ -19,20 +19,30 @@
     integer :: norm
     real(8) :: ostart,oend
     real(8) :: o1,o2
+    real(8) :: dist(3),distL
 
 1   norm = 1
     
     !o1 = omp_get_wtime()
+    
+    !################         Part 1          ###################
+    Time = Time + Dt 
 
-    !################         Part 1          ###################  
+    !################         Part 2          ###################  
     !  calculated the force from the current x & xdot.
-    !$OMP PARALLEL DO PRIVATE(I,K)
+    !$OMP PARALLEL DO PRIVATE(I,K,dist,distL)
     do I = 1,N
         do K = 1,3
-            X(K,I) = X(K,I) + Xdot(K,I) * Dt +  F(K,I) * Dt * Dt /2.0
+            dist(K) = Xdot(K,I) * Dt +  F(K,I) * Dt * Dt /2.0
+            XT(K,I) = XT(K,I) + dist(K)            
+            X(K,I) = X(K,I) + dist(K)
             Xdot(K,I) = Xdot(K,I) + F(K,I) * Dt /2.0
             W(K,I) = W(K,I) + FM(K,I) * Dt /2.0
         end do
+        distL = XT(1,I)*XT(1,I) + XT(2,I)*XT(2,I) + XT(3,I)*XT(3,I)
+        if (distL .GE. verlet) then
+            refreshLattice = .true.
+        end if
     end do
     !$OMP END PARALLEL DO
     
@@ -57,21 +67,39 @@
         call periodic
     end if
 
+#ifdef LatticeSearch    
     !ostart = omp_get_wtime()
     call meshGenerate
     !oend = omp_get_wtime()
     !write(*,*) 'mesh', (oend-ostart)
     
     !ostart = omp_get_wtime()
-    call latticeGenerate
+    if (refreshLattice) then
+        call latticeGenerate
+    end if
     !oend = omp_get_wtime()
     !write(*,*) 'lattice', (oend-ostart)
+#endif    
 
-    !################         Part 2          ################### 
-    !  calculated the force from the current x & xdot.
-    call forceLattice
-
+    !open(123,FILE="position.txt")
+    !do I = 1,N
+    !    write(123,"(6F15.5)") (X(K,I),K=1,3),(W(K,I),K=1,3)
+    !end do
+    !close(123)
+    !write(*,*) "intgrt"
+    !pause
+    
     !################         Part 3          ################### 
+    !  calculated the force from the current x & xdot.
+    !write(*,*) "start"
+#ifdef LatticeSearch    
+    call forceLattice
+#elif TraverseSearch
+    call forceTraverse
+#endif
+    !write(*,*) "end"
+
+    !################         Part 4          ################### 
     !  calculated the current xdot
     !$OMP PARALLEL DO PRIVATE(I,K)
     do I = 1,N
@@ -103,9 +131,6 @@
     if (isQuaternion) then
         call attitude
     end if
-
-    !################         Part 4          ###################
-    Time = Time + Dt 
     
     !o2 = omp_get_wtime()
     !write(*,*) 'intgrt',(o2-o1)

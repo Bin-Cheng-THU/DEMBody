@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.0
+    !     DEMBody 4.1
     !     ***********
     !
     !     Parameter input.
@@ -34,7 +34,7 @@
     X0 = X
     close(2000)
     
-    !Initialize Quaternion array
+    !  initialize Quaternion array
     if (isQuaternion) then
         do I = 1,NMAX
             Quaternion(1,I) = 0.0D0
@@ -48,7 +48,8 @@
     if (isPeriodic) then
         call periodic
     end if
-    
+
+#ifdef LatticeSearch
     !  generate mesh based on partition of Particles
     call meshGenerate
     
@@ -57,6 +58,12 @@
     
     !  initial the force in case exiting overlaps at the initial-time.
     call forceLattice
+
+#elif TraverseSearch
+    !  initial the force in case exiting overlaps at the initial-time.
+    call forceTraverse
+    
+#endif    
 
     RETURN
     END

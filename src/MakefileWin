@@ -1,0 +1,22 @@
+# Makefile for windows
+# Add these lines into Preprocessor of VS
+
+LatticeSearch
+openmp
+NMAX=3000
+NLAT=500
+CASE1=1
+CASE2=65
+CASE3=64
+CASE4=63
+CASE5=4096
+CASE6=4095
+CASE7=4033
+CASE8=4032
+CASE9=4031
+CASE10=4097
+CASE11=4159
+CASE12=4160
+CASE13=4161
+HertzMindlinResti
+PP=1524

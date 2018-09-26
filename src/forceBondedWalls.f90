@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.0
+    !     DEMBody 4.1
     !     ***********
     !
     !     Force for bonded walls.
@@ -71,7 +71,7 @@
         !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
         !$OMP& slipping,rolling,touching,twisting) SCHEDULE(DYNAMIC)
         do I = 1,N
-            enterFlag = .False.
+            enterFlag = .false.
             do K = 1,3
                 RV(K) = X(K,I) - OMP_bondedWallPoint(K)
             end do
@@ -83,25 +83,25 @@
                 RVx = RVb(1)*OMP_bondedWallVectorTx(1) + RVb(2)*OMP_bondedWallVectorTx(2) + RVb(3)*OMP_bondedWallVectorTx(3)
                 RVy = RVb(1)*OMP_bondedWallVectorTy(1) + RVb(2)*OMP_bondedWallVectorTy(2) + RVb(3)*OMP_bondedWallVectorTy(3)
                 if (ABS(RVx).LE.(0.5*OMP_bondedWallLx) .AND. ABS(RVy).LE.(0.5*OMP_bondedWallLy)) then
-                    enterFlag = .True.
+                    enterFlag = .true.
                     do K = 1,3
                         RVt(K) = RVb(K)
                         RVn(K) = ERR*OMP_bondedWallVectorN(K)
                     end do
                 else if (ABS(RVx).LE.(0.5*OMP_bondedWallLx) .AND. ABS(RVy).LE.(0.5*OMP_bondedWallLy+0.8*Dx)) then
-                    enterFlag = .True.
+                    enterFlag = .true.
                     do K = 1,3
                         RVt(K) = RVy/ABS(RVy)*0.5*OMP_bondedWallLy*OMP_bondedWallVectorTy(K) + RVx*OMP_bondedWallVectorTx(K)
                         RVn(K) = RV(K) - RVt(K)
                     end do
                 else if (ABS(RVx).LE.(0.5*OMP_bondedWallLx+0.8*Dx) .AND. ABS(RVy).LE.(0.5*OMP_bondedWallLy)) then
-                    enterFlag = .True.
+                    enterFlag = .true.
                     do K = 1,3
                         RVt(K) = RVx/ABS(RVx)*0.5*OMP_bondedWallLx*OMP_bondedWallVectorTx(K) + RVy*OMP_bondedWallVectorTy(K)
                         RVn(K) = RV(K) - RVt(K)
                     end do                        
                 else if (ABS(RVx).LE.(0.5*OMP_bondedWallLx+0.8*Dx) .AND. ABS(RVy).LE.(0.5*OMP_bondedWallLy+0.8*Dx)) then
-                    enterFlag = .True.
+                    enterFlag = .true.
                     do K = 1,3
                         RVt(K) = 0.5*OMP_bondedWallLx*OMP_bondedWallVectorTx(K)*RVx/ABS(RVx) + 0.5*OMP_bondedWallLy*OMP_bondedWallVectorTy(k)*RVy/ABS(RVy)
                         RVn(K) = RV(K) - RVt(K)
@@ -308,10 +308,11 @@
                             Temp%is_slipping = slipping
                             Temp%is_rolling = rolling
                             Temp%is_twisting = twisting
+                            Temp%recordTime = Time + Dt
                         else
                             !  First contacted.
                             allocate(TempH)
-                            TempH = Nodelink(OMP_bondedWallTag,tangential_force,rolling_moment,twisting_moment,&
+                            TempH = Nodelink(OMP_bondedWallTag,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
                             & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
@@ -320,7 +321,7 @@
                     else
                         !  Temp is Head of linklist!!!
                         allocate(TempH)
-                        TempH = Nodelink(OMP_bondedWallTag,tangential_force,rolling_moment,twisting_moment,&
+                        TempH = Nodelink(OMP_bondedWallTag,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
                         & touching,slipping,rolling,twisting,Temp,Temp%next)
                         if (associated(Temp%next)) Temp%next%prev => TempH
                         Temp%next => TempH
@@ -341,11 +342,13 @@
         end do
         !$OMP END PARALLEL DO
     end do
-    do K = 1,3
-        bondedWallF(K) = 0.0D0
-    end do
-    bondedWallFM(2) = 0.0
-    bondedWallFM(3) = 0.0
+    
+    !do K = 1,3
+    !    bondedWallF(K) = 0.0D0
+    !end do
+    !bondedWallFM(2) = 0.0
+    !bondedWallFM(3) = 0.0
+    
     do K = 1,3
         bondedWallF(K) = bondedWallF(K)/bondedWallBody
         temp_bondedWallFM(K) = bondedWallMatI(K,1)*bondedWallFM(1) + bondedWallMatI(K,2)*bondedWallFM(2) + bondedWallMatI(K,3)*bondedWallFM(3)

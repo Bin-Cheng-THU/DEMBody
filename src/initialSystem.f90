@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.0
+    !     DEMBody 4.1
     !     ***********
     !
     !     Initialization of global scalars.
@@ -18,16 +18,18 @@
     integer :: idx,idy,idz
     integer :: idgx,idgy,idgz
     real(8) :: lx,ly,lz
+    real(8) :: ERR
 
     !  Initialize parameters and set useful constants.
     Time = 0.0D0
     Tnext = 0.0D0
     Step = 0
     CheckPointTnext = 0.0D0
+    refreshLattice = .true.
+    refreshNum = 0
     
     !  Initialize control parameters
-    write(*,*) "System file loading..."
-    
+    write(*,*) "System file loading..."    
     open (1000,FILE="../Input/systemControl.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
 
     read (1000,*)                      !  DEM version
@@ -42,12 +44,15 @@
     read (1000,*) Dx,Dy,Dz             !  mesh grid interval
     read (1000,*) Mx,My,Mz             !  mesh grid origin
     read (1000,*) Nx,Ny,Nz             !  mesh grid number
+    read (1000,*) verlet               !  verlet distance
     read (1000,*)                         
     read (1000,*) isPlanet             !  whether use Planet Gravity function
+    read (1000,*) isRotSystem          !  whether use Rotary System function 
     read (1000,*) isQuaternion         !  whether intergrate Quaternion
     read (1000,*) isContactWall        !  whether use Contactable Walls
     read (1000,*) isMovingWall         !  whether use Moving Walls
     read (1000,*) isBondedWall         !  whether use Bonded Walls
+    read (1000,*) isTriMeshWall        !  whether use TriMesh Walls
     read (1000,*) isFunnelWall         !  whether use Funnel Walls
     read (1000,*) isPeriodic           !  whether use Periodic function
     read (1000,*) isGravBody           !  whether use Gravity Body
@@ -66,7 +71,7 @@
         allocate (contactWallPoint(3,contactWallNum))
         allocate (contactWallVector(3,contactWallNum))
         do I = 1,contactWallNum
-            contactWallTag(I) = N + wallFlag
+            contactWallTag(I) = NMAX + wallFlag
             wallFlag = wallFlag + 1
             read (1000,*) (contactWallPoint(K,I),K=1,3),(contactWallVector(K,I),K=1,3)
         end do
@@ -91,7 +96,7 @@
         allocate (bondedWallLx(bondedWallNum))
         allocate (bondedWallLy(bondedWallNum))
         do I = 1,bondedWallNum
-            bondedWallTag(I) = N + wallFlag
+            bondedWallTag(I) = NMAX + wallFlag
             wallFlag = wallFlag + 1
             read (1000,*) (bondedWallPoint(K,I),K=1,3),(bondedWallVectorN(K,I),K=1,3),(bondedWallVectorTx(K,I),K=1,3),(bondedWallVectorTy(K,I),K=1,3),bondedWallLx(I),bondedWallLy(I)
         end do
@@ -113,6 +118,40 @@
         read (1000,*)
     end if
     
+    !  initial the trimesh walls
+    if (isTriMeshWall) then
+        write(*,*) 'is TriMesh walls, loading...'
+        read (1000,*)
+        read (1000,*) trimeshWallNum
+        allocate (trimeshWallTag(trimeshWallNum))
+        allocate (trimeshWallPoint(3,trimeshWallNum))
+        allocate (trimeshWallVectorN(3,trimeshWallNum))
+        allocate (trimeshWallVectorTx(3,trimeshWallNum))
+        allocate (trimeshWallVectorTy(3,trimeshWallNum))
+        allocate (trimeshWallLength(4,trimeshWallNum))
+        do I = 1,trimeshWallNum
+            trimeshWallTag(I) = NMAX + wallFlag
+            wallFlag = wallFlag + 1
+            read (1000,*) (trimeshWallPoint(K,I),K=1,3),(trimeshWallVectorTx(K,I),K=1,3),(trimeshWallVectorTy(K,I),K=1,3)
+            !  initial normal vector
+            trimeshWallVectorN(1,I) = trimeshWallVectorTx(2,I)*trimeshWallVectorTy(3,I)-trimeshWallVectorTx(3,I)*trimeshWallVectorTy(2,I)
+            trimeshWallVectorN(2,I) = trimeshWallVectorTx(3,I)*trimeshWallVectorTy(1,I)-trimeshWallVectorTx(1,I)*trimeshWallVectorTy(3,I)
+            trimeshWallVectorN(3,I) = trimeshWallVectorTx(1,I)*trimeshWallVectorTy(2,I)-trimeshWallVectorTx(2,I)*trimeshWallVectorTy(1,I)
+            ERR = trimeshWallVectorN(1,I)*trimeshWallVectorN(1,I) + trimeshWallVectorN(2,I)*trimeshWallVectorN(2,I) + trimeshWallVectorN(3,I)*trimeshWallVectorN(3,I)
+            do K = 1,3
+                trimeshWallVectorN(K,I) = trimeshWallVectorN(K,I)/sqrt(ERR)
+            end do
+            !  initial length vector
+            trimeshWallLength(1,I) = trimeshWallVectorTx(1,I)*trimeshWallVectorTx(1,I) + trimeshWallVectorTx(2,I)*trimeshWallVectorTx(2,I) + trimeshWallVectorTx(3,I)*trimeshWallVectorTx(3,I)
+            trimeshWallLength(2,I) = trimeshWallVectorTx(1,I)*trimeshWallVectorTy(1,I) + trimeshWallVectorTx(2,I)*trimeshWallVectorTy(2,I) + trimeshWallVectorTx(3,I)*trimeshWallVectorTy(3,I)
+            trimeshWallLength(3,I) = trimeshWallVectorTy(1,I)*trimeshWallVectorTy(1,I) + trimeshWallVectorTy(2,I)*trimeshWallVectorTy(2,I) + trimeshWallVectorTy(3,I)*trimeshWallVectorTy(3,I)
+            trimeshWallLength(4,I) = trimeshWallLength(2,I)*trimeshWallLength(2,I) - trimeshWallLength(1,I)*trimeshWallLength(3,I)
+        end do
+    else
+        read (1000,*)
+        read (1000,*)
+    end if
+    
     !  initial the funnel walls
     if (isFunnelWall) then
         write(*,*) 'is Funnel walls, loading...'
@@ -124,7 +163,7 @@
         allocate (funnelWallRadius(2,funnelWallNum))
         allocate (funnelWallLength(funnelWallNum))
         do I = 1,funnelWallNum
-            funnelWallTag(I) = N + wallFlag
+            funnelWallTag(I) = NMAX + wallFlag
             wallFlag = wallFlag + 1
             read (1000,*) (funnelWallPoint(K,I),K=1,3),(funnelWallVector(K,I),K=1,3),(funnelWallRadius(K,I),K=1,2),funnelWallLength(I)
         end do
@@ -153,7 +192,7 @@
     if (isGravBody) then
         write(*,*) 'is Gravity Body, loading...'
         read (1000,*)
-        gravBodyTag = N + wallFlag
+        gravBodyTag = NMAX + wallFlag
         read (1000,*) (gravBodyX(K),K=1,3),(gravBodyXdot(K),K=1,3),(gravBodyW(K),K=1,3)
         read (1000,*) gravBodyBody,gravBodyR,gravBodyInertia
         gravBodyQ(1) = 0.0D0
@@ -164,23 +203,31 @@
         read (1000,*)
         read (1000,*)
     end if
+    
+    !  initial the properties of Saturn and Pan
+    if (isPlanet) then
+        write(*,*) 'is Planet system, loading'
+        read (1000,*)
+        read (1000,*) muS, muP, omiga     !  Gravity constant of Saturn and Pan
+        read (1000,*) omiga               !  Angular velocity of Pan's initial revolution (suppose tidal locking and anticlockwise, usually negative)
+        read (1000,*) (rOrig(K),K=1,3)    !  Saturn to Pan's initial position, i.e., the origin point
+    else
+        read (1000,*)
+        read (1000,*)
+    end if
+        
+    !  initial the rotary system
+    if (isRotSystem) then
+        write(*,*) 'is Rotary System, loading...'
+        read (1000,*)
+        read (1000,*) sysOmiga, sysGrav
+    else
+        read (1000,*)
+        read (1000,*)
+    end if
     close(1000)
     
-    !  read properties of Saturn and Pan
-    if (isPlanet) then
-        write(*,*) 'is Planet system, loading...'
-        open (2000,FILE="../Input/planetProperties.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
-        read (2000,*)
-        read (2000,*)  muS                 !  gravity constant of Saturn
-        read (2000,*)
-        read (2000,*)  muP                 !  gravity constant of Pan
-        read (2000,*)
-        read (2000,*)  omiga               !  angular velocity of Pan's initial revolution (suppose tidal locking and anticlockwise, usually negative)
-        read (2000,*)
-        read (2000,*)  (rOrig(K),K=1,3)    !  Saturn to Pan's initial position, i.e., the origin point
-        close(2000)
-    end if
-    
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!#ifdef self_gravity
 !    !  Initialize Gravity Lattice.
 !    write(*,*) "Gravity Lattice initializing..."
@@ -199,6 +246,7 @@
 !        Gravity(I)%MassCenter = 0.0D0
 !    end do
 !!#end if
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !  Initialize Parallel Lattice.
     write(*,*) "Parallel Lattice initializing..."
@@ -225,6 +273,7 @@
         DEM(I)%NoOuter = 0                 !  Length of Lattice's outer particles
         DEM(I)%IDInner = 0                 !  Array of Lattice's inner particles
         DEM(I)%IDOuter = 0                 !  Array of lattice's outer particles
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!#ifdef self_gravity
 !        idgx = int((idx-1)/(LatNx/GravNx))+1
 !        idgy = int((idy-1)/(LatNy/GravNy))+1
@@ -236,6 +285,7 @@
 !        Gravity(DEM(I)%GravID)%num = Gravity(DEM(I)%GravID)%num + 1
 !        Gravity(DEM(I)%GravID)%ID(Gravity(DEM(I)%GravID)%num) = I
 !!#endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     end do
 
     !  Initialize Hertz list. Linklist-Compressed.
@@ -244,6 +294,7 @@
     allocate(Head(NMAX))
     do I = 1,NMAX
         Head(I)%No = 0                    !  Length of Linklist
+        Head(I)%recordTime = 0.0D0        !  record time
         Head(I)%Hertz(1) = 0.0D0          !  Hertz(1)
         Head(I)%Hertz(2) = 0.0D0          !  Hertz(2)
         Head(I)%Hertz(3) = 0.0D0          !  Hertz(3)
