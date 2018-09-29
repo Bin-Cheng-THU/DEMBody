@@ -185,10 +185,10 @@
     real(8) :: muS
     real(8) :: muP
     real(8) :: rOrig(3)
-    real(8) :: omiga
+    real(8) :: omega
     
     !  Define parameters of Rotary system
-    real(8) :: sysOmiga
+    real(8) :: sysOmega
     real(8) :: sysGrav
     
     !  Define parameters of Gravity

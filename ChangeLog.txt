@@ -95,3 +95,21 @@ benchmark:
     更新genParticlesBox与genParticlesSphere函数
     加入Test文件夹，用于存放代码开发过程中的相关测试函数，目前包含pointTriMesh.m，测试空间三角形的最近点搜索；
     加入post-processing文件夹，用于存放后处理相关函数，目前包含addMovies.m，genWallPovRay.m，genPovRayMov.m，texture.m，asteroid.pov，Demo.pov；
+*********************************************************************
+DEMBody   4.1.1    29/9/2018上线
+
+周期边界条件：
+    测试了周期边界内颗粒受力与直接加镜像颗粒受力，发现两者无差别，证明该程序应该不存在问题。
+    测试之后发现，如果颗粒A与颗粒B跨周期边界接触，则需要将接触信息存储下来，但是Traverse算法会强制搜索两者之间的接触，发现两者其实并未接触，则将会把接触信息删除，由此出现问题；
+    直观的修改方案为将镜像颗粒信息存储标签+NMAX，但这样隐含一个问题，就是在跨周期边界接触时，颗粒可能过会儿就转换为非跨周期边界接触，此时应该将原有信息传输给此时的接触链表，但由于NMAX的存在，其并不会传递该信息，导致出现问题。
+    因此在仔细思考之后，我认为如果采用Lattice算法就不会出现该问题，因此，结论为periodic与目前的traverse算法不能共存！！！【或者在Traverse算法加入一定的网格阈值判断，应该就可以避免这个问题，留待以后验证】
+    测试通过Lattice算法版本的periodic算例，没有问题。
+Planet非惯性力：
+    重新检查了推导过程，没有问题。
+    但将omiga更正为omega，并将Planet参数移入systemControl文件。
+forceGravBody：
+    重新检查了推导过程，没有问题。
+benchmark:
+    新加入测试文件，input_points_periodic_A.txt与input_points_periodic_B.txt，可以测试周期边界条件的正确性。
+
+

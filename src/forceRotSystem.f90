@@ -25,12 +25,12 @@
     do I = 1,N
         !  Centrifugal force
         do K = 1,2
-            F(K,I) = F(K,I) + sysOmiga*sysOmiga*X(K,I)
+            F(K,I) = F(K,I) + sysOmega*sysOmega*X(K,I)
         end do
 
         !  Coriolis force
-        F(1,I) = F(1,I) + 2.0D0*sysOmiga*Xdot(2,I)
-        F(2,I) = F(2,I) - 2.0D0*sysOmiga*Xdot(1,I)
+        F(1,I) = F(1,I) + 2.0D0*sysOmega*Xdot(2,I)
+        F(2,I) = F(2,I) - 2.0D0*sysOmega*Xdot(1,I)
         
         !  Gravity
         do K = 1,3

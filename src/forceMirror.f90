@@ -36,6 +36,11 @@
     type(Nodelink),pointer :: TempH          !  Contact pointer
     real(kind=8) ShearPBC                    !  shearPBC                    
 
+    !character(30) :: FileName
+    !write(FileName,'(F10.5)') Time
+    !FileName = trim(FileName)//'HeadMirror.txt'
+    !open(123,FILE=FileName)
+    
     !  Loop over all bodies through the NodeTree.
     !$OMP PARALLEL DO &
     !$OMP& PRIVATE(shearPBC,Temp,TempH,LenNode,&
@@ -50,12 +55,17 @@
         if (Tag1(I).EQ.1) then
             do J = 1,N
                 if (Tag2(J).EQ.1) then   !  .OR. I.EQ.N
+                    
+                    !if (I.EQ.PP .OR. J.EQ.PP) then
+                    !    write(123,'(F15.5,2X,2I5,2X)',advance='no') Time,I,J
+                    !end if
+            
                     !  Initialize state params
                     do K = 1,3
                         Dist(K) = X(K,J) -  X(K,I)
-                        H(K) = 0.0
-                        Mr(K) = 0.0
-                        Mt(K) = 0.0
+                        H(K) = 0.0D0
+                        Mr(K) = 0.0D0
+                        Mt(K) = 0.0D0
                     end do
                     Dist(1) = Dist(1) - LenBoxX
                     touching = .false.
@@ -91,6 +101,9 @@
                             end if
                         end do
                     end if
+                    !if (I.EQ.PP .OR. J.EQ.PP) then
+                    !    write(123,'(F15.5,2X)',advance='no') Dn
+                    !end if
                     !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hooke's law
                     if (Dn .GT. 0.0) then
                         DistR = 1.0/DistL
@@ -180,6 +193,10 @@
                         end do
                         tangential_forceL = sqrt(tangential_force(1)*tangential_force(1) + tangential_force(2)*tangential_force(2) + tangential_force(3)*tangential_force(3))
 
+                        !if (I.EQ.PP .OR. J.EQ.PP) then
+                        !    write(123,'(11F15.5,2X)',advance='no') normal_forceL,tangential_forceL,(H(K),K=1,3),(Vtan(K),K=1,3),(Ds(K),K=1,3)
+                        !end if
+                
                         if (slipping) then  !  Have slipped
                             if (DsL .GT. 1e-8) then  !  Still slipping
                                 do K = 1,3
@@ -400,6 +417,9 @@
                         end if
                         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     end if
+                    !if (I.EQ.PP .OR. J.EQ.PP) then
+                    !    write(123,*)
+                    !end if
                 end if
             end do
         end if
@@ -408,12 +428,17 @@
         if (Tag2(I).EQ.1) then
             do J = 1,N
                 if (Tag1(J).EQ.1) then   !  .OR. I.EQ.N
+                    
+                    !if (I.EQ.PP .OR. J.EQ.PP) then
+                    !    write(123,'(F15.5,2X,2I5,2X)',advance='no') Time,I,J
+                    !end if
+                    
                     !  Initialize state params
                     do K = 1,3
                         Dist(K) = X(K,J) -  X(K,I)
-                        H(K) = 0.0
-                        Mr(K) = 0.0
-                        Mt(K) = 0.0
+                        H(K) = 0.0D0
+                        Mr(K) = 0.0D0
+                        Mt(K) = 0.0D0
                     end do
                     Dist(1) = Dist(1) + LenBoxX
                     touching = .false.
@@ -449,6 +474,9 @@
                             end if
                         end do
                     end if
+                    !if (I.EQ.PP .OR. J.EQ.PP) then
+                    !    write(123,'(F15.5,2X)',advance='no') Dn
+                    !end if
                     !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hooke's law
                     if (Dn .GT. 0.0) then
                         DistR = 1.0/DistL
@@ -538,6 +566,10 @@
                         end do
                         tangential_forceL = sqrt(tangential_force(1)*tangential_force(1) + tangential_force(2)*tangential_force(2) + tangential_force(3)*tangential_force(3))
 
+                        !if (I.EQ.PP .OR. J.EQ.PP) then
+                        !    write(123,'(11F15.5,2X)',advance='no') normal_forceL,tangential_forceL,(H(K),K=1,3),(Vtan(K),K=1,3),(Ds(K),K=1,3)
+                        !end if
+                        
                         if (slipping) then  !  Have slipped
                             if (DsL .GT. 1e-8) then  !  Still slipping
                                 do K = 1,3
@@ -757,6 +789,9 @@
                         end if
                         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     end if
+                    !if (I.EQ.PP .OR. J.EQ.PP) then
+                    !    write(123,*)
+                    !end if
                 end if
             end do
         end if
@@ -768,9 +803,9 @@
                     !  Initialize state params
                     do K = 1,3
                         Dist(K) = X(K,J) -  X(K,I)
-                        H(K) = 0.0
-                        Mr(K) = 0.0
-                        Mt(K) = 0.0
+                        H(K) = 0.0D0
+                        Mr(K) = 0.0D0
+                        Mt(K) = 0.0D0
                     end do
                     Dist(2) = Dist(2) - LenBoxY
                     shearPBC = X(1,J) + 0.5*LenBoxY*gamma*time
@@ -1129,9 +1164,9 @@
                     !  Initialize state params
                     do K = 1,3
                         Dist(K) = X(K,J) -  X(K,I)
-                        H(K) = 0.0
-                        Mr(K) = 0.0
-                        Mt(K) = 0.0
+                        H(K) = 0.0D0
+                        Mr(K) = 0.0D0
+                        Mt(K) = 0.0D0
                     end do
                     Dist(2) = Dist(2) + LenBoxY
                     shearPBC = X(1,J) - 0.5*LenBoxY*gamma*time

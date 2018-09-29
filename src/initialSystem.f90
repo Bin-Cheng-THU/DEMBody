@@ -208,9 +208,10 @@
     if (isPlanet) then
         write(*,*) 'is Planet system, loading'
         read (1000,*)
-        read (1000,*) muS, muP, omiga     !  Gravity constant of Saturn and Pan
-        read (1000,*) omiga               !  Angular velocity of Pan's initial revolution (suppose tidal locking and anticlockwise, usually negative)
+        read (1000,*) muS, muP            !  Gravity constant of Saturn and Pan
+        read (1000,*) omega               !  Angular velocity of Pan's initial revolution (suppose tidal locking and anticlockwise, usually negative)
         read (1000,*) (rOrig(K),K=1,3)    !  Saturn to Pan's initial position, i.e., the origin point
+        rOrig(2) = (muS/omega/omega)**(1/3)
     else
         read (1000,*)
         read (1000,*)
@@ -220,7 +221,7 @@
     if (isRotSystem) then
         write(*,*) 'is Rotary System, loading...'
         read (1000,*)
-        read (1000,*) sysOmiga, sysGrav
+        read (1000,*) sysOmega, sysGrav
     else
         read (1000,*)
         read (1000,*)

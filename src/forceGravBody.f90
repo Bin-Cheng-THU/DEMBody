@@ -55,15 +55,15 @@
     do I = 1,N
         do K = 1,3
             Dist(K) = gravBodyX(K) -  X(K,I)
-            H(K) = 0.0
-            Mr(K) = 0.0
-            Mt(K) = 0.0
+            H(K) = 0.0D0
+            Mr(K) = 0.0D0
+            Mt(K) = 0.0D0
         end do
         
         !  Distance vector
         DistS = Dist(1)*Dist(1) + Dist(2)*Dist(2) + Dist(3)*Dist(3)
         DistL = sqrt(DistS)
-        DistR = 1.0/DistL        
+        DistR = 1.0D0/DistL        
 
         do K = 1,3
             gravity_force(K) = GravConst*Body(I)*gravBodyBody*Dist(K)*DistR*DistR*DistR
@@ -444,7 +444,7 @@
 
         !  Centrifugal force
         do K = 1,2
-            gravBodyF(K) = gravBodyF(K) + omiga*omiga*gravBodyX(K)
+            gravBodyF(K) = gravBodyF(K) + omega*omega*gravBodyX(K)
         end do
 
         !  Rotation transport force
@@ -455,8 +455,8 @@
         end do
 
         !  Coriolis force
-        gravBodyF(1) = gravBodyF(1) + 2.0D0*omiga*gravBodyXdot(2)
-        gravBodyF(2) = gravBodyF(2) - 2.0D0*omiga*gravBodyXdot(1)
+        gravBodyF(1) = gravBodyF(1) + 2.0D0*omega*gravBodyXdot(2)
+        gravBodyF(2) = gravBodyF(2) - 2.0D0*omega*gravBodyXdot(1)
     end if
     
     return

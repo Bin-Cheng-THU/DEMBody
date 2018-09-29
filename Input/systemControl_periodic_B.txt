@@ -1,0 +1,43 @@
+DEMBody 4.1
+*---Parallel params
+1.5	1.5	1.5
+32	32	32
+*---Console params
+1.0e-3 1.0e-1
+1.0e-3
+2.0e-4
+*---Mesh params
+0.75 0.75 0.75
+24.0 24.0 24.0
+1 64 4096
+0.04
+*---System control
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+5e5
+*---Gravity
+0.0
+*---Contactable walls
+0
+*---Bonded walls
+0
+*---TriMesh walls
+0
+*---Funnel walls
+0
+*---Periodic boundary conditions
+0
+*---Gravity Body
+0
+*---Planet System
+0
+*---Rotary System
+0
