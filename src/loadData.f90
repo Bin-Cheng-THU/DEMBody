@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.1
+    !     DEMBody 4.2
     !     ***********
     !
     !     Parameter input.
@@ -55,7 +55,7 @@
     
     !  generate DEM Parallel Latice based on partition of Particles
     call latticeGenerate
-    
+ 
     !  initial the force in case exiting overlaps at the initial-time.
     call forceLattice
 

@@ -29,9 +29,14 @@
     integer :: color
     real(8) :: tmp_Mass,tmp_MassCenter(3)
     real(8) :: o1,o2
+#ifdef LinklistStore    
+    type(Neighbor),pointer :: Temp
+    type(Neighbor),pointer :: TempH
+#endif    
     
     !o1 = omp_get_wtime()
     !  initialized Parallel Lattice
+#ifdef ArrayStore    
     !$OMP PARALLEL DO PRIVATE(I)
     do I = 1,LatNum  
         !  reset Inner & Outer quantities
@@ -41,9 +46,31 @@
         DEM(I)%IDOuter = 0
     end do
     !$OMP END PARALLEL DO
+#elif LinklistStore
+    !$OMP PARALLEL DO PRIVATE(I,Temp) SCHEDULE(GUIDED)
+    do I = 1,LatNum
+        !  reset Inner & Outer quantities    
+        do while(associated(IDInner(I)%next))
+            Temp => IDInner(I)%next
+            IDInner(I)%next => IDInner(I)%next%next
+            deallocate(Temp)
+        end do
+        IDInner(I)%No = 0
+        do while(associated(IDOuter(I)%next))
+            Temp => IDOuter(I)%next
+            IDOuter(I)%next => IDOuter(I)%next%next
+            deallocate(Temp)
+        end do 
+        IDOuter(I)%No = 0
+        !  assign tail of Inner & Outer to tail
+        tailInner(I)%next => IDInner(I)
+        tailOuter(I)%next => IDOuter(I)
+    end do
+    !$OMP END PARALLEL DO
+#endif
     !o2 = omp_get_wtime()
-    !write(*,*) (o2-o1)
-       
+    !write(*,*) "Lattice Empty",(o2-o1)
+    !   
     !o1 = omp_get_wtime()
     ! $OMP PARALLEL DO PRIVATE(I,J,K,Tag,Flag,positionD,positionU) SCHEDULE(GUIDED)
     do I = 1,N
@@ -71,6 +98,7 @@
                 Flag = .false.
             end if
 
+#ifdef ArrayStore
             if (Flag) then
                 !  insert into Lattice's inner region
                 DEM(Tag)%NoInner = DEM(Tag)%NoInner + 1
@@ -285,11 +313,417 @@
                     end if
                 end if
             end if
+#elif LinklistStore
+            if (Flag) then
+                !  insert into Lattice's inner region
+
+                IDInner(Tag)%No = IDInner(Tag)%No + 1
+                !TempH => IDInner(Tag)
+                !do while(associated(TempH%next))
+                !    TempH => TempH%next
+                !end do        
+                allocate(Temp)
+                Temp = Neighbor(I,NULL())
+                tailInner(Tag)%next%next => Temp
+                tailInner(Tag)%next => Temp
+    
+                !  insert into Lattice's outer region
+                !  Left lattice
+                if (DEM(Tag)%ID(1) .NE. 1) then
+                    if (X(1,I) .LT. (positionD(1)+Dx)) then
+                        IDOuter(Tag-1)%No = IDOuter(Tag-1)%No + 1
+                        !TempH => IDOuter(Tag-1)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag-1)%next%next => Temp
+                        tailOuter(Tag-1)%next => Temp                      
+                    end if
+                end if
+    
+                !  Left Upper lattice
+                if (DEM(Tag)%ID(1).NE.1 .AND. DEM(Tag)%ID(2).NE.LatNy) then
+                    if (X(1,I).LT.(positionD(1)+Dx) .AND. X(2,I).GT.(positionU(2)-Dy)) then
+                        IDOuter(Tag-1+LatNx)%No = IDOuter(Tag-1+LatNx)%No + 1
+                        !TempH => IDOuter(Tag-1+LatNx)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag-1+LatNx)%next%next => Temp
+                        tailOuter(Tag-1+LatNx)%next => Temp    
+                    end if
+                end if
+    
+                !  Upper lattice
+                if (DEM(Tag)%ID(2) .NE. LatNy) then
+                    if (X(2,I) .GT. (positionU(2)-Dy)) then
+                        IDOuter(Tag+LatNx)%No = IDOuter(Tag+LatNx)%No + 1
+                        !TempH => IDOuter(Tag+LatNx)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag+LatNx)%next%next => Temp
+                        tailOuter(Tag+LatNx)%next => Temp     
+                    end if
+                end if            
+    
+                !  Right Upper lattice
+                if (DEM(Tag)%ID(1).NE.LatNx .AND. DEM(Tag)%ID(2).NE.LatNy) then
+                    if (X(1,I).GT.(positionU(1)-Dx) .AND. X(2,I).GT.(positionU(2)-Dy)) then
+                        IDOuter(Tag+1+LatNx)%No = IDOuter(Tag+1+LatNx)%No + 1
+                        !TempH => IDOuter(Tag+1+LatNx)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag+1+LatNx)%next%next => Temp
+                        tailOuter(Tag+1+LatNx)%next => Temp  
+                    end if
+                end if
+    
+                !  Center Covered lattice
+                if (DEM(Tag)%ID(3) .NE. LatNz) then
+                    if (X(3,I) .GT. (positionU(3)-Dz)) then
+                        IDOuter(Tag+LatNx*LatNy)%No = IDOuter(Tag+LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag+LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag+LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag+LatNx*LatNy)%next => Temp  
+                    end if
+                end if
+    
+                !  Left Covered lattice
+                if (DEM(Tag)%ID(1).NE.1 .AND. DEM(Tag)%ID(3).NE.LatNz) then
+                    if (X(1,I).LT.(positionD(1)+Dx) .AND. X(3,I).GT.(positionU(3)-Dz)) then
+                        IDOuter(Tag-1+LatNx*LatNy)%No = IDOuter(Tag-1+LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag-1+LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag-1+LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag-1+LatNx*LatNy)%next => Temp  
+                    end if
+                end if
+    
+                !  Left Upper Covered lattice
+                if (DEM(Tag)%ID(1).NE.1 .AND. DEM(Tag)%ID(2).NE.LatNy .AND. DEM(Tag)%ID(3).NE.LatNz) then
+                    if (X(1,I).LT.(positionD(1)+Dx) .AND. X(2,I).GT.(positionU(2)-Dy) .AND. X(3,I).GT.(positionU(3)-Dz)) then
+                        IDOuter(Tag-1+LatNx+LatNx*LatNy)%No = IDOuter(Tag-1+LatNx+LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag-1+LatNx+LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag-1+LatNx+LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag-1+LatNx+LatNx*LatNy)%next => Temp  
+                    end if
+                end if
+    
+                !  Upper Covered lattice
+                if (DEM(Tag)%ID(2).NE.LatNy .AND. DEM(Tag)%ID(3).NE.LatNz) then
+                    if (X(2,I).GT.(positionU(2)-Dy) .AND. X(3,I).GT.(positionU(3)-Dz)) then
+                        IDOuter(Tag+LatNx+LatNx*LatNy)%No = IDOuter(Tag+LatNx+LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag+LatNx+LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag+LatNx+LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag+LatNx+LatNx*LatNy)%next => Temp  
+                    end if
+                end if             
+    
+                !  Right Upper Covered lattice
+                if (DEM(Tag)%ID(1).NE.LatNx .AND. DEM(Tag)%ID(2).NE.LatNy .AND. DEM(Tag)%ID(3).NE.LatNz) then
+                    if (X(1,I).GT.(positionU(1)-Dx) .AND. X(2,I).GT.(positionU(2)-Dy) .AND. X(3,I).GT.(positionU(3)-Dz)) then
+                        IDOuter(Tag+1+LatNx+LatNx*LatNy)%No = IDOuter(Tag+1+LatNx+LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag+1+LatNx+LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag+1+LatNx+LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag+1+LatNx+LatNx*LatNy)%next => Temp  
+                    end if
+                end if
+    
+                !  Right Covered lattice
+                if (DEM(Tag)%ID(1).NE.LatNx .AND. DEM(Tag)%ID(3).NE.LatNz) then
+                    if (X(1,I).GT.(positionU(1)-Dx) .AND. X(3,I).GT.(positionU(3)-Dz)) then
+                        IDOuter(Tag+1+LatNx*LatNy)%No = IDOuter(Tag+1+LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag+1+LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag+1+LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag+1+LatNx*LatNy)%next => Temp   
+                    end if
+                end if
+    
+                !  Right Below Covered lattice
+                if (DEM(Tag)%ID(1).NE.LatNx .AND. DEM(Tag)%ID(2).NE.1 .AND. DEM(Tag)%ID(3).NE.LatNz) then
+                    if (X(1,I).GT.(positionU(1)-Dx) .AND. X(2,I).LT.(positionD(2)+Dy) .AND. X(3,I).GT.(positionU(3)-Dz)) then
+                        IDOuter(Tag+1-LatNx+LatNx*LatNy)%No = IDOuter(Tag+1-LatNx+LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag+1-LatNx+LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag+1-LatNx+LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag+1-LatNx+LatNx*LatNy)%next => Temp  
+                    end if
+                end if
+    
+                !  Below Covered lattice
+                if (DEM(Tag)%ID(2).NE.1 .AND. DEM(Tag)%ID(3).NE.LatNz) then
+                    if (X(2,I).LT.(positionD(2)+Dy) .AND. X(3,I).GT.(positionU(3)-Dz)) then
+                        IDOuter(Tag-LatNx+LatNx*LatNy)%No = IDOuter(Tag-LatNx+LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag-LatNx+LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag-LatNx+LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag-LatNx+LatNx*LatNy)%next => Temp 
+                    end if
+                end if            
+    
+                !  Left Below Covered lattice
+                if (DEM(Tag)%ID(1).NE.1 .AND. DEM(Tag)%ID(2).NE.1 .AND. DEM(Tag)%ID(3).NE.LatNz) then
+                    if (X(1,I).LT.(positionD(1)+Dx) .AND. X(2,I).LT.(positionD(2)+Dy) .AND. X(3,I).GT.(positionU(3)-Dz)) then
+                        IDOuter(Tag-1-LatNx+LatNx*LatNy)%No = IDOuter(Tag-1-LatNx+LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag-1-LatNx+LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag-1-LatNx+LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag-1-LatNx+LatNx*LatNy)%next => Temp 
+                    end if
+                end if
+                
+                !  Right lattice
+                if (DEM(Tag)%ID(1) .NE. LatNx) then
+                    if (X(1,I) .GT. (positionU(1)-Dx)) then
+                        IDOuter(Tag+1)%No = IDOuter(Tag+1)%No + 1
+                        !TempH => IDOuter(Tag+1)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag+1)%next%next => Temp
+                        tailOuter(Tag+1)%next => Temp                       
+                    end if
+                end if
+    
+                !   Right Below lattice
+                if (DEM(Tag)%ID(1).NE.LatNx .AND. DEM(Tag)%ID(2).NE.1) then
+                    if (X(1,I).GT.(positionU(1)-Dx) .AND. X(2,I).LT.(positionD(2)+Dy)) then
+                        IDOuter(Tag+1-LatNx)%No = IDOuter(Tag+1-LatNx)%No + 1
+                        !TempH => IDOuter(Tag+1-LatNx)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag+1-LatNx)%next%next => Temp
+                        tailOuter(Tag+1-LatNx)%next => Temp  
+                    end if
+                end if
+    
+                !  Below lattice
+                if (DEM(Tag)%ID(2) .NE. 1) then
+                    if (X(2,I) .LT. (positionD(2)+Dy)) then
+                        IDOuter(Tag-LatNx)%No = IDOuter(Tag-LatNx)%No + 1
+                        !TempH => IDOuter(Tag-LatNx)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag-LatNx)%next%next => Temp
+                        tailOuter(Tag-LatNx)%next => Temp  
+                    end if
+                end if            
+    
+                !  Left Below lattice
+                if (DEM(Tag)%ID(1).NE.1 .AND. DEM(Tag)%ID(2).NE.1) then
+                    if (X(1,I).LT.(positionD(1)+Dx) .AND. X(2,I).LT.(positionD(2)+Dy)) then
+                        IDOuter(Tag-1-LatNx)%No = IDOuter(Tag-1-LatNx)%No + 1
+                        !TempH => IDOuter(Tag-1-LatNx)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag-1-LatNx)%next%next => Temp
+                        tailOuter(Tag-1-LatNx)%next => Temp 
+                    end if
+                end if
+    
+                !  Center Under lattice
+                if (DEM(Tag)%ID(3) .NE. 1) then
+                    if (X(3,I) .LT. (positionD(3)+Dz)) then
+                        IDOuter(Tag-LatNx*LatNy)%No = IDOuter(Tag-LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag-LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag-LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag-LatNx*LatNy)%next => Temp  
+                    end if
+                end if
+    
+                !  Right Under lattice
+                if (DEM(Tag)%ID(1).NE.LatNx .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(1,I).GT.(positionU(1)-Dx) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        IDOuter(Tag+1-LatNx*LatNy)%No = IDOuter(Tag+1-LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag+1-LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag+1-LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag+1-LatNx*LatNy)%next => Temp  
+                    end if
+                end if
+    
+                !  Right Below Under lattice
+                if (DEM(Tag)%ID(1).NE.LatNx .AND. DEM(Tag)%ID(2).NE.1 .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(1,I).GT.(positionU(1)-Dx) .AND. X(2,I).LT.(positionD(2)+Dy) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        IDOuter(Tag+1-LatNx-LatNx*LatNy)%No = IDOuter(Tag+1-LatNx-LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag+1-LatNx-LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag+1-LatNx-LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag+1-LatNx-LatNx*LatNy)%next => Temp  
+                    end if
+                end if
+    
+                !  Below Under lattice
+                if (DEM(Tag)%ID(2).NE.1 .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(2,I).LT.(positionD(2)+Dy) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        IDOuter(Tag-LatNx-LatNx*LatNy)%No = IDOuter(Tag-LatNx-LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag-LatNx-LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag-LatNx-LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag-LatNx-LatNx*LatNy)%next => Temp
+                    end if
+                end if             
+    
+                !  Left Below Under lattice
+                if (DEM(Tag)%ID(1).NE.1 .AND. DEM(Tag)%ID(2).NE.1 .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(1,I).LT.(positionD(1)+Dx) .AND. X(2,I).LT.(positionD(2)+Dy) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        IDOuter(Tag-1-LatNx-LatNx*LatNy)%No = IDOuter(Tag-1-LatNx-LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag-1-LatNx-LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag-1-LatNx-LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag-1-LatNx-LatNx*LatNy)%next => Temp 
+                    end if
+                end if
+    
+                !  Left Under lattice
+                if (DEM(Tag)%ID(1).NE.1 .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(1,I).LT.(positionD(1)+Dx) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        IDOuter(Tag-1-LatNx*LatNy)%No = IDOuter(Tag-1-LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag-1-LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag-1-LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag-1-LatNx*LatNy)%next => Temp 
+                    end if
+                end if
+    
+                !  Left Upper Under lattice
+                if (DEM(Tag)%ID(1).NE.1 .AND. DEM(Tag)%ID(2).NE.LatNy .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(1,I).LT.(positionD(1)+Dx) .AND. X(2,I).GT.(positionU(2)-Dy) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        IDOuter(Tag-1+LatNx-LatNx*LatNy)%No = IDOuter(Tag-1+LatNx-LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag-1+LatNx-LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag-1+LatNx-LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag-1+LatNx-LatNx*LatNy)%next => Temp 
+                    end if
+                end if
+    
+                !  Upper Under lattice
+                if (DEM(Tag)%ID(2).NE.LatNy .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(2,I).GT.(positionU(2)-Dy) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        IDOuter(Tag+LatNx-LatNx*LatNy)%No = IDOuter(Tag+LatNx-LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag+LatNx-LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag+LatNx-LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag+LatNx-LatNx*LatNy)%next => Temp 
+                    end if
+                end if            
+    
+                !  Right Upper Under lattice
+                if (DEM(Tag)%ID(1).NE.LatNx .AND. DEM(Tag)%ID(2).NE.LatNy .AND. DEM(Tag)%ID(3).NE.1) then
+                    if (X(1,I).GT.(positionU(1)-Dx) .AND. X(2,I).GT.(positionU(2)-Dy) .AND. X(3,I).LT.(positionD(3)+Dz)) then
+                        IDOuter(Tag+1+LatNx-LatNx*LatNy)%No = IDOuter(Tag+1+LatNx-LatNx*LatNy)%No + 1
+                        !TempH => IDOuter(Tag+1+LatNx-LatNx*LatNy)
+                        !do while(associated(TempH%next))
+                        !    TempH => TempH%next
+                        !end do                    
+                        allocate(Temp)
+                        Temp = Neighbor(I,NULL())
+                        tailOuter(Tag+1+LatNx-LatNx*LatNy)%next%next => Temp
+                        tailOuter(Tag+1+LatNx-LatNx*LatNy)%next => Temp 
+                    end if
+                end if
+            end if
+#endif            
         end if
     end do
     ! $OMP END PARALLEL DO
     !o2 = omp_get_wtime()
-    !write(*,*) (o2-o1)
+    !write(*,*) "Lattice Assign",(o2-o1)
     
     !  reset Position array
     !$OMP PARALLEL DO PRIVATE(I,K)
@@ -379,7 +813,57 @@
     !do I = 1,N
     !    write(100,'(F15.5,A2,F15.5,A2,F15.5,A2,F15.5,A2,I5)') X(1,I),',',X(2,I),',',X(3,I),',',R(I),',',ParallelLatticeColor(1,I)
     !end do
+    !close(100)
     !
     !stop
-
+    
+    !****************
+    !Test Parallel Lattice Method using files.
+    !****************
+!#ifdef ArrayStore
+!    open(100,FILE="Inner.txt")
+!    do J = 1,LatNum
+!        write(100,'(I5)',advance='no') DEM(J)%NoInner
+!        do I = 1,DEM(J)%NoInner
+!            write(100,'(I5)',advance='no') DEM(J)%IDInner(I)
+!        end do
+!        write(100,*)
+!    end do
+!    close(100)
+!    open(100,FILE="Outer.txt")
+!    do J = 1,LatNum
+!        write(100,'(I5)',advance='no') DEM(J)%NoOuter
+!        do I = 1,DEM(J)%NoOuter
+!            write(100,'(I5)',advance='no') DEM(J)%IDOuter(I)
+!        end do
+!        write(100,*)
+!    end do
+!    close(100)
+!#elif LinklistStore
+!    open(100,FILE="Inner.txt")
+!    do J = 1,LatNum
+!        TempH => IDInner(J)
+!        write(100,'(I5)',advance='no') TempH%No
+!        do while(associated(TempH%next))
+!            TempH => TempH%next
+!            write(100,'(I5)',advance='no') TempH%No
+!        end do 
+!        write(100,*)
+!    end do
+!    close(100)
+!    open(100,FILE="Outer.txt")
+!    do J = 1,LatNum
+!        TempH => IDOuter(J)
+!        write(100,'(I5)',advance='no') TempH%No
+!        do while(associated(TempH%next))
+!            TempH => TempH%next
+!            write(100,'(I5)',advance='no') TempH%No
+!        end do 
+!        write(100,*)
+!    end do
+!    close(100)
+!#endif
+!
+!    pause
+    
     end

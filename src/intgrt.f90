@@ -33,16 +33,18 @@
     !$OMP PARALLEL DO PRIVATE(I,K,dist,distL)
     do I = 1,N
         do K = 1,3
-            dist(K) = Xdot(K,I) * Dt +  F(K,I) * Dt * Dt /2.0
+            dist(K) = Xdot(K,I) * Dt +  F(K,I) * Dt * Dt /2.0D0
             XT(K,I) = XT(K,I) + dist(K)            
             X(K,I) = X(K,I) + dist(K)
-            Xdot(K,I) = Xdot(K,I) + F(K,I) * Dt /2.0
-            W(K,I) = W(K,I) + FM(K,I) * Dt /2.0
+            Xdot(K,I) = Xdot(K,I) + F(K,I) * Dt /2.0D0
+            W(K,I) = W(K,I) + FM(K,I) * Dt /2.0D0
         end do
+#ifdef LatticeSearch        
         distL = XT(1,I)*XT(1,I) + XT(2,I)*XT(2,I) + XT(3,I)*XT(3,I)
         if (distL .GE. verlet) then
             refreshLattice = .true.
         end if
+#endif LatticeSearch        
     end do
     !$OMP END PARALLEL DO
     
@@ -52,9 +54,9 @@
     
     if (isGravBody) then
         do K = 1,3
-            gravBodyX(K) = gravBodyX(K) + gravBodyXdot(K) * Dt +  gravBodyF(K) * Dt * Dt /2.0
-            gravBodyXdot(K) = gravBodyXdot(K) + gravBodyF(K) * Dt /2.0
-            gravBodyW(K) = gravBodyW(K) + gravBodyFM(K) * Dt /2.0
+            gravBodyX(K) = gravBodyX(K) + gravBodyXdot(K) * Dt +  gravBodyF(K) * Dt * Dt /2.0D0
+            gravBodyXdot(K) = gravBodyXdot(K) + gravBodyF(K) * Dt /2.0D0
+            gravBodyW(K) = gravBodyW(K) + gravBodyFM(K) * Dt /2.0D0
         end do
         call attitudeGravBody
     end if
@@ -93,7 +95,7 @@
     !  calculated the force from the current x & xdot.
     !write(*,*) "start"
 #ifdef LatticeSearch    
-    call forceLattice
+    call forceLattice 
 #elif TraverseSearch
     call forceTraverse
 #endif
@@ -104,16 +106,16 @@
     !$OMP PARALLEL DO PRIVATE(I,K)
     do I = 1,N
         do K = 1,3
-            Xdot(K,I) = Xdot(K,I) + F(K,I) * Dt /2.0
-            W(K,I) = W(K,I) + FM(K,I) * Dt /2.0            
+            Xdot(K,I) = Xdot(K,I) + F(K,I) * Dt /2.0D0
+            W(K,I) = W(K,I) + FM(K,I) * Dt /2.0D0     
         end do       
     end do
     !$OMP END PARALLEL DO
     
     if (isBondedWall) then
         do K = 1,3
-            bondedWallXdot(K) = bondedWallXdot(K) + bondedWallF(K) * Dt /2.0
-            bondedWallWB(K) = bondedWallWB(K) + bondedWallWdotB(K) * Dt /2.0
+            bondedWallXdot(K) = bondedWallXdot(K) + bondedWallF(K) * Dt /2.0D0
+            bondedWallWB(K) = bondedWallWB(K) + bondedWallWdotB(K) * Dt /2.0D0
         end do
         do K = 1,3
             bondedWallW(K) = bondedWallMatB(K,1)*bondedWallWB(1) + bondedWallMatB(K,2)*bondedWallWB(2) + bondedWallMatB(K,3)*bondedWallWB(3)
@@ -122,8 +124,8 @@
     
     if (isGravBody) then
         do K = 1,3
-            gravBodyXdot(K) = gravBodyXdot(K) + gravBodyF(K) * Dt /2.0
-            gravBodyW(K) = gravBodyW(K) + gravBodyFM(K) * Dt /2.0
+            gravBodyXdot(K) = gravBodyXdot(K) + gravBodyF(K) * Dt /2.0D0
+            gravBodyW(K) = gravBodyW(K) + gravBodyFM(K) * Dt /2.0D0
         end do
         call attitudeGravBody
     end if

@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.1
+    !     DEMBody 4.2
     !     ***********
     !
     !     Initialization of global scalars.
@@ -269,11 +269,13 @@
         DEM(I)%PositionD(3) = lz           !  PositionDz of Lattice
         DEM(I)%PositionU(1) = lx + LatDx   !  PositionUx of Lattice
         DEM(I)%PositionU(2) = ly + LatDy   !  PositionUy of Lattice
-        DEM(I)%PositionU(3) = lz + LatDz   !  PositionUz of Lattice        
+        DEM(I)%PositionU(3) = lz + LatDz   !  PositionUz of Lattice
+#ifdef ArrayStore        
         DEM(I)%NoInner = 0                 !  Length of Lattice's inner particles
         DEM(I)%NoOuter = 0                 !  Length of Lattice's outer particles
         DEM(I)%IDInner = 0                 !  Array of Lattice's inner particles
         DEM(I)%IDOuter = 0                 !  Array of lattice's outer particles
+#endif        
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!#ifdef self_gravity
 !        idgx = int((idx-1)/(LatNx/GravNx))+1
@@ -288,6 +290,20 @@
 !!#endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     end do
+    
+#ifdef LinklistStore    
+    !  Initialize Neighbor Nodelink.
+    allocate(IDInner(LatNum))
+    allocate(IDOuter(LatNum))
+    allocate(tailInner(LatNUm))
+    allocate(tailOuter(LatNum))
+    do I = 1,LatNum
+        IDInner(I)%No = 0                 !  Array of Lattice's inner particles
+        nullify(IDInner(I)%next)          
+        IDOuter(I)%No = 0                 !  Array of lattice's outer particles
+        nullify(IDOuter(I)%next)        
+    end do
+#endif    
 
     !  Initialize Hertz list. Linklist-Compressed.
     write(*,*) "Hertz list initializing..."
@@ -296,7 +312,7 @@
     do I = 1,NMAX
         Head(I)%No = 0                    !  Length of Linklist
         Head(I)%recordTime = 0.0D0        !  record time
-        Head(I)%Hertz(1) = 0.0D0          !  Hertz(1)
+        Head(I)%Hertz(1) = I              !  Hertz(1)
         Head(I)%Hertz(2) = 0.0D0          !  Hertz(2)
         Head(I)%Hertz(3) = 0.0D0          !  Hertz(3)
         Head(I)%Mrot(1) = 0.0D0           !  Mrot(1)

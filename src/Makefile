@@ -12,6 +12,9 @@ MODEL=-DHertzMindlinResti
 #SEARCH=-DTraverseSearch
 SEARCH=-DLatticeSearch
 
+#STORE=-DArrayStore
+STORE=-DLinklistStore
+
 #PARALLEL=-Dnopenmp
 PARALLEL=-Dopenmp
 

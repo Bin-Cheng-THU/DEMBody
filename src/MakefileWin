@@ -2,6 +2,7 @@
 # Add these lines into Preprocessor of VS
 
 LatticeSearch
+LinklistStore
 openmp
 NMAX=3000
 NLAT=500
