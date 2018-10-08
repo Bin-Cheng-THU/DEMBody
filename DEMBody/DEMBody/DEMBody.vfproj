@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<VisualStudioProject ProjectCreator="Intel Fortran" Keyword="Console Application" Version="11.0" ProjectIdGuid="{59273A1D-6CBD-4EF0-9237-6175698DC6E7}">
+<VisualStudioProject ProjectCreator="Intel Fortran" Keyword="Console Application" Version="11.0" ProjectIdGuid="{EB816049-D978-4CAE-9A94-662C04E3CF11}">
 	<Platforms>
 		<Platform Name="Win32"/>
 		<Platform Name="x64"/></Platforms>
 	<Configurations>
 		<Configuration Name="Debug|Win32">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" WarnInterfaces="true" Traceback="true" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" PreprocessorDefinitions="TraverseSearch;LinklistStore;openmp;NMAX=3000;NLAT=500;CASE1=1;CASE2=65;CASE3=64;CASE4=63;CASE5=4096;CASE6=4095;CASE7=4033;CASE8=4032;CASE9=4031;CASE10=4097;CASE11=4159;CASE12=4160;CASE13=4161;HertzMindlinResti;PP=1524" OpenMP="OpenMPParallelCode" WarnInterfaces="true" Traceback="true" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -25,7 +25,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Debug|x64">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" PreprocessorDefinitions="LatticeSearch;ArrayStore;nopenmp;NMAX=3500;NLAT=300;CASE1=1;CASE2=65;CASE3=64;CASE4=63;CASE5=4096;CASE6=4095;CASE7=4033;CASE8=4032;CASE9=4031;CASE10=4097;CASE11=4159;CASE12=4160;CASE13=4161;HertzMindlinResti;PP=1226" WarnInterfaces="true" Traceback="true" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" PreprocessorDefinitions="TraverseSearch;LinklistStore;openmp;NMAX=3000;NLAT=500;CASE1=1;CASE2=65;CASE3=64;CASE4=63;CASE5=4096;CASE6=4095;CASE7=4033;CASE8=4032;CASE9=4031;CASE10=4097;CASE11=4159;CASE12=4160;CASE13=4161;HertzMindlinResti;PP=1524" OpenMP="OpenMPParallelCode" WarnInterfaces="true" Traceback="true" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
@@ -35,8 +35,8 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|x64">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes" PreprocessorDefinitions="LatticeSearch;LinklistStore;openmp;NMAX=3500;NLAT=300;CASE1=1;CASE2=65;CASE3=64;CASE4=63;CASE5=4096;CASE6=4095;CASE7=4033;CASE8=4032;CASE9=4031;CASE10=4097;CASE11=4159;CASE12=4160;CASE13=4161;HertzMindlinResti;PP=2319" OpenMP="OpenMPParallelCode"/>
-				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole" StackReserveSize="200000000" StackCommitSize="200000000"/>
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes" PreprocessorDefinitions="LatticeSearch;openmp;NMAX=300800;HertzMindlinResti;PP=1524" OpenMP="OpenMPParallelCode"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
 				<Tool Name="VFCustomBuildTool"/>
@@ -61,6 +61,7 @@
 		<File RelativePath="..\..\src\forceGravBody.f90"/>
 		<File RelativePath="..\..\src\forceLattice.f90"/>
 		<File RelativePath="..\..\src\forceMirror.f90"/>
+		<File RelativePath="..\..\src\forceParticleLattice.f90"/>
 		<File RelativePath="..\..\src\forceRotSystem.f90"/>
 		<File RelativePath="..\..\src\forceTraverse.f90"/>
 		<File RelativePath="..\..\src\forceTriMeshWalls.f90"/>

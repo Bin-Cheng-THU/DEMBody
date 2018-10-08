@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.2
+    !     DEMBody 4.3
     !     ***********
     !
     !     Initialization of global scalars.
@@ -183,6 +183,8 @@
         read (1000,*) LenBoxX
         read (1000,*) LenBoxY
         read (1000,*) gamma
+        LenBoxX = PlaSx1p(1) - PlaSx2p(1)
+        LenBoxY = PlaSy1p(2) - PlaSy2p(2)
     else
         read (1000,*)
         read (1000,*)
@@ -249,6 +251,7 @@
 !!#end if
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+#ifdef LatticeSearch
     !  Initialize Parallel Lattice.
     write(*,*) "Parallel Lattice initializing..."
     
@@ -270,12 +273,111 @@
         DEM(I)%PositionU(1) = lx + LatDx   !  PositionUx of Lattice
         DEM(I)%PositionU(2) = ly + LatDy   !  PositionUy of Lattice
         DEM(I)%PositionU(3) = lz + LatDz   !  PositionUz of Lattice
-#ifdef ArrayStore        
-        DEM(I)%NoInner = 0                 !  Length of Lattice's inner particles
-        DEM(I)%NoOuter = 0                 !  Length of Lattice's outer particles
-        DEM(I)%IDInner = 0                 !  Array of Lattice's inner particles
-        DEM(I)%IDOuter = 0                 !  Array of lattice's outer particles
-#endif        
+        DEM(I)%NeighborID = 0
+        !  Left lattice
+        if (idx .NE. 1) then
+            DEM(I)%NeighborID(1) = I - 1
+        end if
+        !  Left Upper lattice
+        if (idx.NE.1 .AND. idy.NE.LatNy) then
+            DEM(I)%NeighborID(2) = I - 1 + LatNx
+        end if
+        !  Upper lattice
+        if (idy .NE. LatNy) then
+            DEM(I)%NeighborID(3) = I + LatNx
+        end if
+        !  Right Upper lattice
+        if (idx.NE.LatNx .AND. idy.NE.LatNy) then
+            DEM(I)%NeighborID(4) = I + 1 + LatNx
+        end if
+        !  Center Covered lattice
+        if (idz .NE. LatNz) then
+            DEM(I)%NeighborID(5) = I + LatNx*LatNy
+        end if
+        !  Left Covered lattice
+        if (idx.NE.1 .AND. idz.NE.LatNz) then
+            DEM(I)%NeighborID(6) = I - 1 + LatNx*LatNy
+        end if
+        !  Left Upper Covered lattice
+        if (idx.NE.1 .AND. idy.NE.LatNy .AND. idz.NE.LatNz) then
+            DEM(I)%NeighborID(7) = I - 1 + LatNx + LatNx*LatNy
+        end if
+        !  Upper Covered lattice
+        if (idy.NE.LatNy .AND. idz.NE.LatNz) then
+            DEM(I)%NeighborID(8) = I + LatNx + LatNx*LatNy
+        end if
+        !  Right Upper Covered lattice
+        if (idx.NE.LatNx .AND. idy.NE.LatNy .AND. idz.NE.LatNz) then
+            DEM(I)%NeighborID(9) = I + 1 + LatNx + LatNx*LatNy
+        end if
+        !  Right Covered lattice
+        if (idx.NE.LatNx .AND. idz.NE.LatNz) then
+            DEM(I)%NeighborID(10) = I + 1 + LatNx*LatNy
+        end if
+        !  Right Below Covered lattice
+        if (idx.NE.LatNx .AND. idy.NE.1 .AND. idz.NE.LatNz) then
+            DEM(I)%NeighborID(11) = I + 1 - LatNx + LatNx*LatNy
+        end if
+        !  Below Covered lattice
+        if (idy.NE.1 .AND. idz.NE.LatNz) then
+            DEM(I)%NeighborID(12) = I - LatNx + LatNx*LatNy
+        end if
+        !  Left Below Covered lattice
+        if (idx.NE.1 .AND. idy.NE.1 .AND. idz.NE.LatNz) then
+            DEM(I)%NeighborID(13) = I - 1 - LatNx + LatNx*LatNy
+        end if
+        !  Right lattice
+        if (idx .NE. LatNx) then
+            DEM(I)%NeighborID(14) = I + 1
+        end if
+        !  Right Below lattice
+        if (idx.NE.LatNx .AND. idy.NE.1) then
+            DEM(I)%NeighborID(15) = I + 1 - LatNx
+        end if
+        !  Below lattice
+        if (idy .NE. 1) then
+            DEM(I)%NeighborID(16) = I - LatNx
+        end if
+        !  Left Below lattice
+        if (idx.NE.1 .AND. idy.NE.1) then
+            DEM(I)%NeighborID(17) = I - 1 - LatNx
+        end if
+        !  Center Under lattice
+        if (idz .NE. 1) then
+            DEM(I)%NeighborID(18) = I - LatNx*LatNy
+        end if
+        !  Right Under lattice
+        if (idx.NE.LatNx .AND. idz.NE.1) then
+            DEM(I)%NeighborID(19) = I + 1 - LatNx*LatNy
+        end if
+        !  Right Below Under lattice
+        if (idx.NE.LatNx .AND. idy.NE.1 .AND. idz.NE.1) then
+            DEM(I)%NeighborID(20) = I + 1 - LatNx - LatNx*LatNy
+        end if
+        !  Below Under lattice
+        if (idy.NE.1 .AND. idz.NE.1) then
+            DEM(I)%NeighborID(21) = I - LatNx - LatNx*LatNy
+        end if
+        !  Left Below Under lattice
+        if (idx.NE.1 .AND. idy.NE.1 .AND. idz.NE.1) then
+            DEM(I)%NeighborID(22) = I - 1 - LatNx - LatNx*LatNy
+        end if
+        !  Left Under lattice
+        if (idx.NE.1 .AND. idz.NE.1) then
+            DEM(I)%NeighborID(23) = I - 1 - LatNx*LatNy
+        end if
+        !  Left Upper Under lattice
+        if (idx.NE.1 .AND. idy.NE.LatNy .AND. idz.NE.1) then
+            DEM(I)%NeighborID(24) = I - 1 + LatNx - LatNx*LatNy
+        end if
+        !  Upper Under lattice
+        if (idy.NE.LatNy .AND. idz.NE.1) then
+            DEM(I)%NeighborID(25) = I + LatNx - LatNx*LatNy
+        end if
+        !  Right Upper Under lattice
+        if (idx.NE.LatNx .AND. idy.NE.LatNy .AND. idz.NE.1) then
+            DEM(I)%NeighborID(26) = I + 1 + LatNx - LatNx*LatNy
+        end if      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!#ifdef self_gravity
 !        idgx = int((idx-1)/(LatNx/GravNx))+1
@@ -290,20 +392,15 @@
 !!#endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     end do
-    
-#ifdef LinklistStore    
+
     !  Initialize Neighbor Nodelink.
     allocate(IDInner(LatNum))
-    allocate(IDOuter(LatNum))
     allocate(tailInner(LatNUm))
-    allocate(tailOuter(LatNum))
     do I = 1,LatNum
         IDInner(I)%No = 0                 !  Array of Lattice's inner particles
-        nullify(IDInner(I)%next)          
-        IDOuter(I)%No = 0                 !  Array of lattice's outer particles
-        nullify(IDOuter(I)%next)        
-    end do
-#endif    
+        nullify(IDInner(I)%next)             
+    end do 
+#endif
 
     !  Initialize Hertz list. Linklist-Compressed.
     write(*,*) "Hertz list initializing..."
@@ -312,7 +409,7 @@
     do I = 1,NMAX
         Head(I)%No = 0                    !  Length of Linklist
         Head(I)%recordTime = 0.0D0        !  record time
-        Head(I)%Hertz(1) = I              !  Hertz(1)
+        Head(I)%Hertz(1) = 0.0D0          !  Hertz(1)
         Head(I)%Hertz(2) = 0.0D0          !  Hertz(2)
         Head(I)%Hertz(3) = 0.0D0          !  Hertz(3)
         Head(I)%Mrot(1) = 0.0D0           !  Mrot(1)
