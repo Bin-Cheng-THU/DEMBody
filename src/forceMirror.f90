@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.1
+    !     DEMBody 4.3
     !     ***********
     !
     !     Force for mirrored particles.
@@ -34,6 +34,7 @@
     integer :: I,J,K,L,LenNode               !  Iterator
     type(Nodelink),pointer :: Temp           !  Temporary pointer
     type(Nodelink),pointer :: TempH          !  Contact pointer
+    type(Nodelink),pointer :: Tail           !  Tail pointer
     real(kind=8) ShearPBC                    !  shearPBC                    
 
     !character(30) :: FileName
@@ -43,7 +44,7 @@
     
     !  Loop over all bodies through the NodeTree.
     !$OMP PARALLEL DO &
-    !$OMP& PRIVATE(shearPBC,Temp,TempH,LenNode,&
+    !$OMP& PRIVATE(shearPBC,Temp,TempH,Tail,LenNode,&
     !$OMP& I,J,K,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
     !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,&
     !$OMP& rolling_moment,rolling_momentL,twisting_moment,twisting_momentL,cohesive_force,Ap,An,Rij,Mij,Iij,&
@@ -53,8 +54,9 @@
         
         !################         Wall X1          ################### 
         if (Tag1(I).EQ.1) then
+            Tail => Head(I)
             do J = 1,N
-                if (Tag2(J).EQ.1) then   !  .OR. I.EQ.N
+                if (Tag2(J).EQ.1) then
                     
                     !if (I.EQ.PP .OR. J.EQ.PP) then
                     !    write(123,'(F15.5,2X,2I5,2X)',advance='no') Time,I,J
@@ -78,77 +80,73 @@
                     Dn = R(I) + R(J) - DistL
                     !  lookup this contact(or not) in the Hertz list
                     LenNode = Head(I)%No
-                    Temp => Head(I)
-                    if (LenNode .NE. 0) then
-                        Temp => Head(I)%next
-                        do L = 1,LenNode
-                            if (Temp%No .EQ. J) then
-                                do K = 1,3
-                                    H(K) = Temp%Hertz(K)
-                                    Mr(K) = Temp%Mrot(K)
-                                    Mt(K) = Temp%Mtwist(K)
-                                end do
-                                touching = Temp%is_touching
-                                slipping = Temp%is_slipping
-                                rolling = Temp%is_rolling
-                                twisting = Temp%is_twisting
-                                exit
-                            else if (Temp%No.LT.J .AND. associated(Temp%next)) then
-                                Temp => Temp%next
-                            else if (Temp%No .GT. J) then
-                                Temp => Temp%prev
-                                exit
-                            end if
-                        end do
-                    end if
+                    Temp => Tail
+                    do while(associated(Temp%next))
+                        Temp => Temp%next
+                        if (Temp%No .EQ. J) then
+                            do K = 1,3
+                                H(K) = Temp%Hertz(K)
+                                Mr(K) = Temp%Mrot(K)
+                                Mt(K) = Temp%Mtwist(K)
+                            end do
+                            touching = Temp%is_touching
+                            slipping = Temp%is_slipping
+                            rolling = Temp%is_rolling
+                            twisting = Temp%is_twisting
+                            exit
+                        else if (Temp%No .GT. J) then
+                            Temp => Temp%prev
+                            exit
+                        end if
+                    end do
                     !if (I.EQ.PP .OR. J.EQ.PP) then
                     !    write(123,'(F15.5,2X)',advance='no') Dn
                     !end if
                     !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hooke's law
-                    if (Dn .GT. 0.0) then
-                        DistR = 1.0/DistL
+                    if (Dn .GT. 0.0D0) then
+                        DistR = 1.0D0/DistL
                         !  calculate the normal vector
                         do K=1,3
                             DistU(K) = Dist(K)*DistR
                         end do
-                        Ap = (R(I)*R(I)-R(J)*R(J)+DistS)/2.0*DistR
+                        Ap = (R(I)*R(I)-R(J)*R(J)+DistS)/2.0D0*DistR
                         An = DistL-Ap
 #ifdef HertzMindlinVisco                    
                         !  calculate material constant
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         Mij = Body(I)*Body(J)/(Body(I)+Body(J))
-                        Kn = 2.0*m_E*sqrt(Rij*Dn)/(3.0*(1.0-m_nu*m_nu))
+                        Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                         Cn = -Kn*m_A
-                        Ks = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                        Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
                         !  select tangential damping mode
-                        if (m_COR > 1.0) then
-                            Cs = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
-                        elseif (m_COR >= 0.0) then
+                        if (m_COR > 1.0D0) then
+                            Cs = -2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Dn)*m_A
+                        elseif (m_COR >= 0.0D0) then
                             lnCOR=log(m_COR)
-                            Cs = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                            & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                            Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                            & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
                         else
-                            Cs = 0
+                            Cs = 0.0D0
                         end if
-                        Kr = 0.25*Kn*(m_Beta*Rij)**2
-                        Cr = 0.25*Cn*(m_Beta*Rij)**2
-                        Kt = 0.5*Ks*(m_Beta*Rij)**2
-                        Ct = 0.5*Cs*(m_Beta*Rij)**2
+                        Kr = 0.25D0*Kn*(m_Beta*Rij)**2
+                        Cr = 0.25D0*Cn*(m_Beta*Rij)**2
+                        Kt = 0.5D0*Ks*(m_Beta*Rij)**2
+                        Ct = 0.5D0*Cs*(m_Beta*Rij)**2
 #elif HertzMindlinResti
                         !  calculate material constant
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         Mij = Body(I)*Body(J)/(Body(I)+Body(J))
-                        Kn = 2.0*m_E*sqrt(Rij*Dn)/(3.0*(1.0-m_nu*m_nu))
+                        Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                         lnCOR = log(m_COR)
-                        Cn = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                        & *sqrt(Mij*m_E/(1.0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
-                        Ks = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
-                        Cs = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                        & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
-                        Kr = 0.25*Kn*(m_Beta*Rij)**2
-                        Cr = 0.25*Cn*(m_Beta*Rij)**2
-                        Kt = 0.5*Ks*(m_Beta*Rij)**2
-                        Ct = 0.5*Cs*(m_Beta*Rij)**2
+                        Cn = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                        & *sqrt(Mij*m_E/(1.0D0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
+                        Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                        Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                        & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                        Kr = 0.25D0*Kn*(m_Beta*Rij)**2
+                        Cr = 0.25D0*Cn*(m_Beta*Rij)**2
+                        Kt = 0.5D0*Ks*(m_Beta*Rij)**2
+                        Ct = 0.5D0*Cs*(m_Beta*Rij)**2
 #endif
                         !  translate relative velocity
                         do K = 1,3
@@ -179,7 +177,7 @@
                         normal_forceL = sqrt(normal_force(1)*normal_force(1) + normal_force(2)*normal_force(2) + normal_force(3)*normal_force(3))
 
                         !  Add energy
-                        Energy(I) = Energy(I) + 0.4*Kn*(Dn**2)
+                        Energy(I) = Energy(I) + 0.4D0*Kn*(Dn**2)
 
                         !  tangential deform
                         do K = 1,3
@@ -198,26 +196,26 @@
                         !end if
                 
                         if (slipping) then  !  Have slipped
-                            if (DsL .GT. 1e-8) then  !  Still slipping
+                            if (DsL .GT. 1.0e-8) then  !  Still slipping
                                 do K = 1,3
                                     tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle J
                                 end do
                             else  !  Approach sticking
                                 do K = 1,3
-                                    tangential_force(K) = 0.0  !  Particle J
+                                    tangential_force(K) = 0.0D0  !  Particle J
                                 end do
                                 slipping = .false.
                             end if
                         else
                             if (tangential_forceL .GT. normal_forceL*m_mu_s) then  !  Slipping
                                 slipping = .true.
-                                if (DsL .GT. 1e-14) then
+                                if (DsL .GT. 1.0e-14) then
                                     do K = 1,3
                                         tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL
                                     end do
                                 else
                                     do K = 1,3
-                                        tangential_force(K) = 0.0
+                                        tangential_force(K) = 0.0D0
                                     end do
                                 end if
                             else
@@ -258,26 +256,26 @@
                         rolling_momentL = sqrt(rolling_moment(1)*rolling_moment(1) + rolling_moment(2)*rolling_moment(2) + rolling_moment(3)*rolling_moment(3))                
 
                         if (rolling) then  !  Have rolled
-                            if (DthetaRL .GT. 1e-8) then  ! Still slipping
+                            if (DthetaRL .GT. 1.0e-8) then  ! Still slipping
                                 do K = 1,3
-                                    rolling_moment(K) = 2.1*0.25*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle J
+                                    rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle J
                                 end do
                             else  !  Approach sticking
                                 do K = 1,3
-                                    rolling_moment(K) = 0.0  !  Particle J
+                                    rolling_moment(K) = 0.0D0  !  Particle J
                                 end do
                                 rolling = .false.
                             end if
                         else
-                            if (rolling_momentL .GT. 2.1*0.25*m_Beta*Rij*normal_forceL) then  !  Rolling
+                            if (rolling_momentL .GT. 2.1D0*0.25D0*m_Beta*Rij*normal_forceL) then  !  Rolling
                                 rolling = .true.
-                                if (DthetaRL .GT. 1e-14) then
+                                if (DthetaRL .GT. 1.0e-14) then
                                     do K = 1,3
-                                        rolling_moment(K) = 2.1*0.25*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL
+                                        rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL
                                     end do
                                 else
                                     do K = 1,3
-                                        rolling_moment(K) = 0.0
+                                        rolling_moment(K) = 0.0D0
                                     end do
                                 end if
                             else
@@ -295,26 +293,26 @@
                         twisting_momentL = sqrt(twisting_moment(1)*twisting_moment(1) + twisting_moment(2)*twisting_moment(2) + twisting_moment(3)*twisting_moment(3))                
 
                         if (twisting) then  !  Have twisted
-                            if (DthetaTL .GT. 1e-8) then  !  Still slipping
+                            if (DthetaTL .GT. 1.0e-8) then  !  Still slipping
                                 do K = 1,3
-                                    twisting_moment(K) = 0.65*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle J
+                                    twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle J
                                 end do
                             else  !  Approach sticking
                                 do K = 1,3
-                                    twisting_moment(K) = 0.0  !  Particle J
+                                    twisting_moment(K) = 0.0D0  !  Particle J
                                 end do
                                 twisting = .false.
                             end if
                         else
-                            if (twisting_momentL .GT. 0.65*m_mu_s*m_Beta*Rij*normal_forceL) then  !  Rolling
+                            if (twisting_momentL .GT. 0.65D0*m_mu_s*m_Beta*Rij*normal_forceL) then  !  Rolling
                                 twisting = .true.
-                                if (DthetaTL .GT. 1e-14) then
+                                if (DthetaTL .GT. 1.0e-14) then
                                     do K = 1,3
-                                        twisting_moment(K) = 0.65*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL
+                                        twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL
                                     end do
                                 else
                                     do K = 1,3
-                                        twisting_moment(K) = 0.0
+                                        twisting_moment(K) = 0.0D0
                                     end do
                                 end if
                             else
@@ -354,6 +352,7 @@
                                 Temp%is_rolling = rolling
                                 Temp%is_twisting = twisting
                                 Temp%recordTime = Time + Dt
+                                Tail => Temp
                             else
                                 !  First contacted.
                                 allocate(TempH)
@@ -362,6 +361,7 @@
                                 if (associated(Temp%next)) Temp%next%prev => TempH
                                 Temp%next => TempH
                                 Head(I)%No = LenNode + 1
+                                Tail => TempH
                             end if
                         else
                             !  Temp is Head of linklist!!!
@@ -371,6 +371,7 @@
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
                             Head(I)%No = LenNode + 1
+                            Tail => TempH
                         end if
                     else
                         !  memory the separation in the Hertz linklist.
@@ -379,14 +380,17 @@
                             Temp%prev%next => Temp%next
                             if(associated(Temp%next)) Temp%next%prev => Temp%prev
                             Head(I)%No = LenNode - 1
+                            Tail => Temp%prev
                             deallocate(Temp)
                             !  When else Temp is Head of linklist!!!
+                        else
+                            Tail => Temp                            
                         end if
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
                         !  no contact but in region 1
-                        if (Dn > -Rij*(m_r_cut-1.0)*0.5) then
-                            DistR = 1.0/DistL
+                        if (Dn > -Rij*(m_r_cut-1.0D0)*0.5D0) then
+                            DistR = 1.0D0/DistL
                             !  calculate the normal vector
                             do K=1,3
                                 DistU(K) = Dist(K)*DistR
@@ -399,8 +403,8 @@
                             do K = 1,3
                                 F(K,I) = F(K,I) - cohesive_force(K)
                             end do                               
-                        else if (Dn > -Rij*(m_r_cut-1.0)) then
-                            DistR = 1.0/DistL
+                        else if (Dn > -Rij*(m_r_cut-1.0D0)) then
+                            DistR = 1.0D0/DistL
                             !  calculate the normal vector
                             do K=1,3
                                 DistU(K) = Dist(K)*DistR
@@ -408,7 +412,7 @@
                             !  cohesive force
                             do K = 1,3
                                 cohesive_force(K) = - m_c*m_Beta**2*Rij &
-                                &*2.0*(Dn/(m_r_cut-1.0) + Rij)*DistU(K)
+                                &*2.0D0*(Dn/(m_r_cut-1.0D0) + Rij)*DistU(K)
                             end do
                             !  apply force
                             do K = 1,3
@@ -426,6 +430,7 @@
 
         !################         Wall X2          ################### 
         if (Tag2(I).EQ.1) then
+            Tail => Head(I)
             do J = 1,N
                 if (Tag1(J).EQ.1) then   !  .OR. I.EQ.N
                     
@@ -451,77 +456,73 @@
                     Dn = R(I) + R(J) - DistL
                     !  lookup this contact(or not) in the Hertz list
                     LenNode = Head(I)%No
-                    Temp => Head(I)
-                    if (LenNode .NE. 0) then
-                        Temp => Head(I)%next
-                        do L = 1,LenNode
-                            if (Temp%No .EQ. J) then
-                                do K = 1,3
-                                    H(K) = Temp%Hertz(K)
-                                    Mr(K) = Temp%Mrot(K)
-                                    Mt(K) = Temp%Mtwist(K)
-                                end do
-                                touching = Temp%is_touching
-                                slipping = Temp%is_slipping
-                                rolling = Temp%is_rolling
-                                twisting = Temp%is_twisting
-                                exit
-                            else if (Temp%No.LT.J .AND. associated(Temp%next)) then
-                                Temp => Temp%next
-                            else if (Temp%No .GT. J) then
-                                Temp => Temp%prev
-                                exit
-                            end if
-                        end do
-                    end if
+                    Temp => Tail
+                    do while(associated(Temp%next))
+                        Temp => Temp%next
+                        if (Temp%No .EQ. J) then
+                            do K = 1,3
+                                H(K) = Temp%Hertz(K)
+                                Mr(K) = Temp%Mrot(K)
+                                Mt(K) = Temp%Mtwist(K)
+                            end do
+                            touching = Temp%is_touching
+                            slipping = Temp%is_slipping
+                            rolling = Temp%is_rolling
+                            twisting = Temp%is_twisting
+                            exit
+                        else if (Temp%No .GT. J) then
+                            Temp => Temp%prev
+                            exit
+                        end if
+                    end do
                     !if (I.EQ.PP .OR. J.EQ.PP) then
                     !    write(123,'(F15.5,2X)',advance='no') Dn
                     !end if
                     !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hooke's law
-                    if (Dn .GT. 0.0) then
-                        DistR = 1.0/DistL
+                    if (Dn .GT. 0.0D0) then
+                        DistR = 1.0D0/DistL
                         !  calculate the normal vector
                         do K=1,3
                             DistU(K) = Dist(K)*DistR
                         end do
-                        Ap = (R(I)*R(I)-R(J)*R(J)+DistS)/2.0*DistR
+                        Ap = (R(I)*R(I)-R(J)*R(J)+DistS)/2.0D0*DistR
                         An = DistL-Ap
 #ifdef HertzMindlinVisco                    
                         !  calculate material constant
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         Mij = Body(I)*Body(J)/(Body(I)+Body(J))
-                        Kn = 2.0*m_E*sqrt(Rij*Dn)/(3.0*(1.0-m_nu*m_nu))
+                        Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                         Cn = -Kn*m_A
-                        Ks = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                        Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
                         !  select tangential damping mode
-                        if (m_COR > 1.0) then
-                            Cs = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
-                        elseif (m_COR >= 0.0) then
+                        if (m_COR > 1.0D0) then
+                            Cs = -2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Dn)*m_A
+                        elseif (m_COR >= 0.0D0) then
                             lnCOR=log(m_COR)
-                            Cs = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                            & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                            Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                            & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
                         else
-                            Cs = 0
+                            Cs = 0.0D0
                         end if
-                        Kr = 0.25*Kn*(m_Beta*Rij)**2
-                        Cr = 0.25*Cn*(m_Beta*Rij)**2
-                        Kt = 0.5*Ks*(m_Beta*Rij)**2
-                        Ct = 0.5*Cs*(m_Beta*Rij)**2
+                        Kr = 0.25D0*Kn*(m_Beta*Rij)**2
+                        Cr = 0.25D0*Cn*(m_Beta*Rij)**2
+                        Kt = 0.5D0*Ks*(m_Beta*Rij)**2
+                        Ct = 0.5D0*Cs*(m_Beta*Rij)**2
 #elif HertzMindlinResti
                         !  calculate material constant
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         Mij = Body(I)*Body(J)/(Body(I)+Body(J))
-                        Kn = 2.0*m_E*sqrt(Rij*Dn)/(3.0*(1.0-m_nu*m_nu))
+                        Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                         lnCOR = log(m_COR)
-                        Cn = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                        & *sqrt(Mij*m_E/(1.0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
-                        Ks = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
-                        Cs = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                        & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
-                        Kr = 0.25*Kn*(m_Beta*Rij)**2
-                        Cr = 0.25*Cn*(m_Beta*Rij)**2
-                        Kt = 0.5*Ks*(m_Beta*Rij)**2
-                        Ct = 0.5*Cs*(m_Beta*Rij)**2
+                        Cn = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                        & *sqrt(Mij*m_E/(1.0D0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
+                        Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                        Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                        & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                        Kr = 0.25D0*Kn*(m_Beta*Rij)**2
+                        Cr = 0.25D0*Cn*(m_Beta*Rij)**2
+                        Kt = 0.5D0*Ks*(m_Beta*Rij)**2
+                        Ct = 0.5D0*Cs*(m_Beta*Rij)**2
 #endif
                         !  translate relative velocity
                         do K = 1,3
@@ -552,7 +553,7 @@
                         normal_forceL = sqrt(normal_force(1)*normal_force(1) + normal_force(2)*normal_force(2) + normal_force(3)*normal_force(3))
 
                         !  Add energy
-                        Energy(I) = Energy(I) + 0.4*Kn*(Dn**2)
+                        Energy(I) = Energy(I) + 0.4D0*Kn*(Dn**2)
 
                         !  tangential deform
                         do K = 1,3
@@ -571,26 +572,26 @@
                         !end if
                         
                         if (slipping) then  !  Have slipped
-                            if (DsL .GT. 1e-8) then  !  Still slipping
+                            if (DsL .GT. 1.0e-8) then  !  Still slipping
                                 do K = 1,3
                                     tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle J
                                 end do
                             else  !  Approach sticking
                                 do K = 1,3
-                                    tangential_force(K) = 0.0  !  Particle J
+                                    tangential_force(K) = 0.0D0  !  Particle J
                                 end do
                                 slipping = .false.
                             end if
                         else
                             if (tangential_forceL .GT. normal_forceL*m_mu_s) then  !  Slipping
                                 slipping = .true.
-                                if (DsL .GT. 1e-14) then
+                                if (DsL .GT. 1.0e-14) then
                                     do K = 1,3
                                         tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL
                                     end do
                                 else
                                     do K = 1,3
-                                        tangential_force(K) = 0.0
+                                        tangential_force(K) = 0.0D0
                                     end do
                                 end if
                             else
@@ -631,26 +632,26 @@
                         rolling_momentL = sqrt(rolling_moment(1)*rolling_moment(1) + rolling_moment(2)*rolling_moment(2) + rolling_moment(3)*rolling_moment(3))                
 
                         if (rolling) then  !  Have rolled
-                            if (DthetaRL .GT. 1e-8) then  !  Still slipping
+                            if (DthetaRL .GT. 1.0e-8) then  !  Still slipping
                                 do K = 1,3
-                                    rolling_moment(K) = 2.1*0.25*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle J
+                                    rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle J
                                 end do
                             else  !  Approach sticking
                                 do K = 1,3
-                                    rolling_moment(K) = 0.0  !  Particle J
+                                    rolling_moment(K) = 0.0D0  !  Particle J
                                 end do
                                 rolling = .false.
                             end if
                         else
-                            if (rolling_momentL .GT. 2.1*0.25*m_Beta*Rij*normal_forceL) then  !  Rolling
+                            if (rolling_momentL .GT. 2.1D0*0.25D0*m_Beta*Rij*normal_forceL) then  !  Rolling
                                 rolling = .true.
-                                if (DthetaRL .GT. 1e-14) then
+                                if (DthetaRL .GT. 1.0e-14) then
                                     do K = 1,3
-                                        rolling_moment(K) = 2.1*0.25*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL
+                                        rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL
                                     end do
                                 else
                                     do K = 1,3
-                                        rolling_moment(K) = 0.0
+                                        rolling_moment(K) = 0.0D0
                                     end do
                                 end if
                             else
@@ -668,26 +669,26 @@
                         twisting_momentL = sqrt(twisting_moment(1)*twisting_moment(1) + twisting_moment(2)*twisting_moment(2) + twisting_moment(3)*twisting_moment(3))                
 
                         if (twisting) then  !  Have twisted
-                            if (DthetaTL .GT. 1e-8) then  !  Still slipping
+                            if (DthetaTL .GT. 1.0e-8) then  !  Still slipping
                                 do K = 1,3
-                                    twisting_moment(K) = 0.65*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle J
+                                    twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle J
                                 end do
                             else  !  Approach sticking
                                 do K = 1,3
-                                    twisting_moment(K) = 0.0  !  Particle J
+                                    twisting_moment(K) = 0.0D0  !  Particle J
                                 end do
                                 twisting = .false.
                             end if
                         else
-                            if (twisting_momentL .GT. 0.65*m_mu_s*m_Beta*Rij*normal_forceL) then  !  Rolling
+                            if (twisting_momentL .GT. 0.65D0*m_mu_s*m_Beta*Rij*normal_forceL) then  !  Rolling
                                 twisting = .true.
-                                if (DthetaTL .GT. 1e-14) then
+                                if (DthetaTL .GT. 1.0e-14) then
                                     do K = 1,3
-                                        twisting_moment(K) = 0.65*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL
+                                        twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL
                                     end do
                                 else
                                     do K = 1,3
-                                        twisting_moment(K) = 0.0
+                                        twisting_moment(K) = 0.0D0
                                     end do
                                 end if
                             else
@@ -727,6 +728,7 @@
                                 Temp%is_rolling = rolling
                                 Temp%is_twisting = twisting
                                 Temp%recordTime = Time + Dt
+                                Tail => Temp
                             else
                                 !  First contacted.
                                 allocate(TempH)
@@ -735,6 +737,7 @@
                                 if (associated(Temp%next)) Temp%next%prev => TempH
                                 Temp%next => TempH
                                 Head(I)%No = LenNode + 1
+                                Tail => TempH
                             end if
                         else
                             !  Temp is Head of linklist!!!
@@ -744,6 +747,7 @@
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
                             Head(I)%No = LenNode + 1
+                            Tail => TempH
                         end if
                     else
                         !  memory the separation in the Hertz linklist.
@@ -752,13 +756,16 @@
                             Temp%prev%next => Temp%next
                             if(associated(Temp%next)) Temp%next%prev => Temp%prev
                             Head(I)%No = LenNode - 1
+                            Tail => Temp%prev
                             deallocate(Temp)
                             !  When else Temp is Head of linklist!!!
+                        else
+                            Tail => Temp
                         end if
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        if (Dn > -Rij*(m_r_cut-1.0)*0.5) then
-                            DistR = 1.0/DistL
+                        if (Dn > -Rij*(m_r_cut-1.0D0)*0.5D0) then
+                            DistR = 1.0D0/DistL
                             !  calculate the normal vector
                             do K=1,3
                                 DistU(K) = Dist(K)*DistR
@@ -771,8 +778,8 @@
                             do K = 1,3
                                 F(K,I) = F(K,I) - cohesive_force(K)
                             end do                               
-                        else if (Dn > -Rij*(m_r_cut-1.0)) then
-                            DistR = 1.0/DistL
+                        else if (Dn > -Rij*(m_r_cut-1.0D0)) then
+                            DistR = 1.0D0/DistL
                             !  calculate the normal vector
                             do K=1,3
                                 DistU(K) = Dist(K)*DistR
@@ -780,7 +787,7 @@
                             !  cohesive force
                             do K = 1,3
                                 cohesive_force(K) = - m_c*m_Beta**2*Rij &
-                                &*2.0*(Dn/(m_r_cut-1.0) + Rij)*DistU(K)
+                                &*2.0D0*(Dn/(m_r_cut-1.0D0) + Rij)*DistU(K)
                             end do
                             !  apply force
                             do K = 1,3
@@ -798,6 +805,7 @@
 
         !################         Wall Y1          ################### 
         if (Tag3(I).EQ.1) then
+            Tail => Head(I)
             do J = 1,N
                 if (Tag4(J).EQ.1) then   !  .OR. I.EQ.N
                     !  Initialize state params
@@ -808,8 +816,8 @@
                         Mt(K) = 0.0D0
                     end do
                     Dist(2) = Dist(2) - LenBoxY
-                    shearPBC = X(1,J) + 0.5*LenBoxY*gamma*time
-                    shearPBC = shearPBC - ((shearPBC+0.5*LenBoxX) - MODULO((shearPBC+0.5*LenBoxX),LenBoxX))
+                    shearPBC = X(1,J) + 0.5D0*LenBoxY*gamma*time
+                    shearPBC = shearPBC - ((shearPBC+0.5D0*LenBoxX) - MODULO((shearPBC+0.5D0*LenBoxX),LenBoxX))
                     Dist(1) = shearPBC - X(1,I)
                     touching = .false.
                     slipping = .false.
@@ -821,74 +829,70 @@
                     Dn = R(I) + R(J) - DistL
                     !  lookup this contact(or not) in the Hertz list
                     LenNode = Head(I)%No
-                    Temp => Head(I)
-                    if (LenNode .NE. 0) then
-                        Temp => Head(I)%next
-                        do L = 1,LenNode
-                            if (Temp%No .EQ. J) then
-                                do K = 1,3
-                                    H(K) = Temp%Hertz(K)
-                                    Mr(K) = Temp%Mrot(K)
-                                    Mt(K) = Temp%Mtwist(K)
-                                end do
-                                touching = Temp%is_touching
-                                slipping = Temp%is_slipping
-                                rolling = Temp%is_rolling
-                                twisting = Temp%is_twisting
-                                exit
-                            else if (Temp%No.LT.J .AND. associated(Temp%next)) then
-                                Temp => Temp%next
-                            else if (Temp%No .GT. J) then
-                                Temp => Temp%prev
-                                exit
-                            end if
-                        end do
-                    end if
+                    Temp => Tail
+                    do while(associated(Temp%next))
+                        Temp => Temp%next
+                        if (Temp%No .EQ. J) then
+                            do K = 1,3
+                                H(K) = Temp%Hertz(K)
+                                Mr(K) = Temp%Mrot(K)
+                                Mt(K) = Temp%Mtwist(K)
+                            end do
+                            touching = Temp%is_touching
+                            slipping = Temp%is_slipping
+                            rolling = Temp%is_rolling
+                            twisting = Temp%is_twisting
+                            exit
+                        else if (Temp%No .GT. J) then
+                            Temp => Temp%prev
+                            exit
+                        end if
+                    end do
                     !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hooke's law
-                    if (Dn .GT. 0.0) then
-                        DistR = 1.0/DistL
+                    if (Dn .GT. 0.0D0) then
+                        DistR = 1.0D0/DistL
                         !  calculate the normal vector
                         do K=1,3
                             DistU(K) = Dist(K)*DistR
                         end do
-                        Ap = (R(I)*R(I)-R(J)*R(J)+DistS)/2.0*DistR
+                        Ap = (R(I)*R(I)-R(J)*R(J)+DistS)/2.0D0*DistR
                         An = DistL-Ap
 #ifdef HertzMindlinVisco                    
                         !  calculate material constant
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         Mij = Body(I)*Body(J)/(Body(I)+Body(J))
-                        Kn = 2.0*m_E*sqrt(Rij*Dn)/(3.0*(1.0-m_nu*m_nu))
+                        Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                         Cn = -Kn*m_A
-                        Ks = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                        Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
                         !  select tangential damping mode
-                        if (m_COR > 1.0) then
-                            Cs = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
-                        elseif (m_COR >= 0.0) then
+                        if (m_COR > 1.0D0) then
+                            Cs = -2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Dn)*m_A
+                        elseif (m_COR >= 0.0D0) then
                             lnCOR=log(m_COR)
-                            Cs = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                            & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                            Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                            & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
                         else
-                            Cs = 0
+                            Cs = 0.0D0
                         end if
-                        Kr = 0.25*Kn*(m_Beta*Rij)**2
-                        Cr = 0.25*Cn*(m_Beta*Rij)**2
-                        Kt = 0.5*Ks*(m_Beta*Rij)**2
-                        Ct = 0.5*Cs*(m_Beta*Rij)**2
+                        Kr = 0.25D0*Kn*(m_Beta*Rij)**2
+                        Cr = 0.25D0*Cn*(m_Beta*Rij)**2
+                        Kt = 0.5D0*Ks*(m_Beta*Rij)**2
+                        Ct = 0.5D0*Cs*(m_Beta*Rij)**2
 #elif HertzMindlinResti
                         !  calculate material constant
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         Mij = Body(I)*Body(J)/(Body(I)+Body(J))
-                        Kn = 2.0*m_E*sqrt(Rij*Dn)/(3.0*(1.0-m_nu*m_nu))
+                        Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                         lnCOR = log(m_COR)
-                        Cn = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                        & *sqrt(Mij*m_E/(1.0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
-                        Ks = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
-                        Cs = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                        & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
-                        Kr = 0.25*Kn*(m_Beta*Rij)**2
-                        Cr = 0.25*Cn*(m_Beta*Rij)**2
-                        Kt = 0.5*Ks*(m_Beta*Rij)**2
-                        Ct = 0.5*Cs*(m_Beta*Rij)**2
+                        Cn = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                        & *sqrt(Mij*m_E/(1.0D0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
+                        Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                        Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                        & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                        Kr = 0.25D0*Kn*(m_Beta*Rij)**2
+                        Cr = 0.25D0*Cn*(m_Beta*Rij)**2
+                        Kt = 0.5D0*Ks*(m_Beta*Rij)**2
+                        Ct = 0.5D0*Cs*(m_Beta*Rij)**2
 #endif
                         !  translate relative velocity
                         do K = 1,3
@@ -920,7 +924,7 @@
                         normal_forceL = sqrt(normal_force(1)*normal_force(1) + normal_force(2)*normal_force(2) + normal_force(3)*normal_force(3))
 
                         !  Add energy
-                        Energy(I) = Energy(I) + 0.4*Kn*(Dn**2)
+                        Energy(I) = Energy(I) + 0.4D0*Kn*(Dn**2)
 
                         !  tangential deform
                         do K = 1,3
@@ -935,26 +939,26 @@
                         tangential_forceL = sqrt(tangential_force(1)*tangential_force(1) + tangential_force(2)*tangential_force(2) + tangential_force(3)*tangential_force(3))
 
                         if (slipping) then  !  Have slipped
-                            if (DsL .GT. 1e-8) then  !  Still slipping
+                            if (DsL .GT. 1.0e-8) then  !  Still slipping
                                 do K = 1,3
                                     tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle J
                                 end do
                             else  !  Approach sticking
                                 do K = 1,3
-                                    tangential_force(K) = 0.0  !  Particle J
+                                    tangential_force(K) = 0.0D0  !  Particle J
                                 end do
                                 slipping = .false.
                             end if
                         else
                             if (tangential_forceL .GT. normal_forceL*m_mu_s) then  !  Slipping
                                 slipping = .true.
-                                if (DsL .GT. 1e-14) then
+                                if (DsL .GT. 1.0e-14) then
                                     do K = 1,3
                                         tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL
                                     end do
                                 else
                                     do K = 1,3
-                                        tangential_force(K) = 0.0
+                                        tangential_force(K) = 0.0D0
                                     end do
                                 end if
                             else
@@ -995,26 +999,26 @@
                         rolling_momentL = sqrt(rolling_moment(1)*rolling_moment(1) + rolling_moment(2)*rolling_moment(2) + rolling_moment(3)*rolling_moment(3))                
 
                         if (rolling) then  !  Have rolled
-                            if (DthetaRL .GT. 1e-8) then  !  Still slipping
+                            if (DthetaRL .GT. 1.0e-8) then  !  Still slipping
                                 do K = 1,3
-                                    rolling_moment(K) = 2.1*0.25*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle J
+                                    rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle J
                                 end do
                             else  !  Approach sticking
                                 do K = 1,3
-                                    rolling_moment(K) = 0.0  !  Particle J
+                                    rolling_moment(K) = 0.0D0  !  Particle J
                                 end do
                                 rolling = .false.
                             end if
                         else
-                            if (rolling_momentL .GT. 2.1*0.25*m_Beta*Rij*normal_forceL) then  !  Rolling
+                            if (rolling_momentL .GT. 2.1D0*0.25D0*m_Beta*Rij*normal_forceL) then  !  Rolling
                                 rolling = .true.
-                                if (DthetaRL .GT. 1e-14) then
+                                if (DthetaRL .GT. 1.0e-14) then
                                     do K = 1,3
-                                        rolling_moment(K) = 2.1*0.25*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL
+                                        rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL
                                     end do
                                 else
                                     do K = 1,3
-                                        rolling_moment(K) = 0.0
+                                        rolling_moment(K) = 0.0D0
                                     end do
                                 end if
                             else
@@ -1032,26 +1036,26 @@
                         twisting_momentL = sqrt(twisting_moment(1)*twisting_moment(1) + twisting_moment(2)*twisting_moment(2) + twisting_moment(3)*twisting_moment(3))                
 
                         if (twisting) then  !  Have twisted
-                            if (DthetaTL .GT. 1e-8) then  !  Still slipping
+                            if (DthetaTL .GT. 1.0e-8) then  !  Still slipping
                                 do K = 1,3
-                                    twisting_moment(K) = 0.65*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle J
+                                    twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle J
                                 end do
                             else  !  Approach sticking
                                 do K = 1,3
-                                    twisting_moment(K) = 0.0  !  Particle J
+                                    twisting_moment(K) = 0.0D0  !  Particle J
                                 end do
                                 twisting = .false.
                             end if
                         else
-                            if (twisting_momentL .GT. 0.65*m_mu_s*m_Beta*Rij*normal_forceL) then  !  Rolling
+                            if (twisting_momentL .GT. 0.65D0*m_mu_s*m_Beta*Rij*normal_forceL) then  !  Rolling
                                 twisting = .true.
-                                if (DthetaTL .GT. 1e-14) then
+                                if (DthetaTL .GT. 1.0e-14) then
                                     do K = 1,3
-                                        twisting_moment(K) = 0.65*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL
+                                        twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL
                                     end do
                                 else
                                     do K = 1,3
-                                        twisting_moment(K) = 0.0
+                                        twisting_moment(K) = 0.0D0
                                     end do
                                 end if
                             else
@@ -1091,6 +1095,7 @@
                                 Temp%is_rolling = rolling
                                 Temp%is_twisting = twisting
                                 Temp%recordTime = Time + Dt
+                                Tail => Temp
                             else
                                 !  First contacted.
                                 allocate(TempH)
@@ -1099,6 +1104,7 @@
                                 if (associated(Temp%next)) Temp%next%prev => TempH
                                 Temp%next => TempH
                                 Head(I)%No = LenNode + 1
+                                Tail => TempH
                             end if
                         else
                             !  Temp is Head of linklist!!!
@@ -1108,6 +1114,7 @@
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
                             Head(I)%No = LenNode + 1
+                            Tail => TempH
                         end if
                     else
                         !  memory the separation in the Hertz linklist.
@@ -1116,13 +1123,16 @@
                             Temp%prev%next => Temp%next
                             if(associated(Temp%next)) Temp%next%prev => Temp%prev
                             Head(I)%No = LenNode - 1
+                            Tail => Temp%prev
                             deallocate(Temp)
                             !  When else Temp is Head of linklist!!!
+                        else
+                            Tail => Temp
                         end if
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        if (Dn > -Rij*(m_r_cut-1.0)*0.5) then
-                            DistR = 1.0/DistL
+                        if (Dn > -Rij*(m_r_cut-1.0D0)*0.5D0) then
+                            DistR = 1.0D0/DistL
                             !  calculate the normal vector
                             do K=1,3
                                 DistU(K) = Dist(K)*DistR
@@ -1135,8 +1145,8 @@
                             do K = 1,3
                                 F(K,I) = F(K,I) - cohesive_force(K)
                             end do        
-                        else if (Dn > -Rij*(m_r_cut-1.0)) then
-                            DistR = 1.0/DistL
+                        else if (Dn > -Rij*(m_r_cut-1.0D0)) then
+                            DistR = 1.0D0/DistL
                             !  calculate the normal vector
                             do K=1,3
                                 DistU(K) = Dist(K)*DistR
@@ -1144,7 +1154,7 @@
                             !  cohesive force
                             do K = 1,3
                                 cohesive_force(K) = - m_c*m_Beta**2*Rij &
-                                &*2.0*(Dn/(m_r_cut-1.0) + Rij)*DistU(K)
+                                &*2.0D0*(Dn/(m_r_cut-1.0D0) + Rij)*DistU(K)
                             end do
                             !  apply force
                             do K = 1,3
@@ -1159,6 +1169,7 @@
 
         !################         Wall Y2          ################### 
         if (Tag4(I).EQ.1) then
+            Tail => Head(I)
             do J = 1,N
                 if (Tag3(J).EQ.1) then   !  .OR. I.EQ.N
                     !  Initialize state params
@@ -1169,8 +1180,8 @@
                         Mt(K) = 0.0D0
                     end do
                     Dist(2) = Dist(2) + LenBoxY
-                    shearPBC = X(1,J) - 0.5*LenBoxY*gamma*time
-                    shearPBC = shearPBC - ((shearPBC+0.5*LenBoxX) - MODULO((shearPBC+0.5*LenBoxX),LenBoxX))
+                    shearPBC = X(1,J) - 0.5D0*LenBoxY*gamma*time
+                    shearPBC = shearPBC - ((shearPBC+0.5D0*LenBoxX) - MODULO((shearPBC+0.5D0*LenBoxX),LenBoxX))
                     Dist(1) = shearPBC - X(1,I)
                     touching = .false.
                     slipping = .false.
@@ -1182,74 +1193,70 @@
                     Dn = R(I) + R(J) - DistL
                     !  lookup this contact(or not) in the Hertz list
                     LenNode = Head(I)%No
-                    Temp => Head(I)
-                    if (LenNode .NE. 0) then
-                        Temp => Head(I)%next
-                        do L = 1,LenNode
-                            if (Temp%No .EQ. J) then
-                                do K = 1,3
-                                    H(K) = Temp%Hertz(K)
-                                    Mr(K) = Temp%Mrot(K)
-                                    Mt(K) = Temp%Mtwist(K)
-                                end do
-                                touching = Temp%is_touching
-                                slipping = Temp%is_slipping
-                                rolling = Temp%is_rolling
-                                twisting = Temp%is_twisting
-                                exit
-                            else if (Temp%No.LT.J .AND. associated(Temp%next)) then
-                                Temp => Temp%next
-                            else if (Temp%No .GT. J) then
-                                Temp => Temp%prev
-                                exit
-                            end if
-                        end do
-                    end if
+                    Temp => Tail
+                    do while(associated(Temp%next))
+                        Temp => Temp%next
+                        if (Temp%No .EQ. J) then
+                            do K = 1,3
+                                H(K) = Temp%Hertz(K)
+                                Mr(K) = Temp%Mrot(K)
+                                Mt(K) = Temp%Mtwist(K)
+                            end do
+                            touching = Temp%is_touching
+                            slipping = Temp%is_slipping
+                            rolling = Temp%is_rolling
+                            twisting = Temp%is_twisting
+                            exit
+                        else if (Temp%No .GT. J) then
+                            Temp => Temp%prev
+                            exit
+                        end if
+                    end do
                     !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hooke's law
-                    if (Dn .GT. 0.0) then
-                        DistR = 1.0/DistL
+                    if (Dn .GT. 0.0D0) then
+                        DistR = 1.0D0/DistL
                         !  calculate the normal vector
                         do K=1,3
                             DistU(K) = Dist(K)*DistR
                         end do
-                        Ap = (R(I)*R(I)-R(J)*R(J)+DistS)/2.0*DistR
+                        Ap = (R(I)*R(I)-R(J)*R(J)+DistS)/2.0D0*DistR
                         An = DistL-Ap
 #ifdef HertzMindlinVisco                    
                         !  calculate material constant
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         Mij = Body(I)*Body(J)/(Body(I)+Body(J))
-                        Kn = 2.0*m_E*sqrt(Rij*Dn)/(3.0*(1.0-m_nu*m_nu))
+                        Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                         Cn = -Kn*m_A
-                        Ks = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                        Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
                         !  select tangential damping mode
-                        if (m_COR > 1.0) then
-                            Cs = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
-                        elseif (m_COR >= 0.0) then
+                        if (m_COR > 1.0D0) then
+                            Cs = -2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Dn)*m_A
+                        elseif (m_COR >= 0.0D0) then
                             lnCOR=log(m_COR)
-                            Cs = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                            & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                            Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                            & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
                         else
-                            Cs = 0
+                            Cs = 0.0D0
                         end if
-                        Kr = 0.25*Kn*(m_Beta*Rij)**2
-                        Cr = 0.25*Cn*(m_Beta*Rij)**2
-                        Kt = 0.5*Ks*(m_Beta*Rij)**2
-                        Ct = 0.5*Cs*(m_Beta*Rij)**2
+                        Kr = 0.25D0*Kn*(m_Beta*Rij)**2
+                        Cr = 0.25D0*Cn*(m_Beta*Rij)**2
+                        Kt = 0.5D0*Ks*(m_Beta*Rij)**2
+                        Ct = 0.5D0*Cs*(m_Beta*Rij)**2
 #elif HertzMindlinResti
                         !  calculate material constant
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         Mij = Body(I)*Body(J)/(Body(I)+Body(J))
-                        Kn = 2.0*m_E*sqrt(Rij*Dn)/(3.0*(1.0-m_nu*m_nu))
+                        Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                         lnCOR = log(m_COR)
-                        Cn = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                        & *sqrt(Mij*m_E/(1.0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
-                        Ks = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
-                        Cs = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                        & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
-                        Kr = 0.25*Kn*(m_Beta*Rij)**2
-                        Cr = 0.25*Cn*(m_Beta*Rij)**2
-                        Kt = 0.5*Ks*(m_Beta*Rij)**2
-                        Ct = 0.5*Cs*(m_Beta*Rij)**2
+                        Cn = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                        & *sqrt(Mij*m_E/(1.0D0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
+                        Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                        Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                        & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                        Kr = 0.25D0*Kn*(m_Beta*Rij)**2
+                        Cr = 0.25D0*Cn*(m_Beta*Rij)**2
+                        Kt = 0.5D0*Ks*(m_Beta*Rij)**2
+                        Ct = 0.5D0*Cs*(m_Beta*Rij)**2
 #endif
                         !  translate relative velocity
                         do K = 1,3
@@ -1281,7 +1288,7 @@
                         normal_forceL = sqrt(normal_force(1)*normal_force(1) + normal_force(2)*normal_force(2) + normal_force(3)*normal_force(3))
 
                         !  Add energy
-                        Energy(I) = Energy(I) + 0.4*Kn*(Dn**2)
+                        Energy(I) = Energy(I) + 0.4D0*Kn*(Dn**2)
 
                         !  tangential deform
                         do K = 1,3
@@ -1296,26 +1303,26 @@
                         tangential_forceL = sqrt(tangential_force(1)*tangential_force(1) + tangential_force(2)*tangential_force(2) + tangential_force(3)*tangential_force(3))
 
                         if (slipping) then  !  Have slipped
-                            if (DsL .GT. 1e-8) then  !  Still slipping
+                            if (DsL .GT. 1.0e-8) then  !  Still slipping
                                 do K = 1,3
                                     tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle J
                                 end do
                             else  !  Approach sticking
                                 do K = 1,3
-                                    tangential_force(K) = 0.0  !  Particle J
+                                    tangential_force(K) = 0.0D0  !  Particle J
                                 end do
                                 slipping = .false.
                             end if
                         else
                             if (tangential_forceL .GT. normal_forceL*m_mu_s) then  !  Slipping
                                 slipping = .true.
-                                if (DsL .GT. 1e-14) then
+                                if (DsL .GT. 1.0e-14) then
                                     do K = 1,3
                                         tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL
                                     end do
                                 else
                                     do K = 1,3
-                                        tangential_force(K) = 0.0
+                                        tangential_force(K) = 0.0D0
                                     end do
                                 end if
                             else
@@ -1356,26 +1363,26 @@
                         rolling_momentL = sqrt(rolling_moment(1)*rolling_moment(1) + rolling_moment(2)*rolling_moment(2) + rolling_moment(3)*rolling_moment(3))                
 
                         if (rolling) then  !  Have rolled
-                            if (DthetaRL .GT. 1e-8) then  !  Still slipping
+                            if (DthetaRL .GT. 1.0e-8) then  !  Still slipping
                                 do K = 1,3
-                                    rolling_moment(K) = 2.1*0.25*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle J
+                                    rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle J
                                 end do
                             else  !  Approach sticking
                                 do K = 1,3
-                                    rolling_moment(K) = 0.0  !  Particle J
+                                    rolling_moment(K) = 0.0D0  !  Particle J
                                 end do
                                 rolling = .false.
                             end if
                         else
-                            if (rolling_momentL .GT. 2.1*0.25*m_Beta*Rij*normal_forceL) then  !  Rolling
+                            if (rolling_momentL .GT. 2.1D0*0.25D0*m_Beta*Rij*normal_forceL) then  !  Rolling
                                 rolling = .true.
-                                if (DthetaRL .GT. 1e-14) then
+                                if (DthetaRL .GT. 1.0e-14) then
                                     do K = 1,3
-                                        rolling_moment(K) = 2.1*0.25*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL
+                                        rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL
                                     end do
                                 else
                                     do K = 1,3
-                                        rolling_moment(K) = 0.0
+                                        rolling_moment(K) = 0.0D0
                                     end do
                                 end if
                             else
@@ -1393,26 +1400,26 @@
                         twisting_momentL = sqrt(twisting_moment(1)*twisting_moment(1) + twisting_moment(2)*twisting_moment(2) + twisting_moment(3)*twisting_moment(3))                
 
                         if (twisting) then  !  Have twisted
-                            if (DthetaTL .GT. 1e-8) then  !  Still slipping
+                            if (DthetaTL .GT. 1.0e-8) then  !  Still slipping
                                 do K = 1,3
-                                    twisting_moment(K) = 0.65*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle J
+                                    twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle J
                                 end do
                             else  !  Approach sticking
                                 do K = 1,3
-                                    twisting_moment(K) = 0.0  !  Particle J
+                                    twisting_moment(K) = 0.0D0  !  Particle J
                                 end do
                                 twisting = .false.
                             end if
                         else
-                            if (twisting_momentL .GT. 0.65*m_mu_s*m_Beta*Rij*normal_forceL) then  !  Rolling
+                            if (twisting_momentL .GT. 0.65D0*m_mu_s*m_Beta*Rij*normal_forceL) then  !  Rolling
                                 twisting = .true.
-                                if (DthetaTL .GT. 1e-14) then
+                                if (DthetaTL .GT. 1.0e-14) then
                                     do K = 1,3
-                                        twisting_moment(K) = 0.65*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL
+                                        twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL
                                     end do
                                 else
                                     do K = 1,3
-                                        twisting_moment(K) = 0.0
+                                        twisting_moment(K) = 0.0D0
                                     end do
                                 end if
                             else
@@ -1452,6 +1459,7 @@
                                 Temp%is_rolling = rolling
                                 Temp%is_twisting = twisting
                                 Temp%recordTime = Time + Dt
+                                Tail => Temp
                             else
                                 !  First contacted.
                                 allocate(TempH)
@@ -1460,6 +1468,7 @@
                                 if (associated(Temp%next)) Temp%next%prev => TempH
                                 Temp%next => TempH
                                 Head(I)%No = LenNode + 1
+                                Tail => TempH
                             end if
                         else
                             !  Temp is Head of linklist!!!
@@ -1469,6 +1478,7 @@
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
                             Head(I)%No = LenNode + 1
+                            Tail => TempH
                         end if
                     else
                         !  memory the separation in the Hertz linklist.
@@ -1477,13 +1487,16 @@
                             Temp%prev%next => Temp%next
                             if(associated(Temp%next)) Temp%next%prev => Temp%prev
                             Head(I)%No = LenNode - 1
+                            Tail => Temp%prev
                             deallocate(Temp)
                             !  When else Temp is Head of linklist!!!
+                        else
+                            Tail => Temp
                         end if
                         Rij = R(I)*R(J)/(R(I)+R(J))
                         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        if (Dn > -Rij*(m_r_cut-1.0)*0.5) then
-                            DistR = 1.0/DistL
+                        if (Dn > -Rij*(m_r_cut-1.0D0)*0.5D0) then
+                            DistR = 1.0D0/DistL
                             !  calculate the normal vector
                             do K=1,3
                                 DistU(K) = Dist(K)*DistR
@@ -1496,8 +1509,8 @@
                             do K = 1,3
                                 F(K,I) = F(K,I) - cohesive_force(K)
                             end do                         
-                        else if (Dn > -Rij*(m_r_cut-1.0)) then
-                            DistR = 1.0/DistL
+                        else if (Dn > -Rij*(m_r_cut-1.0D0)) then
+                            DistR = 1.0D0/DistL
                             !  calculate the normal vector
                             do K=1,3
                                 DistU(K) = Dist(K)*DistR
@@ -1505,7 +1518,7 @@
                             !  cohesive force
                             do K = 1,3
                                 cohesive_force(K) = - m_c*m_Beta**2*Rij &
-                                &*2.0*(Dn/(m_r_cut-1.0) + Rij)*DistU(K)
+                                &*2.0D0*(Dn/(m_r_cut-1.0D0) + Rij)*DistU(K)
                             end do
                             !  apply force
                             do K = 1,3

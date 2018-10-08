@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.2
+    !     DEMBody 4.3
     !     ***********
     !
     !     Global parameters.
@@ -52,18 +52,12 @@
     !  Nodelink of Particle
     type(Nodelink),pointer :: Head(:)  
     
-    
     !  Conduct Lattice
     type :: Lattice
         integer :: ID(3)
         real(8) :: PositionD(3)
         real(8) :: PositionU(3)
-#ifdef ArrayStore        
-        integer :: NoInner
-        integer :: NoOuter
-        integer :: IDInner(NLAT)
-        integer :: IDOuter(NLAT)
-#endif        
+        integer :: NeighborID(26) 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!#ifdef self_gravity
 !        integer :: GravID
@@ -73,7 +67,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     end type Lattice
     
-#ifdef LinklistStore
     !  Conduct Neighbor
     type :: Neighbor
         integer :: No
@@ -81,12 +74,8 @@
     end type Neighbor
 
     !  Nodelink of Neighbor
-    type(Neighbor),pointer :: IDInner(:)
-    type(Neighbor),pointer :: IDOuter(:)
-    
+    type(Neighbor),pointer :: IDInner(:)    
     type(Neighbor),pointer :: tailInner(:)
-    type(Neighbor),pointer :: tailOuter(:)
-#endif    
     
     !  DEM Lattice
     type(Lattice),pointer :: DEM(:)

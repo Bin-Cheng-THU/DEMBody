@@ -1,7 +1,0 @@
-        !COMPILER-GENERATED INTERFACE MODULE: Fri Oct 05 01:33:12 2018
-        MODULE FORCE__genmod
-          INTERFACE 
-            SUBROUTINE FORCE
-            END SUBROUTINE FORCE
-          END INTERFACE 
-        END MODULE FORCE__genmod

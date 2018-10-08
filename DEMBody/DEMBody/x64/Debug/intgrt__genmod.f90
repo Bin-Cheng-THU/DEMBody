@@ -1,7 +1,0 @@
-        !COMPILER-GENERATED INTERFACE MODULE: Fri Oct 05 01:33:13 2018
-        MODULE INTGRT__genmod
-          INTERFACE 
-            SUBROUTINE INTGRT
-            END SUBROUTINE INTGRT
-          END INTERFACE 
-        END MODULE INTGRT__genmod

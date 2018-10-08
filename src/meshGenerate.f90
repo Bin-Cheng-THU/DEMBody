@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.2
+    !     DEMBody 4.3
     !     ***********
     !
     !     Generate mesh based on partition of Particles.

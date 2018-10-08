@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.1
+    !     DEMBody 4.3
     !     ***********
     !
     !     Output and data save.
@@ -132,7 +132,7 @@
     seconds = int((T2-T1)-days*3600*24-hours*3600-minutes*60)
     
     write(*,"(A11,I4,1X,A4,I4,1X,A4,I4,1X,A4,I4,1X,A4)") "time cost: ", days, "days", hours, "hours", minutes, "minutes", seconds, "seconds"        
-    write(*,*) "refresh frequency: ", dble(refreshNum)/(Tcrit/Dt)
+    write(*,*) "refresh frequency: ", dble(refreshNum)/(Tcrit/Dt+1)
 
     stop
     end

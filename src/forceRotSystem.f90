@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.1
+    !     DEMBody 4.3
     !     ***********
     !
     !     Rotary system force.
@@ -34,7 +34,7 @@
         
         !  Gravity
         do K = 1,3
-            dist(K) = 0.0 - X(K,I)
+            dist(K) = 0.0D0 - X(K,I)
         end do
         distS = Dist(1)*Dist(1) + Dist(2)*Dist(2) + Dist(3)*Dist(3)
         distL = sqrt(DistS)

@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.2
+    !     DEMBody 4.3
     !     ***********
     !
     !     Parameter input.
@@ -57,7 +57,11 @@
     call latticeGenerate
  
     !  initial the force in case exiting overlaps at the initial-time.
+#ifdef ParticleLattice
+    call forceParticleLattice
+#else
     call forceLattice
+#endif
 
 #elif TraverseSearch
     !  initial the force in case exiting overlaps at the initial-time.

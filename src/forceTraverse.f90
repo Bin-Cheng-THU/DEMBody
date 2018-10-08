@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.1
+    !     DEMBody 4.3
     !     ***********
     !
     !     Force for all Particles.
@@ -39,6 +39,7 @@
     integer :: num1,num2,limit              !  Neighbor
     type(Nodelink),pointer :: Temp          !  Temporary pointer
     type(Nodelink),pointer :: TempH         !  Contact pointer
+    type(Nodelink),pointer :: Tail          !  Tail pointer 
     real(kind=8) ShearPBC                   !  shearPBC
     real(kind=8) accMag                     !  Magtitude of contact acceleration                
     integer :: region                       !  Upper limit of Loops 
@@ -63,7 +64,7 @@
     !ostart = omp_get_wtime()
     !  Loop over all bodies through the NodeTree.
     !$OMP PARALLEL DO &
-    !$OMP& PRIVATE(check,shearPBC,Temp,TempH,LenNode,num1,num2,limit,&
+    !$OMP& PRIVATE(check,shearPBC,Temp,TempH,Tail,LenNode,num1,num2,limit,&
     !$OMP& I,J,K,L,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
     !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,&
     !$OMP& rolling_moment,rolling_momentL,twisting_moment,twisting_momentL,cohesive_force,gravity_force,Ap,An,Rij,Mij,Iij,&
@@ -72,9 +73,10 @@
     !$OMP& particleI,particleJ) SCHEDULE(DYNAMIC)
     !  Loop over all particles
     do I = 1,N
+        particleI = I
+        Tail => Head(particleI)
         do J = 1,N
             if (I .NE. J) then
-                particleI = I
                 particleJ = J
 
                 !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
@@ -98,29 +100,25 @@
                 Dn = R(particleI) + R(particleJ) - DistL
                 !  lookup this contact(or not) in the Hertz list
                 LenNode = Head(particleI)%No
-                Temp => Head(particleI)
-                if (LenNode .NE. 0) then
-                    Temp => Head(particleI)%next
-                    do L = 1,LenNode
-                        if (Temp%No .EQ. particleJ) then
-                            do K = 1,3
-                                H(K) = Temp%Hertz(K)
-                                Mr(K) = Temp%Mrot(K)
-                                Mt(K) = Temp%Mtwist(K)
-                            end do
-                            touching = Temp%is_touching
-                            slipping = Temp%is_slipping
-                            rolling = Temp%is_rolling
-                            twisting = Temp%is_twisting
-                            exit
-                        else if (Temp%No.LT.particleJ .AND. associated(Temp%next)) then
-                            Temp => Temp%next
-                        else if (Temp%No .GT. particleJ) then
-                            Temp => Temp%prev
-                            exit
-                        end if
-                    end do
-                end if
+                Temp => Tail
+                do while(associated(Temp%next))
+                    Temp => Temp%next
+                    if (Temp%No .EQ. particleJ) then
+                        do K = 1,3
+                            H(K) = Temp%Hertz(K)
+                            Mr(K) = Temp%Mrot(K)
+                            Mt(K) = Temp%Mtwist(K)
+                        end do
+                        touching = Temp%is_touching
+                        slipping = Temp%is_slipping
+                        rolling = Temp%is_rolling
+                        twisting = Temp%is_twisting
+                        exit
+                    else if (Temp%No .GT. particleJ) then
+                        Temp => Temp%prev
+                        exit
+                    end if
+                end do
                 !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
                 !    write(123,'(F15.5,2X)',advance='no') Dn
                 !end if
@@ -381,7 +379,8 @@
                             Temp%is_slipping = slipping
                             Temp%is_rolling = rolling
                             Temp%is_twisting = twisting
-                            Temp%recordTime = Time+Dt
+                            Temp%recordTime = Time + Dt
+                            Tail => Temp
                         else
                             !  First contacted.
                             allocate(TempH)
@@ -390,6 +389,7 @@
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
                             Head(particleI)%No = LenNode + 1
+                            Tail => TempH
                         end if
                     else
                         !  Temp is Head of linklist!!!
@@ -399,6 +399,7 @@
                         if (associated(Temp%next)) Temp%next%prev => TempH
                         Temp%next => TempH
                         Head(particleI)%No = LenNode + 1
+                        Tail => TempH
                     end if
                 else
                     !  memory the separation in the Hertz linklist.
@@ -407,8 +408,11 @@
                         Temp%prev%next => Temp%next
                         if(associated(Temp%next)) Temp%next%prev => Temp%prev
                         Head(particleI)%No = LenNode - 1
+                        Tail => Temp%prev
                         deallocate(Temp)
                         !  When else Temp is Head of linklist!!!
+                    else
+                        Tail => Temp
                     end if
                     Rij = R(particleI)*R(particleJ)/(R(particleI)+R(particleJ))
                     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                              
@@ -452,7 +456,7 @@
             end if
         end do    
     end do                  
-    ! $OMP END PARALLEL DO
+    !$OMP END PARALLEL DO
     !oend = omp_get_wtime()
     !write(*,*) "force",(oend-ostart)
     

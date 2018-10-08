@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.1
+    !     DEMBody 4.3
     !     ***********
     !
     !     N-body integrator flow control.
@@ -81,21 +81,17 @@
     end if
     !oend = omp_get_wtime()
     !write(*,*) 'lattice', (oend-ostart)
-#endif    
-
-    !open(123,FILE="position.txt")
-    !do I = 1,N
-    !    write(123,"(6F15.5)") (X(K,I),K=1,3),(W(K,I),K=1,3)
-    !end do
-    !close(123)
-    !write(*,*) "intgrt"
-    !pause
+#endif
     
     !################         Part 3          ################### 
     !  calculated the force from the current x & xdot.
     !write(*,*) "start"
-#ifdef LatticeSearch    
-    call forceLattice 
+#ifdef LatticeSearch
+#ifdef ParticleLattice
+    call forceParticleLattice
+#else
+    call forceLattice
+#endif
 #elif TraverseSearch
     call forceTraverse
 #endif
