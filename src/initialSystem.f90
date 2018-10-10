@@ -213,7 +213,7 @@
         read (1000,*) muS, muP            !  Gravity constant of Saturn and Pan
         read (1000,*) omega               !  Angular velocity of Pan's initial revolution (suppose tidal locking and anticlockwise, usually negative)
         read (1000,*) (rOrig(K),K=1,3)    !  Saturn to Pan's initial position, i.e., the origin point
-        rOrig(2) = (muS/omega/omega)**(1/3)
+        omega = int(omega/abs(omega))*sqrt(abs(muS/rOrig(2)/rOrig(2)/rOrig(2)))
     else
         read (1000,*)
         read (1000,*)
@@ -264,15 +264,17 @@
         lx = dble(idx-1)*LatDx - Mx
         ly = dble(idy-1)*LatDy - My
         lz = dble(idz-1)*LatDz - Mz
-        DEM(I)%ID(1) = idx                 !  IDx of Lattice
-        DEM(I)%ID(2) = idy                 !  IDy of Lattice
-        DEM(I)%ID(3) = idz                 !  IDz of Lattice
+        !DEM(I)%ID(1) = idx                 !  IDx of Lattice
+        !DEM(I)%ID(2) = idy                 !  IDy of Lattice
+        !DEM(I)%ID(3) = idz                 !  IDz of Lattice
+#ifdef nConfined        
         DEM(I)%PositionD(1) = lx           !  PositionDx of Lattice
         DEM(I)%PositionD(2) = ly           !  PositionDy of Lattice
         DEM(I)%PositionD(3) = lz           !  PositionDz of Lattice
         DEM(I)%PositionU(1) = lx + LatDx   !  PositionUx of Lattice
         DEM(I)%PositionU(2) = ly + LatDy   !  PositionUy of Lattice
         DEM(I)%PositionU(3) = lz + LatDz   !  PositionUz of Lattice
+#endif        
         DEM(I)%NeighborID = 0
         !  Left lattice
         if (idx .NE. 1) then
@@ -398,7 +400,7 @@
     allocate(tailInner(LatNUm))
     do I = 1,LatNum
         IDInner(I)%No = 0                 !  Array of Lattice's inner particles
-        nullify(IDInner(I)%next)             
+        nullify(IDInner(I)%next)
     end do 
 #endif
 

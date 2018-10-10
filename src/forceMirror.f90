@@ -816,7 +816,7 @@
                         Mt(K) = 0.0D0
                     end do
                     Dist(2) = Dist(2) - LenBoxY
-                    shearPBC = X(1,J) + 0.5D0*LenBoxY*gamma*time
+                    shearPBC = X(1,J) + LenBoxY*gamma*time
                     shearPBC = shearPBC - ((shearPBC+0.5D0*LenBoxX) - MODULO((shearPBC+0.5D0*LenBoxX),LenBoxX))
                     Dist(1) = shearPBC - X(1,I)
                     touching = .false.
@@ -1180,7 +1180,7 @@
                         Mt(K) = 0.0D0
                     end do
                     Dist(2) = Dist(2) + LenBoxY
-                    shearPBC = X(1,J) - 0.5D0*LenBoxY*gamma*time
+                    shearPBC = X(1,J) - LenBoxY*gamma*time
                     shearPBC = shearPBC - ((shearPBC+0.5D0*LenBoxX) - MODULO((shearPBC+0.5D0*LenBoxX),LenBoxX))
                     Dist(1) = shearPBC - X(1,I)
                     touching = .false.

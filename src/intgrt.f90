@@ -70,17 +70,17 @@
     end if
 
 #ifdef LatticeSearch    
-    !ostart = omp_get_wtime()
-    call meshGenerate
-    !oend = omp_get_wtime()
-    !write(*,*) 'mesh', (oend-ostart)
-    
-    !ostart = omp_get_wtime()
     if (refreshLattice) then
+        !ostart = omp_get_wtime()
+        call meshGenerate
+        !oend = omp_get_wtime()
+        !write(*,*) 'mesh', (oend-ostart)
+
+        !ostart = omp_get_wtime()
         call latticeGenerate
+        !oend = omp_get_wtime()
+        !write(*,*) 'lattice', (oend-ostart)
     end if
-    !oend = omp_get_wtime()
-    !write(*,*) 'lattice', (oend-ostart)
 #endif
     
     !################         Part 3          ################### 

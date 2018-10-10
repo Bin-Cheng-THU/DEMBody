@@ -11,12 +11,15 @@ MODEL=-DHertzMindlinResti
 #SEARCH=-DLatticeSearch -DParticleLattice
 SEARCH=-DLatticeSearch
 
+#REGION=-DConfined
+REGION=-DnConfined
+
 #PARALLEL=-Dnopenmp
 PARALLEL=-Dopenmp
 
 PARTICLE=-DPP=1524
 
-COMPILER=ifort -openmp -O2 -fpp $(NUMBER) $(MODEL) $(SEARCH) $(PARALLEL) $(PARTICLE)
+COMPILER=ifort -openmp -O2 -fpp $(NUMBER) $(MODEL) $(SEARCH) $(REGION) $(PARALLEL) $(PARTICLE)
 
 DEMBody: global.o loadFile.o main.o start.o initialSystem.o attitudeBondedWallsQM.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceTriMeshWalls.o forceFunnelWalls.o forceGravBody.o planet.o forceRotSystem.o forceParticleLattice.o forceTraverse.o output.o intgrt.o attitudeBondedWalls.o attitudeGravBody.o attitude.o
 	$(COMPILER)  -o DEMBody global.o loadFile.o main.o start.o initialSystem.o attitudeBondedWallsQM.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceTriMeshWalls.o forceFunnelWalls.o forceGravBody.o planet.o forceRotSystem.o forceParticleLattice.o forceTraverse.o output.o intgrt.o attitudeBondedWalls.o attitudeGravBody.o attitude.o

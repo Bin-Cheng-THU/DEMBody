@@ -2,6 +2,7 @@
 # Add these lines into Preprocessor of VS
 
 LatticeSearch
+nConfined
 openmp
 NMAX=300800
 HertzMindlinResti

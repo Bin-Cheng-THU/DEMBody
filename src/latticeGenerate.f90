@@ -55,14 +55,15 @@
     do I = 1,N
         
         !################         Part 1          ###################        
-        Tag = floor((X(1,I)+Mx)/LatDx) + 1 + floor((X(2,I)+My)/LatDy)*LatNx + floor((X(3,I)+Mz)/LatDz)*(LatNx*LatNy)
+        !Tag = floor((X(1,I)+Mx)/LatDx) + 1 + floor((X(2,I)+My)/LatDy)*LatNx + floor((X(3,I)+Mz)/LatDz)*(LatNx*LatNy)
+        Tag = Linklist(I)
 
+#ifdef nConfined
         !****************
         !Note that if the particle is out of computational region, the Tag
         !may be beyond Normal Parallel Lattice, which would generat error when put into
         !DEM array; so we must check the position of the particle.
         !****************
-
         if (Tag.GE.1 .AND. Tag.LE.LatNum) then
             
             Flag = .true.
@@ -90,6 +91,23 @@
                 tailInner(Tag)%next => Temp    
             end if         
         end if
+#elif Confined
+        !****************
+        !Note that in some cases the particles must be in the computational region, then
+        !this check will be unnecessary, so we remove this part in Confined cases. 
+        !****************
+
+        !  insert into Lattice's inner region
+        IDInner(Tag)%No = IDInner(Tag)%No + 1
+        !TempH => IDInner(Tag)
+        !do while(associated(TempH%next))
+        !    TempH => TempH%next
+        !end do        
+        allocate(Temp)
+        Temp = Neighbor(I,NULL())
+        tailInner(Tag)%next%next => Temp
+        tailInner(Tag)%next => Temp         
+#endif        
     end do
     ! $OMP END PARALLEL DO
     !o2 = omp_get_wtime()

@@ -47,6 +47,7 @@
         end do
         rDust = sqrt(rDustV(1)*rDustV(1) + rDustV(2)*rDustV(2) + rDustV(3)*rDustV(3))
         center = -muS/(rDust*rDust*rDust)
+        
         do K = 1,3
             F(K,I) = F(K,I) + center*rDustV(K)
         end do
@@ -58,7 +59,7 @@
 
         !  Rotation transport force
         rP = sqrt(rOrig(1)*rOrig(1) + rOrig(2)*rOrig(2) + rOrig(3)*rOrig(3))
-        center = muS/(rP*rp*rP)
+        center = muS/(rP*rP*rP)
         do K = 1,3
             F(K,I) = F(K,I) + center*rOrig(K)
         end do

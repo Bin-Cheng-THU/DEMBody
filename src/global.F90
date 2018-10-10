@@ -54,9 +54,11 @@
     
     !  Conduct Lattice
     type :: Lattice
-        integer :: ID(3)
+        !integer :: ID(3)
+#ifdef nConfined
         real(8) :: PositionD(3)
         real(8) :: PositionU(3)
+#endif        
         integer :: NeighborID(26) 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!#ifdef self_gravity
@@ -74,7 +76,7 @@
     end type Neighbor
 
     !  Nodelink of Neighbor
-    type(Neighbor),pointer :: IDInner(:)    
+    type(Neighbor),pointer :: IDInner(:)
     type(Neighbor),pointer :: tailInner(:)
     
     !  DEM Lattice

@@ -55,7 +55,9 @@
     
     !  generate DEM Parallel Latice based on partition of Particles
     call latticeGenerate
- 
+#endif
+
+#ifdef LatticeSearch
     !  initial the force in case exiting overlaps at the initial-time.
 #ifdef ParticleLattice
     call forceParticleLattice
@@ -66,7 +68,6 @@
 #elif TraverseSearch
     !  initial the force in case exiting overlaps at the initial-time.
     call forceTraverse
-    
 #endif    
 
     RETURN

@@ -192,7 +192,7 @@
     write(12,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','R' 
     do I = 1,number
         read (10,*) (point(K),K=1,3),radius,(velocity(K),K=1,3)
-        write(11,'(12F15.5)') 4./3.*3.1415926*radius**3*Rho,0.4*4./3.*3.1415926*radius**3*Rho,(point(K),K=1,3),(velocity(K),K=1,3),0.0,0.0,0.0,radius
+        write(11,'(12F15.5)') 4./3.*3.1415926*radius**3*Rho,0.4*4./3.*3.1415926*radius**5*Rho,(point(K),K=1,3),(velocity(K),K=1,3),0.0,0.0,0.0,radius
         write(12,'(F12.5,A2,F12.5,A2,F12.5,A2,F12.5,A2,F12.5,A2,F12.5,A2,F12.5)') point(1),',',point(2),',',point(3),',',velocity(1),',',velocity(2),',',velocity(3),',',radius
     end do
     end

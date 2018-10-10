@@ -31,7 +31,7 @@
         !Wally1
         if (X(2,I).GT.(PlaSy1p(2))) then
             X(2,I) = X(2,I) - LenBoxY
-            X(1,I) = X(1,I) + 0.5D0*LenBoxY*gamma*time
+            X(1,I) = X(1,I) + LenBoxY*gamma*time
             X(1,I) = X(1,I) - ((X(1,I)+0.5D0*LenBoxX) - MODULO((X(1,I)+0.5D0*LenBoxX),LenBoxX))
             Xdot(1,I) = Xdot(1,I) + LenBoxY*gamma
             refreshLattice = .true.
@@ -39,7 +39,7 @@
         !Wally2
         if (X(2,I).LT.(PlaSy2p(2))) then
             X(2,I) = X(2,I) + LenBoxY
-            X(1,I) = X(1,I) - 0.5D0*LenBoxY*gamma*time
+            X(1,I) = X(1,I) - LenBoxY*gamma*time
             X(1,I) = X(1,I) - ((X(1,I)+0.5D0*LenBoxX) - MODULO((X(1,I)+0.5D0*LenBoxX),LenBoxX))
             Xdot(1,I) = Xdot(1,I) - LenBoxY*gamma
             refreshLattice = .true.
