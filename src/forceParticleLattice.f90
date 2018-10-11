@@ -939,7 +939,7 @@
     end do
     !$OMP END PARALLEL DO
     !oend = omp_get_wtime()
-    !write(*,*) 'accelerate', (oend-ostart)    
+    !write(*,*) 'accelerate', (oend-ostart)
 
     !ostart = omp_get_wtime()
     !  calculate Planet force if in Planet system
@@ -955,7 +955,15 @@
         call forceRotSystem
     end if
     !oend = omp_get_wtime()
-    !write(*,*) 'Rot system', (oend-ostart)  
+    !write(*,*) 'Rot system', (oend-ostart)
+
+    !ostart = omp_get_wtime()
+    !  calculate force of gravity body if using GravBody
+    if (isGravTriMesh) then
+        call forceGravTriMesh
+    end if
+    !oend = omp_get_wtime()
+    !write(*,*) "Grav bodies",(oend-ostart)
     
     !write(FileNameForce,'(F10.5)') Time
     !FileNameForce = trim(FileNameForce)//'Force.txt'

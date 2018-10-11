@@ -59,6 +59,7 @@
 		<File RelativePath="..\..\src\forceContactWalls.f90"/>
 		<File RelativePath="..\..\src\forceFunnelWalls.f90"/>
 		<File RelativePath="..\..\src\forceGravBody.f90"/>
+		<File RelativePath="..\..\src\forceGravTriMesh.f90"/>
 		<File RelativePath="..\..\src\forceLattice.f90"/>
 		<File RelativePath="..\..\src\forceMirror.f90"/>
 		<File RelativePath="..\..\src\forceParticleLattice.f90"/>

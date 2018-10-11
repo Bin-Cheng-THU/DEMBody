@@ -19,6 +19,9 @@
     integer :: idgx,idgy,idgz
     real(8) :: lx,ly,lz
     real(8) :: ERR
+    integer :: numNode
+    integer :: numGrid
+    integer :: idNode
 
     !  Initialize parameters and set useful constants.
     Time = 0.0D0
@@ -56,6 +59,7 @@
     read (1000,*) isFunnelWall         !  whether use Funnel Walls
     read (1000,*) isPeriodic           !  whether use Periodic function
     read (1000,*) isGravBody           !  whether use Gravity Body
+    read (1000,*) isGravTriMesh        !  whether use Gravity TriMesh
     read (1000,*) MAX_ACC              !  maximum contact acceleration
     read (1000,*)                         
     read (1000,*) G                    !  the totle gravity    
@@ -229,6 +233,45 @@
         read (1000,*)
     end if
     close(1000)
+
+    !  initial the grav trimesh
+    if (isGravTriMesh) then
+        open (2000,FILE="../Input/gravTriMesh.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
+        write(*,*) 'is Grav TriMesh, loading...'
+        read (2000,*)
+        read (2000,*) TriLatDx,TriLatDy,TriLatDz
+        read (2000,*) TriLatMx,TriLatMy,TriLatMz
+        read (2000,*) TriLatNx,TriLatNy,TriLatNz
+        numNode = (TriLatNx+1)*(TriLatNy+1)*(TriLatNz+1)
+        numGrid = TriLatNx*TriLatNy*TriLatNz
+        allocate(GravTriMeshNode(3,numNode))
+        do I = 1,numNode
+            read (2000,*) (GravTriMeshNode(K,I),K=1,3)
+        end do
+        close(2000)
+        
+        allocate(GravTriMeshGrid(numGrid))
+        do I = 1,numGrid
+            idz = int((I-1)/(TriLatNx*TriLatNy))+1
+            idy = int((I-(idz-1)*(TriLatNx*TriLatNy)-1)/TriLatNx)+1
+            idx = I-(idz-1)*(TriLatNx*TriLatNy)-(idy-1)*TriLatNx
+            lx = dble(idx-1)*TriLatDx - TriLatMx
+            ly = dble(idy-1)*TriLatDy - TriLatMy
+            lz = dble(idz-1)*TriLatDz - TriLatMz            
+            GravTriMeshGrid(I)%PositionCenter(1) = lx + 0.5D0*TriLatDx
+            GravTriMeshGrid(I)%PositionCenter(2) = ly + 0.5D0*TriLatDy
+            GravTriMeshGrid(I)%PositionCenter(3) = lz + 0.5D0*TriLatDz
+            idNode = idx + (idy-1)*(TriLatNx+1) + (idz-1)*(TriLatNx+1)*(TriLatNy+1)
+            GravTriMeshGrid(I)%NodeID(1) = idNode
+            GravTriMeshGrid(I)%NodeID(2) = idNode + 1
+            GravTriMeshGrid(I)%NodeID(3) = idNode + 2 + TriLatNx
+            GravTriMeshGrid(I)%NodeID(4) = idNode + 1 + TriLatNx
+            GravTriMeshGrid(I)%NodeID(5) = idNode + (TriLatNx+1)*(TriLatNy+1)
+            GravTriMeshGrid(I)%NodeID(6) = idNode + 1 + (TriLatNx+1)*(TriLatNy+1)
+            GravTriMeshGrid(I)%NodeID(7) = idNode + 2 + TriLatNx + (TriLatNx+1)*(TriLatNy+1)
+            GravTriMeshGrid(I)%NodeID(8) = idNode + 1 + TriLatNx + (TriLatNx+1)*(TriLatNy+1)
+        end do
+    end if 
     
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!#ifdef self_gravity
@@ -274,7 +317,7 @@
         DEM(I)%PositionU(1) = lx + LatDx   !  PositionUx of Lattice
         DEM(I)%PositionU(2) = ly + LatDy   !  PositionUy of Lattice
         DEM(I)%PositionU(3) = lz + LatDz   !  PositionUz of Lattice
-#endif        
+#endif      
         DEM(I)%NeighborID = 0
         !  Left lattice
         if (idx .NE. 1) then

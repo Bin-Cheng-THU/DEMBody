@@ -32,6 +32,7 @@
     logical :: isFunnelWall
     logical :: isPeriodic
     logical :: isGravBody
+    logical :: isGravTriMesh
     real(8) :: Max_ACC
 
     !  Conduct linklist
@@ -58,7 +59,7 @@
 #ifdef nConfined
         real(8) :: PositionD(3)
         real(8) :: PositionU(3)
-#endif        
+#endif
         integer :: NeighborID(26) 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!#ifdef self_gravity
@@ -69,6 +70,9 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     end type Lattice
     
+    !  DEM Lattice
+    type(Lattice),pointer :: DEM(:)
+    
     !  Conduct Neighbor
     type :: Neighbor
         integer :: No
@@ -78,16 +82,27 @@
     !  Nodelink of Neighbor
     type(Neighbor),pointer :: IDInner(:)
     type(Neighbor),pointer :: tailInner(:)
-    
-    !  DEM Lattice
-    type(Lattice),pointer :: DEM(:)
-    
+
     !  Parallel Lattice params
     real(8) :: LatDx,LatDy,LatDz
     integer :: LatNx,LatNy,LatNz
     integer :: LatNum
     integer,allocatable :: ParallelLatticeColor(:,:)
+    
+    !  Conduct TriMeshLattice
+    type :: GravTriMeshLattice
+        real(8) :: PositionCenter(3)
+        integer :: NodeID(8)
+    end type GravTriMeshLattice
+    type(GravTriMeshLattice),pointer :: GravTriMeshGrid(:)
+    
+    !  Grav Tri Mesh
+    real(8),allocatable :: GravTriMeshNode(:,:)
 
+    !  GravTriMeshNode params
+    real(8) :: TriLatDx,TriLatDy,TriLatDz
+    real(8) :: TriLatMx,TriLatMy,TriLatMz
+    integer :: TriLatNx,TriLatNy,TriLatNz
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!#ifdef self_gravity
 !    !  Gravity Lattice params
