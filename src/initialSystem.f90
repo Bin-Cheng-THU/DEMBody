@@ -32,7 +32,7 @@
     refreshNum = 0
     
     !  Initialize control parameters
-    write(*,*) "System file loading..."    
+    write(*,*) "< System file loading..."    
     open (1000,FILE="../Input/systemControl.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
 
     read (1000,*)                      !  DEM version
@@ -68,7 +68,7 @@
     
     !  initial the contactable walls
     if (isContactWall) then
-        write(*,*) 'is Contactable walls, loading...'
+        write(*,*) '< is Contactable walls, loading...'
         read (1000,*) 
         read (1000,*) contactWallNum
         allocate (contactWallTag(contactWallNum))
@@ -86,7 +86,7 @@
     
     !  initial the bonded walls
     if (isBondedWall) then
-        write(*,*) 'is Bonded walls, loading...'
+        write(*,*) '< is Bonded walls, loading...'
         read (1000,*)
         read (1000,*) (bondedWallX(K),K=1,3),(bondedWallXdot(K),K=1,3),(bondedWallW(K),K=1,3)
         read (1000,*) (bondedWallQ(K),K=1,4)
@@ -124,7 +124,7 @@
     
     !  initial the trimesh walls
     if (isTriMeshWall) then
-        write(*,*) 'is TriMesh walls, loading...'
+        write(*,*) '< is TriMesh walls, loading...'
         read (1000,*)
         read (1000,*) trimeshWallNum
         allocate (trimeshWallTag(trimeshWallNum))
@@ -158,7 +158,7 @@
     
     !  initial the funnel walls
     if (isFunnelWall) then
-        write(*,*) 'is Funnel walls, loading...'
+        write(*,*) '< is Funnel walls, loading...'
         read (1000,*) 
         read (1000,*) funnelWallNum
         allocate (funnelWallTag(funnelWallNum))
@@ -178,7 +178,7 @@
     
     !  initial the geometry boundary of the Particle Box
     if (isPeriodic) then
-        write(*,*) 'is Periodic boundary, loading...'
+        write(*,*) '< is Periodic boundary, loading...'
         read (1000,*)
         read (1000,*) (PlaSx1p(K),K=1,3),(PlaSx1v(K),K=1,3)
         read (1000,*) (PlaSx2p(K),K=1,3),(PlaSx2v(K),K=1,3)
@@ -196,7 +196,7 @@
     
     !  initial the gravity body
     if (isGravBody) then
-        write(*,*) 'is Gravity Body, loading...'
+        write(*,*) '< is Gravity Body, loading...'
         read (1000,*)
         gravBodyTag = NMAX + wallFlag
         read (1000,*) (gravBodyX(K),K=1,3),(gravBodyXdot(K),K=1,3),(gravBodyW(K),K=1,3)
@@ -212,7 +212,7 @@
     
     !  initial the properties of Saturn and Pan
     if (isPlanet) then
-        write(*,*) 'is Planet system, loading'
+        write(*,*) '< is Planet system, loading'
         read (1000,*)
         read (1000,*) muS, muP            !  Gravity constant of Saturn and Pan
         read (1000,*) omega               !  Angular velocity of Pan's initial revolution (suppose tidal locking and anticlockwise, usually negative)
@@ -225,7 +225,7 @@
         
     !  initial the rotary system
     if (isRotSystem) then
-        write(*,*) 'is Rotary System, loading...'
+        write(*,*) '< is Rotary System, loading...'
         read (1000,*)
         read (1000,*) sysOmega, sysGrav
     else
@@ -237,7 +237,7 @@
     !  initial the grav trimesh
     if (isGravTriMesh) then
         open (2000,FILE="../Input/gravTriMesh.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
-        write(*,*) 'is Grav TriMesh, loading...'
+        write(*,*) '< is Grav TriMesh, loading...'
         read (2000,*)
         read (2000,*) TriLatDx,TriLatDy,TriLatDz
         read (2000,*) TriLatMx,TriLatMy,TriLatMz
@@ -271,32 +271,11 @@
             GravTriMeshGrid(I)%NodeID(7) = idNode + 2 + TriLatNx + (TriLatNx+1)*(TriLatNy+1)
             GravTriMeshGrid(I)%NodeID(8) = idNode + 1 + TriLatNx + (TriLatNx+1)*(TriLatNy+1)
         end do
-    end if 
-    
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!#ifdef self_gravity
-!    !  Initialize Gravity Lattice.
-!    write(*,*) "Gravity Lattice initializing..."
-!    
-!    GravNum = GravNx*GravNy*GravNz
-!    GravDx = LatDx*(LatNx/GravNx)
-!    GravDy = LatDy*(LatNy/GravNy)
-!    GravDz = LatDz*(LatNz/GravNz)
-!
-!    allocate(Gravity(GravNum))
-!    allocate(ParallelLatticeColor(1,NMAX))
-!    do I = 1,GravNum
-!        Gravity(I)%num = 0
-!        Gravity(I)%ID = 0
-!        Gravity(I)%Mass = 0.0D0
-!        Gravity(I)%MassCenter = 0.0D0
-!    end do
-!!#end if
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    end if
 
 #ifdef LatticeSearch
     !  Initialize Parallel Lattice.
-    write(*,*) "Parallel Lattice initializing..."
+    write(*,*) "< Parallel Lattice initializing..."
     
     LatNum = LatNx*LatNy*LatNz             !  Paraller Number
     allocate(DEM(LatNum))
@@ -422,20 +401,7 @@
         !  Right Upper Under lattice
         if (idx.NE.LatNx .AND. idy.NE.LatNy .AND. idz.NE.1) then
             DEM(I)%NeighborID(26) = I + 1 + LatNx - LatNx*LatNy
-        end if      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!#ifdef self_gravity
-!        idgx = int((idx-1)/(LatNx/GravNx))+1
-!        idgy = int((idy-1)/(LatNy/GravNy))+1
-!        idgz = int((idz-1)/(LatNz/GravNz))+1
-!        DEM(I)%GravID = idgx + (idgy-1)*GravNx + (idgz-1)*GravNx*GravNy
-!        DEM(I)%Mass = 0.0D0
-!        DEM(I)%MassCenter = DEM(I)%PositionD
-!        
-!        Gravity(DEM(I)%GravID)%num = Gravity(DEM(I)%GravID)%num + 1
-!        Gravity(DEM(I)%GravID)%ID(Gravity(DEM(I)%GravID)%num) = I
-!!#endif
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        end if
     end do
 
     !  Initialize Neighbor Nodelink.
@@ -448,7 +414,7 @@
 #endif
 
     !  Initialize Hertz list. Linklist-Compressed.
-    write(*,*) "Hertz list initializing..."
+    write(*,*) "< Hertz list initializing..."
     
     allocate(Head(NMAX))
     do I = 1,NMAX

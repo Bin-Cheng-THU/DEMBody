@@ -21,7 +21,7 @@ disp(dT);
 Kn = 2.0*E*sqrt(r/2)/(3*(1-nu^2));
 disp(Kn)
 
-MaxAcc = 2.0*E*sqrt(r)/(3*(1-nu^2))*(0.5*r)^(3/2)/(4/3*pi*r^3*Rho);
+MaxAcc = 2.0*E*sqrt(r*r)/(3*(1-nu^2))*(r)^(3/2)/(4/3*pi*r^3*Rho);
 disp(MaxAcc)
 %% Numerical simulation
 [Time,Pos]=ode45('contact_model',[0 T*2],[0 v]);

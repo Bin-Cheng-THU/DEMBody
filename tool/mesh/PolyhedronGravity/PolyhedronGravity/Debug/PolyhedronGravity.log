@@ -1,0 +1,54 @@
+﻿生成启动时间为 2018/10/18 20:02:35。
+     1>项目“C:\Users\chengbin\Desktop\PolyhedronGravity\PolyhedronGravity\PolyhedronGravity.vcxproj”在节点 2 上(Rebuild 个目标)。
+     1>ClCompile:
+         E:\tool\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt body.cpp gravity.cpp kinematics.cpp main.cpp mat3d.cpp points.cpp
+         points.cpp
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\points.cpp(13): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\tool\microsoft visual studio 11.0\vc\include\stdio.h(218) : 参见“fopen”的声明
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\points.cpp(14): warning C4551: 缺少参数列表的函数调用
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\points.cpp(16): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\tool\microsoft visual studio 11.0\vc\include\stdio.h(237) : 参见“fscanf”的声明
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\points.cpp(20): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\tool\microsoft visual studio 11.0\vc\include\stdio.h(237) : 参见“fscanf”的声明
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\points.cpp(44): warning C4101: “infile”: 未引用的局部变量
+         mat3d.cpp
+         main.cpp
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\main.cpp(29): warning C4996: 'setbuf': This function or variable may be unsafe. Consider using setvbuf instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\tool\microsoft visual studio 11.0\vc\include\stdio.h(299) : 参见“setbuf”的声明
+         kinematics.cpp
+         gravity.cpp
+         body.cpp
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\body.cpp(13): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\tool\microsoft visual studio 11.0\vc\include\stdio.h(218) : 参见“fopen”的声明
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\body.cpp(16): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\tool\microsoft visual studio 11.0\vc\include\stdio.h(237) : 参见“fscanf”的声明
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\body.cpp(17): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\tool\microsoft visual studio 11.0\vc\include\stdio.h(237) : 参见“fscanf”的声明
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\body.cpp(19): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\tool\microsoft visual studio 11.0\vc\include\stdio.h(237) : 参见“fscanf”的声明
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\body.cpp(20): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\tool\microsoft visual studio 11.0\vc\include\stdio.h(237) : 参见“fscanf”的声明
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\body.cpp(21): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\tool\microsoft visual studio 11.0\vc\include\stdio.h(237) : 参见“fscanf”的声明
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\body.cpp(23): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\tool\microsoft visual studio 11.0\vc\include\stdio.h(237) : 参见“fscanf”的声明
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\body.cpp(27): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\tool\microsoft visual studio 11.0\vc\include\stdio.h(237) : 参见“fscanf”的声明
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\body.cpp(30): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\tool\microsoft visual studio 11.0\vc\include\stdio.h(237) : 参见“fscanf”的声明
+     1>c:\users\chengbin\desktop\polyhedrongravity\polyhedrongravity\body.cpp(35): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\tool\microsoft visual studio 11.0\vc\include\stdio.h(237) : 参见“fscanf”的声明
+         正在生成代码...
+       Link:
+         E:\tool\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\chengbin\Desktop\PolyhedronGravity\Debug\PolyhedronGravity.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\chengbin\Desktop\PolyhedronGravity\Debug\PolyhedronGravity.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\chengbin\Desktop\PolyhedronGravity\Debug\PolyhedronGravity.lib" /MACHINE:X86 Debug\body.obj
+         Debug\gravity.obj
+         Debug\kinematics.obj
+         Debug\main.obj
+         Debug\mat3d.obj
+         Debug\points.obj
+         PolyhedronGravity.vcxproj -> C:\Users\chengbin\Desktop\PolyhedronGravity\Debug\PolyhedronGravity.exe
+     1>已完成生成项目“C:\Users\chengbin\Desktop\PolyhedronGravity\PolyhedronGravity\PolyhedronGravity.vcxproj”(Rebuild 个目标)的操作。
+
+生成成功。
+
+已用时间 00:00:01.95

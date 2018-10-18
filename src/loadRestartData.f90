@@ -16,13 +16,13 @@
     integer K  
     logical alive
 
-    write(*,*) "RestartData loading..."
+    write(*,*) "< RestartData loading..."
 
     INQUIRE( File = '../input/RestartData.txt', EXIST = alive)
     IF (alive) then
         Open( 12 , File = '../input/RestartData.txt' )
         nRow = GetFileN( 12 )
-        write( * , * ) 'RestartData ',nRow-1,' rows!'
+        write( * , * ) '< RestartData ',nRow-1,' rows!'
 
         !  refresh Time and Step
         read(12,*) Time,Tnext,Step,CheckPointTnext
@@ -38,8 +38,8 @@
         close( 12 )
 
     else
-        write(*,*) "No RestartData exist."
-        write(*,*) "Go to calculating directly."
+        write(*,*) "< No RestartData exist."
+        write(*,*) "< Go to calculating directly."
     end if
 
     End subroutine

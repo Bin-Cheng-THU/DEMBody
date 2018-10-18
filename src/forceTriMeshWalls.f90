@@ -41,7 +41,7 @@
     real(kind=8) OMP_trimeshWallLength(4)                              !  Length parameters for walls in OMP
     logical :: enterFlag
     real(kind=8)  RVb(3),RV1,RV2,RV3,RV4,RV5,RV6,RVu,RVv,RVn(3),RVt(3),norm
-    real(kind=8) :: edgeFlag
+    real(kind=8)  edgeFlag
     
     !character(30) :: FileName
     !write(FileName,'(F10.5)') Time
@@ -455,7 +455,15 @@
                     do K = 1,3
                         FM(K,I) = edgeFlag*rolling_moment(K) + edgeFlag*twisting_moment(K) + FM(K,I)
                     end do
-                    
+
+                    !  cohesive force
+                    do K = 1,3
+                        cohesive_force(K) = - m_c*(m_Beta*Rij)**2*DistU(K)
+                    end do
+                    do K = 1,3
+                        F(K,I) = edgeFlag*cohesive_force(K) + F(K,I)
+                    end do
+                            
                     !  memory the contact in the Hertz linklist.
                     if (associated(Temp%prev)) then
                         !  Temp is in center of linklist!!!

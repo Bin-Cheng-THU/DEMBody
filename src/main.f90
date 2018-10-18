@@ -26,7 +26,7 @@
     !  Read input parameters and perform initial setup.
     call start
     
-    write(*,*) "Begin to calculate, good luck!"
+    write(*,*) "< Begin to calculate, good luck!"
     
 #ifdef openmp
     T1 = omp_get_wtime()

@@ -48,7 +48,7 @@
     integer :: region                       !  Upper limit of Loops 
     logical :: check                        !  Check for meshgrid
 
-    integer :: JJ                        !  Parallel Lattice
+    integer :: JJ                           !  Parallel Lattice
     integer :: IDJ                          !  Parallel Lattice J (outer lattice)
     type(Neighbor),pointer :: IDInnerI      !  List of Inner Particles
     type(Neighbor),pointer :: IDInnerJ      !  List of Inner Particles
@@ -871,99 +871,7 @@
     end do
     !$OMP END PARALLEL DO
     !oend = omp_get_wtime()
-    !write(*,*) "force",(oend-ostart)
-
-    !ostart = omp_get_wtime()
-    !  calculate mirrored force if using PBC & Shear PBC
-    if (isPeriodic) then
-        call forceMirror
-    end if
-    !oend = omp_get_wtime()
-    !write(*,*) "Mirror",(oend-ostart)
-    
-    !ostart = omp_get_wtime()
-    !  calculate force of contactable walls if using contactable walls
-    if (isContactWall) then
-        call forceContactWalls
-    end if
-    !oend = omp_get_wtime()
-    !write(*,*) "Contact walls", (oend-ostart)
-    
-    !ostart = omp_get_wtime()
-    !  calculate force of bonded walls if using bonded walls
-    if (isBondedWall) then                     
-        call forceBondedWalls 
-    end if
-    !oend = omp_get_wtime()
-    !write(*,*) "Bonded walls",(oend-ostart)
-
-    !ostart = omp_get_wtime()
-    !  calculate force of trimesh walls if using trimesh walls
-    if (isTriMeshWall) then                     
-        call forceTriMeshWalls 
-    end if
-    !oend = omp_get_wtime()
-    !write(*,*) "Tri meshes",(oend-ostart)
-    
-    !ostart = omp_get_wtime()
-    !  calculate force of funnel walls if using funnel walls
-    if (isFunnelWall) then
-        call forceFunnelWalls
-    end if
-    !oend = omp_get_wtime()
-    !write(*,*) "Funnel walls",(oend-ostart)
-    
-    !ostart = omp_get_wtime()
-    !  calculate force of gravity body if using GravBody
-    if (isGravBody) then
-        call forceGravBody
-    end if
-    !oend = omp_get_wtime()
-    !write(*,*) "Grav bodies",(oend-ostart)
-
-    !ostart = omp_get_wtime()
-    !$OMP PARALLEL DO PRIVATE(I,K,accMag)
-    do I = 1,N
-        do K = 1,3
-            F(K,I) = F(K,I)/Body(I)
-            FM(K,I) = FM(K,I)/Inertia(I)
-        end do
-        accMag = sqrt(F(1,I)**2 + F(2,I)**2+F(3,I)**2)
-        if (accMag .GE. MAX_ACC) then
-            write(*,*) 'exceed Max Acc',I,accMag
-            do K = 1,3
-                F(K,I) = F(K,I)/accMag*MAX_ACC
-            end do
-        end if
-        F(3,I) = F(3,I) - G
-    end do
-    !$OMP END PARALLEL DO
-    !oend = omp_get_wtime()
-    !write(*,*) 'accelerate', (oend-ostart)
-
-    !ostart = omp_get_wtime()
-    !  calculate Planet force if in Planet system
-    if (isPlanet) then
-        call Planet
-    end if
-    !oend = omp_get_wtime()
-    !write(*,*) 'Planet', (oend-ostart)  
-    
-    !ostart = omp_get_wtime()
-    !  calculate Noninertial force if in Rotary system
-    if (isRotSystem) then
-        call forceRotSystem
-    end if
-    !oend = omp_get_wtime()
-    !write(*,*) 'Rot system', (oend-ostart)
-
-    !ostart = omp_get_wtime()
-    !  calculate force of gravity body if using GravBody
-    if (isGravTriMesh) then
-        call forceGravTriMesh
-    end if
-    !oend = omp_get_wtime()
-    !write(*,*) "Grav bodies",(oend-ostart)
+    !write(*,*) "forceParticleLattice",(oend-ostart)
     
     !write(FileNameForce,'(F10.5)') Time
     !FileNameForce = trim(FileNameForce)//'Force.txt'

@@ -43,6 +43,7 @@
     real(kind=8)  RVb(3),RVx,RVy,RVn(3),RVt(3),norm
     real(kind=8)  RVo(3),Vwall(3)
     real(kind=8)  temp_bondedWallFM(3)
+    real(kind=8)  edgeFlag
 
     bondedWallF = 0.0D0
     bondedWallFM = 0.0D0
@@ -63,7 +64,7 @@
         !$OMP PARALLEL DO &
         !$OMP& REDUCTION(+:bondedWallF) REDUCTION(+:bondedWallFM) &
         !$OMP& firstprivate(OMP_bondedWallTag,OMP_bondedWallPoint,OMP_bondedWallVectorN,OMP_bondedWallVectorTx,OMP_bondedWallVectorTy) &
-        !$OMP& PRIVATE(RVb,RVx,RVy,RVn,RVt,RVo,Vwall,norm,enterFlag)&
+        !$OMP& PRIVATE(RVb,RVx,RVy,RVn,RVt,RVo,Vwall,norm,enterFlag,edgeFlag)&
         !$OMP& PRIVATE(Temp,TempH,LenNode,&
         !$OMP& I,J,K,L,II,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
         !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,&
@@ -76,46 +77,54 @@
                 RV(K) = X(K,I) - OMP_bondedWallPoint(K)
             end do
             ERR = RV(1)*OMP_bondedWallVectorN(1) + RV(2)*OMP_bondedWallVectorN(2) + RV(3)*OMP_bondedWallVectorN(3)
-            if (ERR > 0.0 .AND. ERR < 0.8*Dx) then
+            if (ERR > -0.8D0*Dx .AND. ERR < 0.8D0*Dx) then
                 do K = 1,3
                     RVb(K) = RV(K) - ERR*OMP_bondedWallVectorN(K)
                 end do 
                 RVx = RVb(1)*OMP_bondedWallVectorTx(1) + RVb(2)*OMP_bondedWallVectorTx(2) + RVb(3)*OMP_bondedWallVectorTx(3)
                 RVy = RVb(1)*OMP_bondedWallVectorTy(1) + RVb(2)*OMP_bondedWallVectorTy(2) + RVb(3)*OMP_bondedWallVectorTy(3)
-                if (ABS(RVx).LE.(0.5*OMP_bondedWallLx) .AND. ABS(RVy).LE.(0.5*OMP_bondedWallLy)) then
+                if (ABS(RVx).LE.(0.5D0*OMP_bondedWallLx) .AND. ABS(RVy).LE.(0.5D0*OMP_bondedWallLy)) then
                     enterFlag = .true.
                     do K = 1,3
                         RVt(K) = RVb(K)
                         RVn(K) = ERR*OMP_bondedWallVectorN(K)
                     end do
-                else if (ABS(RVx).LE.(0.5*OMP_bondedWallLx) .AND. ABS(RVy).LE.(0.5*OMP_bondedWallLy+0.8*Dx)) then
+                    edgeFlag = 1.0D0
+                    goto 222
+                else if (ABS(RVx).LE.(0.5D0*OMP_bondedWallLx) .AND. ABS(RVy).LE.(0.5D0*OMP_bondedWallLy+0.8D0*Dx)) then
                     enterFlag = .true.
                     do K = 1,3
-                        RVt(K) = RVy/ABS(RVy)*0.5*OMP_bondedWallLy*OMP_bondedWallVectorTy(K) + RVx*OMP_bondedWallVectorTx(K)
+                        RVt(K) = RVy/ABS(RVy)*0.5D0*OMP_bondedWallLy*OMP_bondedWallVectorTy(K) + RVx*OMP_bondedWallVectorTx(K)
                         RVn(K) = RV(K) - RVt(K)
                     end do
-                else if (ABS(RVx).LE.(0.5*OMP_bondedWallLx+0.8*Dx) .AND. ABS(RVy).LE.(0.5*OMP_bondedWallLy)) then
+                    edgeFlag = 0.5D0
+                    goto 222
+                else if (ABS(RVx).LE.(0.5D0*OMP_bondedWallLx+0.8D0*Dx) .AND. ABS(RVy).LE.(0.5D0*OMP_bondedWallLy)) then
                     enterFlag = .true.
                     do K = 1,3
-                        RVt(K) = RVx/ABS(RVx)*0.5*OMP_bondedWallLx*OMP_bondedWallVectorTx(K) + RVy*OMP_bondedWallVectorTy(K)
+                        RVt(K) = RVx/ABS(RVx)*0.5D0*OMP_bondedWallLx*OMP_bondedWallVectorTx(K) + RVy*OMP_bondedWallVectorTy(K)
                         RVn(K) = RV(K) - RVt(K)
-                    end do                        
-                else if (ABS(RVx).LE.(0.5*OMP_bondedWallLx+0.8*Dx) .AND. ABS(RVy).LE.(0.5*OMP_bondedWallLy+0.8*Dx)) then
+                    end do
+                    edgeFlag = 0.5D0
+                    goto 222
+                else if (ABS(RVx).LE.(0.5D0*OMP_bondedWallLx+0.8D0*Dx) .AND. ABS(RVy).LE.(0.5D0*OMP_bondedWallLy+0.8D0*Dx)) then
                     enterFlag = .true.
                     do K = 1,3
-                        RVt(K) = 0.5*OMP_bondedWallLx*OMP_bondedWallVectorTx(K)*RVx/ABS(RVx) + 0.5*OMP_bondedWallLy*OMP_bondedWallVectorTy(k)*RVy/ABS(RVy)
+                        RVt(K) = 0.5D0*OMP_bondedWallLx*OMP_bondedWallVectorTx(K)*RVx/ABS(RVx) + 0.5D0*OMP_bondedWallLy*OMP_bondedWallVectorTy(k)*RVy/ABS(RVy)
                         RVn(K) = RV(K) - RVt(K)
-                    end do     
+                    end do
+                    edgeFlag = 0.33D0
+                    goto 222
                 end if
             end if
             
-            if (enterFlag) then      
+222         if (enterFlag) then      
                 !  normal vector
                 do K = 1,3
                     Dist(K) = RVn(K)
-                    H(K) = 0.0
-                    Mr(K) = 0.0
-                    Mt(K) = 0.0
+                    H(K) = 0.0D0
+                    Mr(K) = 0.0D0
+                    Mt(K) = 0.0D0
                 end do
                 touching = .false.
                 slipping = .false.
@@ -151,9 +160,9 @@
                     end do
                 end if
                 !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hertzian law
-                if (Dn .GT. 0.0) then 
+                if (Dn .GT. 0.0D0) then 
 
-                    DistR = 1.0/DistL
+                    DistR = 1.0D0/DistL
                     !  calculate the normal vector
                     do K=1,3
                         DistU(K) = Dist(K)*DistR
@@ -163,38 +172,38 @@
                     !  calculate material constant
                     Rij = R(I)
                     Mij = Body(I)
-                    Kn = 2.0*m_E*sqrt(Rij*Dn)/(3.0*(1.0-m_nu*m_nu))
+                    Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                     Cn = -Kn*m_A
-                    Ks = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                    Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
                     !  select tangential damping mode
-                    if (m_COR > 1.0) then
-                        Cs = -2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Dn)*m_A
-                    elseif (m_COR >= 0.0) then
+                    if (m_COR > 1.0D0) then
+                        Cs = -2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Dn)*m_A
+                    elseif (m_COR >= 0.0D0) then
                         lnCOR=log(m_COR)
-                        Cs = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                        & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                        Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                        & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
                     else
-                        Cs = 0
+                        Cs = 0.0D0
                     end if
-                    Kr = 0.25*Kn*(m_Beta*Rij)**2
-                    Cr = 0.25*Cn*(m_Beta*Rij)**2
-                    Kt = 0.5*Ks*(m_Beta*Rij)**2
-                    Ct = 0.5*Cs*(m_Beta*Rij)**2
+                    Kr = 0.25D0*Kn*(m_Beta*Rij)**2
+                    Cr = 0.25D0*Cn*(m_Beta*Rij)**2
+                    Kt = 0.5D0*Ks*(m_Beta*Rij)**2
+                    Ct = 0.5D0*Cs*(m_Beta*Rij)**2
 #elif HertzMindlinResti
                     !  calculate material constant
                     Rij = R(I)
                     Mij = Body(I)
-                    Kn = 2.0*m_E*sqrt(Rij*Dn)/(3.0*(1.0-m_nu*m_nu))
+                    Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                     lnCOR = log(m_COR)
-                    Cn = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                          & *sqrt(Mij*m_E/(1.0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
-                    Ks = 2.0*m_E/(1.0+m_nu)/(2.0-m_nu)*sqrt(Rij)*sqrt(Dn)
-                    Cs = 2.0*sqrt(5.0/6.0)*lnCOR/sqrt(lnCOR**2+3.1415926**2) &
-                         & *sqrt(2.0*Mij*m_E/(1.0+m_nu)/(2.0-m_nu))*(Rij**0.25)*(Dn**0.25)
-                    Kr = 0.25*Kn*(m_Beta*Rij)**2
-                    Cr = 0.25*Cn*(m_Beta*Rij)**2
-                    Kt = 0.5*Ks*(m_Beta*Rij)**2
-                    Ct = 0.5*Cs*(m_Beta*Rij)**2
+                    Cn = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                          & *sqrt(Mij*m_E/(1.0D0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
+                    Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                    Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
+                         & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                    Kr = 0.25D0*Kn*(m_Beta*Rij)**2
+                    Cr = 0.25D0*Cn*(m_Beta*Rij)**2
+                    Kt = 0.5D0*Ks*(m_Beta*Rij)**2
+                    Ct = 0.5D0*Cs*(m_Beta*Rij)**2
 #endif
                     !  distance vector relative to Bonded Wall Center
                     do K = 1,3
@@ -233,7 +242,7 @@
                     normal_forceL = sqrt(normal_force(1)*normal_force(1) + normal_force(2)*normal_force(2) + normal_force(3)*normal_force(3))
 
                     !  Add energy
-                    Energy(I) = Energy(I) + 0.4*Kn*(Dn**2)
+                    Energy(I) = Energy(I) + 0.4D0*Kn*(Dn**2)
                     
                     !  tangential deform
                     do K = 1,3
@@ -248,26 +257,26 @@
                     tangential_forceL = sqrt(tangential_force(1)*tangential_force(1) + tangential_force(2)*tangential_force(2) + tangential_force(3)*tangential_force(3))
 
                     if (slipping) then  !  Have slipped
-                        if (DsL .GT. 1e-8) then  !  Still slipping
+                        if (DsL .GT. 1.0e-8) then  !  Still slipping
                             do K = 1,3
                                 tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle I
                             end do
                         else  !  Approach sticking
                             do K = 1,3
-                                tangential_force(K) = 0.0  !  Particle I
+                                tangential_force(K) = 0.0D0  !  Particle I
                             end do
                             slipping = .false.
                         end if
                     else
                         if (tangential_forceL .GT. normal_forceL*m_mu_s) then  !  Slipping
                             slipping = .true.
-                            if (DsL .GT. 1e-14) then
+                            if (DsL .GT. 1.0e-14) then
                                 do K = 1,3
                                     tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL
                                 end do
                             else
                                 do K = 1,3
-                                    tangential_force(K) = 0.0
+                                    tangential_force(K) = 0.0D0
                                 end do
                             end if
                         else
@@ -275,25 +284,34 @@
                         end if
                     end if
 
+                    !  cohesive force
+                    do K = 1,3
+                        cohesive_force(K) = - m_c*(m_Beta*Rij)**2*DistU(K)
+                    end do
+                    do K = 1,3
+                        F(K,I) = edgeFlag*cohesive_force(K) + F(K,I)
+                        bondedWallF(K) = - edgeFlag*cohesive_force(K) + bondedWallF(K)
+                    end do
+                    
                     touching = .true.
                     !  Apply force
                     do K = 1,3
-                        F(K,I) = normal_force(K) + tangential_force(K) + F(K,I)
-                        bondedWallF(K) = -normal_force(K) - tangential_force(K) + bondedWallF(K)
+                        F(K,I) = edgeFlag*normal_force(K) + edgeFlag*tangential_force(K) + F(K,I)
+                        bondedWallF(K) = - edgeFlag*normal_force(K) - edgeFlag*tangential_force(K) + bondedWallF(K)
                     end do
                     !  Apply moment                  
-                    FM(1,I) = - Ap*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + FM(1,I) 
-                    FM(2,I) = - Ap*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + FM(2,I) 
-                    FM(3,I) = - Ap*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + FM(3,I) 
-                    bondedWallFM(1) = - RVo(2)*(normal_force(3) + tangential_force(3)) + RVo(3)*(normal_force(2) + tangential_force(2)) + bondedWallFM(1)
-                    bondedWallFM(2) = - RVo(3)*(normal_force(1) + tangential_force(1)) + RVo(1)*(normal_force(3) + tangential_force(3)) + bondedWallFM(2)
-                    bondedWallFM(3) = - RVo(1)*(normal_force(2) + tangential_force(2)) + RVo(2)*(normal_force(1) + tangential_force(1)) + bondedWallFM(3)       
+                    FM(1,I) = - edgeFlag*Ap*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + FM(1,I) 
+                    FM(2,I) = - edgeFlag*Ap*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + FM(2,I) 
+                    FM(3,I) = - edgeFlag*Ap*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + FM(3,I) 
+                    bondedWallFM(1) = - edgeFlag*RVo(2)*(normal_force(3) + tangential_force(3) + cohesive_force(3)) + edgeFlag*RVo(3)*(normal_force(2) + tangential_force(2) + cohesive_force(2)) + bondedWallFM(1)
+                    bondedWallFM(2) = - edgeFlag*RVo(3)*(normal_force(1) + tangential_force(1) + cohesive_force(1)) + edgeFlag*RVo(1)*(normal_force(3) + tangential_force(3) + cohesive_force(3)) + bondedWallFM(2)
+                    bondedWallFM(3) = - edgeFlag*RVo(1)*(normal_force(2) + tangential_force(2) + cohesive_force(2)) + edgeFlag*RVo(2)*(normal_force(1) + tangential_force(1) + cohesive_force(1)) + bondedWallFM(3)       
                     
                     do K = 1,3
-                        rolling_moment(K) = 0.0
-                        twisting_moment = 0.0
+                        rolling_moment(K) = 0.0D0
+                        twisting_moment = 0.0D0
                     end do
-                    
+
                     !  memory the contact in the Hertz linklist.
                     if (associated(Temp%prev)) then
                         !  Temp is in center of linklist!!!
@@ -346,6 +364,7 @@
     !do K = 1,3
     !    bondedWallF(K) = 0.0D0
     !end do
+    !bondedWallFM(1) = 0.0
     !bondedWallFM(2) = 0.0
     !bondedWallFM(3) = 0.0
     

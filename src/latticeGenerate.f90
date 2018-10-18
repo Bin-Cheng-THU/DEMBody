@@ -125,64 +125,6 @@
     !  reset Lattice flag
     refreshNum = refreshNum + 1
     refreshLattice = .false.
-        
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
-!!#ifdef self_gravity
-!    !o1 = omp_get_wtime()
-!    !$OMP PARALLEL DO PRIVATE(I,J,K,tmp_Mass,tmp_MassCenter)
-!    !################         Part 2          ###################
-!    do I = 1,LatNum
-!        if (DEM(I)%NoInner .GE. 1) then
-!            tmp_Mass = 0.0D0
-!            tmp_MassCenter = 0.0D0
-!            
-!            do J = 1,DEM(I)%NoInner
-!                do K = 1,3
-!                    tmp_MassCenter(K) = tmp_MassCenter(K) + Body(DEM(I)%IDInner(J))*X(K,DEM(I)%IDInner(J))
-!                end do
-!                tmp_Mass = tmp_Mass + Body(DEM(I)%IDInner(J))
-!            end do
-!            
-!            do K = 1,3
-!                DEM(I)%MassCenter = tmp_MassCenter/tmp_Mass
-!            end do
-!            DEM(I)%Mass = tmp_Mass
-!        else
-!            DEM(I)%MassCenter = 0.0D0
-!            DEM(I)%Mass = 0.0D0
-!        end if
-!    end do
-!    !$OMP END PARALLEL DO
-!    !o2 = omp_get_wtime()
-!    !write(*,*) (o2-o1)
-!    
-!    !o1 = omp_get_wtime()
-!    !$OMP PARALLEL DO PRIVATE(I,J,K,tmp_Mass,tmp_MassCenter)
-!    !################         Part 3          ###################
-!    do I = 1,GravNum
-!        tmp_Mass = 0.0D0
-!        tmp_MassCenter = 0.0D0
-!
-!        do J = 1,Gravity(I)%num
-!            do K = 1,3
-!                tmp_MassCenter(K) = tmp_MassCenter(K) + DEM(Gravity(I)%ID(J))%Mass*DEM(Gravity(I)%ID(J))%MassCenter(K)
-!            end do
-!            tmp_Mass = tmp_Mass + DEM(Gravity(I)%ID(J))%Mass
-!        end do
-!        
-!        if (tmp_Mass .GT. 1e-10) then
-!            Gravity(I)%MassCenter = tmp_MassCenter/tmp_Mass
-!            Gravity(I)%Mass = tmp_Mass
-!        else
-!            Gravity(I)%MassCenter = 0.0D0
-!            Gravity(I)%Mass = 0.0D0
-!        end if
-!    end do
-!    !$OMP END PARALLEL DO
-!    !o2 = omp_get_wtime()
-!    !write(*,*) (o2-o1)
-!!#endif    
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !****************
     !Test Parallel Lattice Method using color visualization.

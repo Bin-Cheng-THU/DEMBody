@@ -86,15 +86,7 @@
     !################         Part 3          ################### 
     !  calculated the force from the current x & xdot.
     !write(*,*) "start"
-#ifdef LatticeSearch
-#ifdef ParticleLattice
-    call forceParticleLattice
-#else
-    call forceLattice
-#endif
-#elif TraverseSearch
-    call forceTraverse
-#endif
+    call force
     !write(*,*) "end"
 
     !################         Part 4          ################### 

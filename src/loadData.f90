@@ -13,7 +13,7 @@
     
     integer :: I,K
 
-    write(*,*) "Input file loading..."
+    write(*,*) "< Input file loading..."
     
     !  read & print the main input parameters.
     open (2000,FILE="../Input/input_points.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
@@ -57,18 +57,8 @@
     call latticeGenerate
 #endif
 
-#ifdef LatticeSearch
     !  initial the force in case exiting overlaps at the initial-time.
-#ifdef ParticleLattice
-    call forceParticleLattice
-#else
-    call forceLattice
-#endif
-
-#elif TraverseSearch
-    !  initial the force in case exiting overlaps at the initial-time.
-    call forceTraverse
-#endif    
+    call force
 
     RETURN
     END

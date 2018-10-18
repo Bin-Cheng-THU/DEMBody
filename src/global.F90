@@ -61,13 +61,6 @@
         real(8) :: PositionU(3)
 #endif
         integer :: NeighborID(26) 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!#ifdef self_gravity
-!        integer :: GravID
-!        real(8) :: Mass
-!        real(8) :: MassCenter(3)
-!!#endif
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     end type Lattice
     
     !  DEM Lattice
@@ -103,27 +96,6 @@
     real(8) :: TriLatDx,TriLatDy,TriLatDz
     real(8) :: TriLatMx,TriLatMy,TriLatMz
     integer :: TriLatNx,TriLatNy,TriLatNz
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!#ifdef self_gravity
-!    !  Gravity Lattice params
-!    real(8) :: GravDx,GravDy,GravDz
-!    integer :: GravNum
-!    integer,parameter :: dims = 196
-!    integer,parameter :: GravNx = 10
-!    integer,parameter :: GravNy = 10
-!    integer,parameter :: GravNz = 8
-!    
-!    !  Conduct Gravity Lattice
-!    type :: GravityLattice
-!        integer :: num
-!        integer :: ID(dims)
-!        real(8) :: Mass
-!        real(8) :: MassCenter(3)
-!    end type
-!    
-!    type(GravityLattice),pointer :: Gravity(:)
-!!#endif
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !  Define parameters of Particle
     real(8) :: X(3,NMAX),Xdot(3,NMAX),W(3,NMAX)
