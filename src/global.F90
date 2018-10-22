@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.3
+    !     DEMBody 4.4
     !     ***********
     !
     !     Global parameters.
@@ -151,6 +151,12 @@
     real(8),allocatable :: trimeshWallVectorTx(:,:)
     real(8),allocatable :: trimeshWallVectorTy(:,:)
     real(8),allocatable :: trimeshWallLength(:,:)  !  Tx2, Tx*Ty, Ty2, L
+    !  Define trimesh in lattice
+    type :: trimeshLattice
+        integer :: No
+        type(trimeshLattice),pointer :: next
+    end type trimeshLattice
+    type(trimeshLattice),pointer :: trimeshDEM(:)
     
     !  Define parameters of Funnel Walls
     integer :: funnelWallNum

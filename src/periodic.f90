@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.3
+    !     DEMBody 4.4
     !     ***********
     !
     !     Change position and velocity when crossing boundary.

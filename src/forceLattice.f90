@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.3
+    !     DEMBody 4.4
     !     ***********
     !
     !     Force for all Parallel Lattice.
@@ -25,7 +25,6 @@
     real(8) ::  rolling_moment(3),rolling_momentL
     real(8) ::  twisting_moment(3),twisting_momentL
     real(8) ::  cohesive_force(3)
-    real(8) ::  gravity_force(3)
     real(8) ::  Ap,An
     real(8) ::  Rij,Mij,Iij
     real(8) ::  Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR
@@ -50,12 +49,11 @@
     type(Neighbor),pointer :: IDInnerJ      !  List of Inner Particles
     type(Neighbor),pointer :: IDOuterJ      !  List of Outer Particles   
     integer :: particleI,particleJ          !  ID of two interacting particle
-    real(8) :: Mass,MassCenter(3)           !  Mass and MassCenter of Gravity Lattice
     
     real(8) :: ostart,oend
 
-    character(30) :: FileNameHead
-    character(30) :: FileNameForce
+    !character(30) :: FileNameHead
+    !character(30) :: FileNameForce
     
     F = 0.0D0
     FM = 0.0D0
@@ -71,10 +69,10 @@
     !$OMP& PRIVATE(check,shearPBC,LenNodeJ,LenNode,Temp,TempH,Tail,num1,num2,limit,&
     !$OMP& I,J,K,L,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
     !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,&
-    !$OMP& rolling_moment,rolling_momentL,twisting_moment,twisting_momentL,cohesive_force,gravity_force,Ap,An,Rij,Mij,Iij,&
+    !$OMP& rolling_moment,rolling_momentL,twisting_moment,twisting_momentL,cohesive_force,Ap,An,Rij,Mij,Iij,&
     !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
     !$OMP& slipping,rolling,twisting,touching,&
-    !$OMP& II,JJ,IDJ,IDInnerI,IDInnerJ,IDOuterJ,particleI,particleJ,Mass,MassCenter) SCHEDULE(DYNAMIC)
+    !$OMP& II,JJ,IDJ,IDInnerI,IDInnerJ,IDOuterJ,particleI,particleJ) SCHEDULE(DYNAMIC)
     ! Loop over all lattices
     do II = 1,LatNum
         

@@ -1,0 +1,7 @@
+        !COMPILER-GENERATED INTERFACE MODULE: Mon Oct 22 19:19:51 2018
+        MODULE START__genmod
+          INTERFACE 
+            SUBROUTINE START
+            END SUBROUTINE START
+          END INTERFACE 
+        END MODULE START__genmod

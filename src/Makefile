@@ -2,22 +2,22 @@
 # Start of the makefile
 # COMPILER=gfortran -fopenmp
 
-NUMBER=-DNMAX=300800
+NUMBER=-DNMAX=1610000
 
 #MODEL=-DHertzMindlinVisco
 MODEL=-DHertzMindlinResti
 
 #SEARCH=-DTraverseSearch
-#SEARCH=-DLatticeSearch -DParticleLattice
-SEARCH=-DLatticeSearch
+SEARCH=-DLatticeSearch -DParticleLattice
+#SEARCH=-DLatticeSearch
 
-#REGION=-DConfined
-REGION=-DnConfined
+REGION=-DConfined
+#REGION=-DnConfined
 
 #PARALLEL=-Dnopenmp
 PARALLEL=-Dopenmp
 
-PARTICLE=-DPP=1524
+PARTICLE=-DPP=1
 
 COMPILER=ifort -openmp -O2 -fpp $(NUMBER) $(MODEL) $(SEARCH) $(REGION) $(PARALLEL) $(PARTICLE)
 
@@ -88,5 +88,5 @@ attitude.o: global.mod attitude.f90
 	$(COMPILER)  -c attitude.f90
 
 clean:
-	rm global.mod loadfile.mod global.o loadFile.o main.o start.o initialSystem.o attitudeBondedWallsQM.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceTriMeshWalls.o forceFunnelWalls.o forceGravBody.o planet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o output.o intgrt.o attitudeBondedWalls.o attitudeGravBody.o attitude.o
+	rm global.mod loadfile.mod global.o loadFile.o main.o start.o initialSystem.o attitudeBondedWallsQM.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o force.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceTriMeshWalls.o forceFunnelWalls.o forceGravBody.o planet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o output.o intgrt.o attitudeBondedWalls.o attitudeGravBody.o attitude.o
 # End of the makefile

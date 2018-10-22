@@ -1,10 +1,13 @@
     !********************************************************************
-    !     DEMBody 4.3
+    !     DEMBody 4.4
     !     ***********
     !
     !     Force for trimesh walls.
     !     --------------------------
-    !      
+    !     @Using particle list coupled with Lattice Method
+    !     @to speed to the calculation
+    !     @similar to forceParticleLattice
+    !
     !     @Using rolling friction similar to LIGGGHTS
     !     @Using Hertz-Mindlin contact model similar to Wada
     !     @No Cohesion model in walls
@@ -15,88 +18,87 @@
     subroutine forceTriMeshWalls()
 
     use global
+    use omp_lib
     implicit none
 
-    real(kind=8)  Dist(3),DistS,DistL,DistR,DistU(3)
-    real(kind=8)  Vrel(3),Vrot(3),Vtot(3),ERR,Vnor(3),Vtan(3)
-    real(kind=8)  normal_force(3),normal_forceL
-    real(kind=8)  tangential_force(3),tangential_forceL
-    real(kind=8)  rolling_moment(3),rolling_momentL
-    real(kind=8)  twisting_moment(3),twisting_momentL
-    real(kind=8)  cohesive_force(3)
-    real(kind=8)  Ap,An
-    real(kind=8)  Rij,Mij,Iij
-    real(kind=8)  Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR
-    real(kind=8)  Dn,Ds(3),DsL,Dtheta(3),DthetaL,DthetaR(3),DthetaRL,DthetaT(3),DthetaTL
-    real(kind=8)  H(3),Mr(3),Mt(3)
-    real(kind=8)  RV(3)
-    logical :: slipping,rolling,twisting                               !  State of friction of T
-    logical :: touching                                                !  State of touch of T
-    integer :: I,J,K,L,II,LenNode                                      !  Iterator
-    type(Nodelink),pointer :: Temp                                     !  Temporary pointer
-    type(Nodelink),pointer :: TempH                                    !  Contact pointer
-    integer :: OMP_trimeshWallTag                                      !  Tag for walls in OMP
-    real(kind=8) OMP_trimeshWallPoint(3),OMP_trimeshWallVectorN(3)     !  Point and Normal Vector for walls in OMP
-    real(kind=8) OMP_trimeshWallVectorTx(3),OMP_trimeshWallVectorTy(3) !  Tangential Vector for walls in OMP
-    real(kind=8) OMP_trimeshWallLength(4)                              !  Length parameters for walls in OMP
-    logical :: enterFlag
+    real(8) ::  Dist(3),DistS,DistL,DistR,DistU(3)
+    real(8) ::  Vrel(3),Vrot(3),Vtot(3),ERR,Vnor(3),Vtan(3)
+    real(8) ::  normal_force(3),normal_forceL
+    real(8) ::  tangential_force(3),tangential_forceL
+    real(8) ::  rolling_moment(3),rolling_momentL
+    real(8) ::  twisting_moment(3),twisting_momentL
+    real(8) ::  cohesive_force(3)
+    real(8) ::  Ap,An
+    real(8) ::  Rij,Mij,Iij
+    real(8) ::  Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR
+    real(8) ::  Dn,Ds(3),DsL,Dtheta(3),DthetaL,DthetaR(3),DthetaRL,DthetaT(3),DthetaTL
+    real(8) ::  H(3),Mr(3),Mt(3)
+    real(8) ::  RV(3)
+    logical ::  slipping,rolling,twisting      !  State of friction of T
+    logical ::  touching                       !  State of touch of T
+    integer ::  I,J,K,L,LenNode                !  Linklist
+    type(Nodelink),pointer :: Temp             !  Temporary pointer
+    type(Nodelink),pointer :: TempH            !  Contact pointer
+    type(Nodelink),pointer :: Tail             !  Tail pointer
+                                               
+    type(trimeshLattice),pointer :: NodeMesh   !  List of trimesh ID
+    integer ::  IDMesh                         !  ID of trimesh
+    integer ::  index                          !  Index of the lattice including the particle
+    logical ::  enterFlag                      !  Whether conduct the contact with trimesh
+    real(8) ::  edgeFlag                       !  The Flag for distinguishing Faces, Edges and Corners
     real(kind=8)  RVb(3),RV1,RV2,RV3,RV4,RV5,RV6,RVu,RVv,RVn(3),RVt(3),norm
-    real(kind=8)  edgeFlag
     
-    !character(30) :: FileName
-    !write(FileName,'(F10.5)') Time
-    !FileName = trim(FileName)//'TriMesh.txt'
-    !open(124,FILE=FileName)
+    !character(30) :: FileNameHead
+    !character(30) :: FileNameForce
+    !write(FileNameHead,'(F10.5)') Time
+    !FileNameHead = trim(FileNameHead)//'TriMesh.txt'
+    !open(123,FILE=FileNameHead)
     
-    do II = 1,trimeshWallNum
-        !  Allocate to variables in OMP (stack memory) and refresh Points & Vectors of TriMesh Walls
-        OMP_trimeshWallTag = trimeshWallTag(II)
-        do K = 1,3
-            OMP_trimeshWallPoint(K) = trimeshWallPoint(K,II)
-            OMP_trimeshWallVectorN(K) = trimeshWallVectorN(K,II)
-            OMP_trimeshWallVectorTx(K) = trimeshWallVectorTx(K,II)
-            OMP_trimeshWallVectorTy(K) = trimeshWallVectorTy(K,II)
-        end do
-        do K = 1,4
-            OMP_trimeshWallLength(K) = trimeshWallLength(K,II)
-        end do
+    !  Loop over all bodies through the NodeTree.
+    !$OMP PARALLEL DO &
+    !$OMP& PRIVATE(RVb,RV1,RV2,RV3,RV4,RV5,RV6,RVu,RVv,RVn,RVt,norm,enterFlag,edgeFlag)&
+    !$OMP& PRIVATE(LenNode,Temp,TempH,Tail,&
+    !$OMP& I,J,K,L,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
+    !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,&
+    !$OMP& rolling_moment,rolling_momentL,twisting_moment,twisting_momentL,cohesive_force,Ap,An,Rij,Mij,Iij,&
+    !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
+    !$OMP& slipping,rolling,twisting,touching,&
+    !$OMP& NodeMesh,IDMesh,index) SCHEDULE(DYNAMIC)
+    ! Loop over all lattices
+    do I = 1,N
         
-        !  Loop over all bodies.
-        !$OMP PARALLEL DO &
-        !$OMP& firstprivate(OMP_trimeshWallTag,OMP_trimeshWallPoint,OMP_trimeshWallVectorN,OMP_trimeshWallVectorTx,OMP_trimeshWallVectorTy) &
-        !$OMP& firstprivate(OMP_trimeshWallLength)&
-        !$OMP& PRIVATE(RVb,RV1,RV2,RV3,RV4,RV5,RV6,RVu,RVv,RVn,RVt,norm,enterFlag,edgeFlag)&
-        !$OMP& PRIVATE(Temp,TempH,LenNode,&
-        !$OMP& I,J,K,L,II,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
-        !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,&
-        !$OMP& rolling_moment,rolling_momentL,twisting_moment,twisting_momentL,cohesive_force,Ap,An,Rij,Mij,Iij,&
-        !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
-        !$OMP& slipping,rolling,touching,twisting) SCHEDULE(DYNAMIC)
-        do I = 1,N
+        Tail => Head(I)
+        index = floor((X(1,I)+Mx)/LatDx) + 1 + floor((X(2,I)+My)/LatDy)*LatNx + floor((X(3,I)+Mz)/LatDz)*(LatNx*LatNy)        
+        !  Loop over trimeshLattice
+        NodeMesh => trimeshDEM(index)
+        do while (associated(NodeMesh%next))
+            NodeMesh => NodeMesh%next
+            IDMesh = NodeMesh%No    
+
+            !if (I.EQ.PP) then
+            !    write(124,'(F15.5,2X,3I5,2X)',advance='no') Time,I,trimeshWallTag(IDMesh),IDMesh
+            !end if
+
             enterFlag = .false.
             do K = 1,3
-                RV(K) = X(K,I) - OMP_trimeshWallPoint(K)
+                RV(K) = X(K,I) - trimeshWallPoint(K,IDMesh)
             end do
-            ERR = RV(1)*OMP_trimeshWallVectorN(1) + RV(2)*OMP_trimeshWallVectorN(2) + RV(3)*OMP_trimeshWallVectorN(3)
-            
-            !if (I.EQ.PP) then
-            !    write(124,'(F15.5,2X,2I5,2X)',advance='no') Time,I,OMP_trimeshWallTag
-            !end if
-            
+            ERR = RV(1)*trimeshWallVectorN(1,IDMesh) + RV(2)*trimeshWallVectorN(2,IDMesh) + RV(3)*trimeshWallVectorN(3,IDMesh)
+
             if (ERR.GE.-0.8D0*Dx .AND. ERR.LE.0.8D0*Dx) then
                 do K = 1,3
-                    RVb(K) = RV(K) - ERR*OMP_trimeshWallVectorN(K)
+                    RVb(K) = RV(K) - ERR*trimeshWallVectorN(K,IDMesh)
                 end do
-                RV1 = RVb(1)*OMP_trimeshWallVectorTx(1) + RVb(2)*OMP_trimeshWallVectorTx(2) + RVb(3)*OMP_trimeshWallVectorTx(3)
-                RV2 = RVb(1)*OMP_trimeshWallVectorTy(1) + RVb(2)*OMP_trimeshWallVectorTy(2) + RVb(3)*OMP_trimeshWallVectorTy(3)
-                RV3 = RV1 - OMP_trimeshWallLength(1)
-                RV4 = RV2 - OMP_trimeshWallLength(2)
-                RV5 = RV1 - OMP_trimeshWallLength(2)
-                RV6 = RV2 - OMP_trimeshWallLength(3)
-                RVu = (RV2*OMP_trimeshWallLength(2)-RV1*OMP_trimeshWallLength(3))/OMP_trimeshWallLength(4)
-                RVv = (RV1*OMP_trimeshWallLength(2)-RV2*OMP_trimeshWallLength(1))/OMP_trimeshWallLength(4)
-                if (RVu.GE.-0.8D0*Dx/sqrt(OMP_trimeshWallLength(1)) .AND. RVv.GE.-0.8D0*Dx/sqrt(OMP_trimeshWallLength(3)) &
-                & .AND. ((RVu+RVv).LE.(1.0D0+0.8D0*Dx/sqrt(OMP_trimeshWallLength(1))+0.8D0*Dx/sqrt(OMP_trimeshWallLength(3)))) ) then
+                RV1 = RVb(1)*trimeshWallVectorTx(1,IDMesh) + RVb(2)*trimeshWallVectorTx(2,IDMesh) + RVb(3)*trimeshWallVectorTx(3,IDMesh)
+                RV2 = RVb(1)*trimeshWallVectorTy(1,IDMesh) + RVb(2)*trimeshWallVectorTy(2,IDMesh) + RVb(3)*trimeshWallVectorTy(3,IDMesh)
+                RV3 = RV1 - trimeshWallLength(1,IDMesh)
+                RV4 = RV2 - trimeshWallLength(2,IDMesh)
+                RV5 = RV1 - trimeshWallLength(2,IDMesh)
+                RV6 = RV2 - trimeshWallLength(3,IDMesh)
+                RVu = (RV2*trimeshWallLength(2,IDMesh)-RV1*trimeshWallLength(3,IDMesh))/trimeshWallLength(4,IDMesh)
+                RVv = (RV1*trimeshWallLength(2,IDMesh)-RV2*trimeshWallLength(1,IDMesh))/trimeshWallLength(4,IDMesh)
+                if (RVu.GE.-0.8D0*Dx/sqrt(trimeshWallLength(1,IDMesh)) .AND. RVv.GE.-0.8D0*Dx/sqrt(trimeshWallLength(3,IDMesh)) &
+                & .AND. ((RVu+RVv).LE.(1.0D0+0.8D0*Dx/sqrt(trimeshWallLength(1,IDMesh))+0.8D0*Dx/sqrt(trimeshWallLength(3,IDMesh)))) ) then
                     if (RVu.GE.0.0D0 .AND. RVv.GE.0.0D0 .AND. (RVu+RVv).LE.1.0D0) then
                         !  inner triangle
                         enterFlag = .true.
@@ -123,7 +125,7 @@
                         !  opposite angle in Tx
                         enterFlag = .true.
                         do K = 1,3
-                            RVt(K) = OMP_trimeshWallVectorTx(K)
+                            RVt(K) = trimeshWallVectorTx(K,IDMesh)
                             RVn(K) = RV(K) - RVt(K)
                         end do
                         edgeFlag = 0.2D0
@@ -134,7 +136,7 @@
                         !  opposite angle in Ty
                         enterFlag = .true.
                         do K = 1,3
-                            RVt(K) = OMP_trimeshWallVectorTy(K)
+                            RVt(K) = trimeshWallVectorTy(K,IDMesh)
                             RVn(K) = RV(K) - RVt(K)
                         end do
                         edgeFlag = 0.2D0 
@@ -144,9 +146,9 @@
                     if (RV1.GT.0.0D0 .AND. RV3.LT.0.0D0 .AND. RVv.LT.0.0D0) then
                         !  adjacent edge in Tx
                         enterFlag = .true.
-                        RVu = RV1/OMP_trimeshWallLength(1)
+                        RVu = RV1/trimeshWallLength(1,IDMesh)
                         do K = 1,3
-                            RVt(K) = RVu*OMP_trimeshWallVectorTx(K)
+                            RVt(K) = RVu*trimeshWallVectorTx(K,IDMesh)
                             RVn(K) = RV(K) - RVt(K)
                         end do
                         edgeFlag = 0.5D0
@@ -156,9 +158,9 @@
                     if (RV2.GT.0.0D0 .AND. RV6.LT.0.0D0 .AND. RVu.LT.0.0D0) then
                         !  adjacent edge in Ty
                         enterFlag = .true.
-                        RVv = RV2/OMP_trimeshWallLength(3)
+                        RVv = RV2/trimeshWallLength(3,IDMesh)
                         do K = 1,3
-                            RVt(K) = RVv*OMP_trimeshWallVectorTy(K)
+                            RVt(K) = RVv*trimeshWallVectorTy(K,IDMesh)
                             RVn(K) = RV(K) - RVt(K)
                         end do
                         edgeFlag = 0.5D0
@@ -168,10 +170,10 @@
                     if (RV5.GT.RV6 .AND. RV4.GT.RV3 .AND. (RVu+RVv).GT.1.0D0) then
                         !  opposite edge
                         enterFlag = .true.
-                        RVv = (RV2-RV1-OMP_trimeshWallLength(2)+OMP_trimeshWallLength(1))/(OMP_trimeshWallLength(1)+OMP_trimeshWallLength(3)-2.0*OMP_trimeshWallLength(2))
+                        RVv = (RV2-RV1-trimeshWallLength(2,IDMesh)+trimeshWallLength(1,IDMesh))/(trimeshWallLength(1,IDMesh)+trimeshWallLength(3,IDMesh)-2.0*trimeshWallLength(2,IDMesh))
                         RVu = 1.0D0 - RVv
                         do K = 1,3
-                            RVt(K) = RVu*OMP_trimeshWallVectorTx(K)+RVv*OMP_trimeshWallVectorTy(K)
+                            RVt(K) = RVu*trimeshWallVectorTx(K,IDMesh)+RVv*trimeshWallVectorTy(K,IDMesh)
                             RVn(K) = RV(K) - RVt(K)
                         end do
                         edgeFlag = 0.5D0
@@ -181,11 +183,11 @@
             end if
             
             !if (I.EQ.PP) then
-            !    write(124,'(L4,2X)',advance='no') enterFlag
+            !    write(124,'(L4,2X,F5.2)',advance='no') enterFlag
             !end if
-                        
-111         if (enterFlag) then      
-                !  normal vector
+
+111         if (enterFlag) then
+                !  Initialize state params
                 do K = 1,3
                     Dist(K) = RVn(K)
                     H(K) = 0.0D0
@@ -194,52 +196,45 @@
                 end do
                 touching = .false.
                 slipping = .false.
-                rolling = .false. 
+                rolling = .false.
                 twisting = .false.
                 !  Distance vector
                 DistS = Dist(1)*Dist(1) + Dist(2)*Dist(2) + Dist(3)*Dist(3)
                 DistL = sqrt(DistS)
                 Dn = R(I) - DistL
-                !  lookup this contact(or not) in the Hertz list
+                !  lookup this contact(or not) in the Hertz list I
                 LenNode = Head(I)%No
-                Temp => Head(I)
-                if (LenNode .NE. 0) then
-                    Temp => Head(I)%next
-                    do L = 1,LenNode
-                        if (Temp%No .EQ. OMP_trimeshWallTag) then
-                            do K = 1,3
-                                H(K) = Temp%Hertz(K)
-                                Mr(K) = Temp%Mrot(K)
-                                Mt(K) = Temp%Mtwist(K)
-                            end do
-                            touching = Temp%is_touching
-                            slipping = Temp%is_slipping
-                            rolling = Temp%is_rolling
-                            twisting = Temp%is_twisting
-                            exit
-                        else if (Temp%No.LT.OMP_trimeshWallTag .AND. associated(Temp%next)) then
-                            Temp => Temp%next
-                        else if (Temp%No .GT. OMP_trimeshWallTag) then
-                            Temp => Temp%prev
-                            exit
-                        end if
-                    end do
-                end if
-                
+                Temp => Tail
+                do while(associated(Temp%next))
+                    Temp => Temp%next
+                    if (Temp%No .EQ. trimeshWallTag(IDMesh)) then
+                        do K = 1,3
+                            H(K) = Temp%Hertz(K)
+                            Mr(K) = Temp%Mrot(K)
+                            Mt(K) = Temp%Mtwist(K)
+                        end do
+                        touching = Temp%is_touching
+                        slipping = Temp%is_slipping
+                        rolling = Temp%is_rolling
+                        twisting = Temp%is_twisting
+                        exit
+                    else if (Temp%No .GT. trimeshWallTag(IDMesh)) then
+                        Temp => Temp%prev
+                        exit
+                    end if
+                end do      
                 !if (I.EQ.PP) then
                 !    write(124,'(F15.5,2X)',advance='no') Dn
                 !end if
-                
-                !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hertzian law
-                if (Dn .GT. 0.0D0) then 
-
+                !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hooke's law
+                if (Dn .GT. 0.0D0) then
                     DistR = 1.0D0/DistL
                     !  calculate the normal vector
                     do K=1,3
                         DistU(K) = Dist(K)*DistR
                     end do
                     Ap = DistL
-#ifdef HertzMindlinVisco                    
+#ifdef HertzMindlinVisco    
                     !  calculate material constant
                     Rij = R(I)
                     Mij = Body(I)
@@ -267,10 +262,10 @@
                     Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                     lnCOR = log(m_COR)
                     Cn = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
-                          & *sqrt(Mij*m_E/(1.0D0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
+                    & *sqrt(Mij*m_E/(1.0D0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
                     Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
                     Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
-                         & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                    & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
                     Kr = 0.25D0*Kn*(m_Beta*Rij)**2
                     Cr = 0.25D0*Cn*(m_Beta*Rij)**2
                     Kt = 0.5D0*Ks*(m_Beta*Rij)**2
@@ -280,7 +275,7 @@
                     do K = 1,3
                         Vrel(K) = Xdot(K,I)
                     end do
-                    !  rotate relative velocity
+                    !  negative rotate relative velocity
                     Vrot(1) = (DistU(2)*W(3,I) - DistU(3)*W(2,I))*Ap
                     Vrot(2) = (DistU(3)*W(1,I) - DistU(1)*W(3,I))*Ap
                     Vrot(3) = (DistU(1)*W(2,I) - DistU(2)*W(1,I))*Ap
@@ -306,14 +301,14 @@
 
                     !  Add energy
                     Energy(I) = Energy(I) + 0.4D0*Kn*(Dn**2)
-                    
+
                     !  tangential deform
                     do K = 1,3
                         Ds(K) = Vtan(K)*Dt
                     end do
                     DsL = sqrt(Ds(1)*Ds(1) + Ds(2)*Ds(2) + Ds(3)*Ds(3))
 
-                    !  tangential force of Particle I
+                    !  tangential force of Particle J
                     do K = 1,3
                         tangential_force(K) = - Ks*Ds(K) + Cs*Vtan(K) + H(K)
                     end do
@@ -322,11 +317,11 @@
                     if (slipping) then  !  Have slipped
                         if (DsL .GT. 1.0e-8) then  !  Still slipping
                             do K = 1,3
-                                tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle I
+                                tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle J
                             end do
                         else  !  Approach sticking
                             do K = 1,3
-                                tangential_force(K) = 0.0D0  !  Particle I
+                                tangential_force(K) = 0.0D0  !  Particle J
                             end do
                             slipping = .false.
                         end if
@@ -352,11 +347,11 @@
                     do K = 1,3
                         F(K,I) = edgeFlag*normal_force(K) + edgeFlag*tangential_force(K) + F(K,I)
                     end do
-                    !  Apply moment                  
+                    !  Apply moment                    
                     FM(1,I) = - edgeFlag*Ap*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + FM(1,I) 
                     FM(2,I) = - edgeFlag*Ap*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + FM(2,I) 
                     FM(3,I) = - edgeFlag*Ap*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + FM(3,I) 
-                    
+
                     !if (I.EQ.PP) then
                     !    write(124,'(2F15.5,2X)',advance='no') normal_forceL,tangential_forceL
                     !end if
@@ -364,7 +359,7 @@
                     !  rolling
                     do K = 1,3
                         Dtheta(K) = (W(K,I))*Dt
-                    end do
+                    end do                            
                     DthetaL = Dtheta(1)*DistU(1) + Dtheta(2)*DistU(2) + Dtheta(3)*DistU(3)
                     !  twisting deform
                     do K = 1,3
@@ -407,12 +402,12 @@
                                 end do
                             end if
                         else
-                            rolling = .false. !  Sticking
+                            rolling = .false.  !  Sticking
                             do K = 1,3
                                 rolling_moment(K) = rolling_moment(K) + Cr*DthetaR(K)/Dt
                             end do
                         end if
-                    end if                                  
+                    end if  
 
                     !  twisting moment of Particle I
                     do K = 1,3
@@ -444,17 +439,17 @@
                                 end do
                             end if
                         else
-                            twisting = .false. !  Sticking
+                            twisting = .false.  !  Sticking
                             do K = 1,3
-                                twisting_moment(K) = twisting_moment(K) - Ct*DthetaT(K)/Dt
+                                twisting_moment(K) = twisting_moment(K) + Ct*DthetaT(K)/Dt
                             end do
                         end if
-                    end if 
-                    
+                    end if  
+       
                     !  Apply moment
                     do K = 1,3
                         FM(K,I) = edgeFlag*rolling_moment(K) + edgeFlag*twisting_moment(K) + FM(K,I)
-                    end do
+                    end do                                          
 
                     !  cohesive force
                     do K = 1,3
@@ -463,11 +458,11 @@
                     do K = 1,3
                         F(K,I) = edgeFlag*cohesive_force(K) + F(K,I)
                     end do
-                            
+                    
                     !  memory the contact in the Hertz linklist.
                     if (associated(Temp%prev)) then
                         !  Temp is in center of linklist!!!
-                        if (Temp%No .EQ. OMP_trimeshWallTag) then
+                        if (Temp%No .EQ. trimeshWallTag(IDMesh)) then
                             !  Have contacted.
                             do K = 1,3
                                 Temp%Hertz(K) = tangential_force(K)
@@ -479,46 +474,60 @@
                             Temp%is_rolling = rolling
                             Temp%is_twisting = twisting
                             Temp%recordTime = Time + Dt
+                            Tail => Temp
                         else
                             !  First contacted.
                             allocate(TempH)
-                            TempH = Nodelink(OMP_trimeshWallTag,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                            TempH = Nodelink(trimeshWallTag(IDMesh),Time+Dt,tangential_force,rolling_moment,twisting_moment,&
                             & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
                             Head(I)%No = LenNode + 1
+                            Tail => TempH
                         end if
                     else
                         !  Temp is Head of linklist!!!
                         allocate(TempH)
-                        TempH = Nodelink(OMP_trimeshWallTag,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                        TempH = Nodelink(trimeshWallTag(IDMesh),Time+Dt,tangential_force,rolling_moment,twisting_moment,&
                         & touching,slipping,rolling,twisting,Temp,Temp%next)
                         if (associated(Temp%next)) Temp%next%prev => TempH
                         Temp%next => TempH
                         Head(I)%No = LenNode + 1
+                        Tail => TempH
                     end if
                 else
                     !  memory the separation in the Hertz linklist.
-                    if (associated(Temp%prev) .AND. Temp%No.EQ.OMP_trimeshWallTag) then
+                    if (associated(Temp%prev) .AND. Temp%No.EQ.trimeshWallTag(IDMesh)) then
                         !  Temp is center of linklist!!!
                         Temp%prev%next => Temp%next
                         if(associated(Temp%next)) Temp%next%prev => Temp%prev
                         Head(I)%No = LenNode - 1
+                        Tail => Temp%prev
                         deallocate(Temp)
                         !  When else Temp is Head of linklist!!!
+                    else
+                        Tail => Temp
                     end if
+                    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 end if
             end if
-            
-            !if (I.EQ.PP) then
-            !    write(124,*)
-            !end if
-            
         end do
-        !$OMP END PARALLEL DO
     end do
+    !$OMP END PARALLEL DO
+    !oend = omp_get_wtime()
+    !write(*,*) "forceParticleLattice",(oend-ostart)
     
-    !write(*,*) Time,(F(K,PP),K=1,3)
-    
+    !write(FileNameForce,'(F10.5)') Time
+    !FileNameForce = trim(FileNameForce)//'Force.txt'
+    !open(10000,FILE=FileNameForce)
+    !do I = 1,N
+    !    write(10000,'(3F30.15)') (F(K,I),K=1,3)
+    !end do
+    !close(10000)
+    !close(123)
+    !pause
+    !
+    !stop
+
     return
     end

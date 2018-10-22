@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.3
+    !     DEMBody 4.4
     !     ***********
     !
     !     Generate lattice based on partition of Particles.
@@ -27,7 +27,6 @@
     logical :: Flag
     real(8) :: positionD(3),positionU(3)
     integer :: color
-    real(8) :: tmp_Mass,tmp_MassCenter(3)
     real(8) :: o1,o2   
     type(Neighbor),pointer :: Temp
     type(Neighbor),pointer :: TempH  

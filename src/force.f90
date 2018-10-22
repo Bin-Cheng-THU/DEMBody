@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.3
+    !     DEMBody 4.4
     !     ***********
     !
     !     Force for all particles.
@@ -28,6 +28,8 @@
     real(8) :: ostart,oend
     integer :: I,J,K
     real(8) :: accMag
+    character(30) :: FileNameHead
+    character(30) :: FileNameForce
 
     !################         Part 1: Particle forces          ###################
 #ifdef LatticeSearch
@@ -72,7 +74,7 @@
     !ostart = omp_get_wtime()
     !  calculate force of trimesh walls if using trimesh walls
     if (isTriMeshWall) then                     
-        call forceTriMeshWalls 
+        call forceTriMeshWalls
     end if
     !oend = omp_get_wtime()
     !write(*,*) "Tri meshes",(oend-ostart)
