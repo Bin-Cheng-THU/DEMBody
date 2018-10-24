@@ -54,7 +54,7 @@
     do I = 1,N
         
         !################         Part 1          ###################        
-        !Tag = floor((X(1,I)+Mx)/LatDx) + 1 + floor((X(2,I)+My)/LatDy)*LatNx + floor((X(3,I)+Mz)/LatDz)*(LatNx*LatNy)
+        !Tag = floor((X(1,I)+LatMx)/LatDx) + 1 + floor((X(2,I)+LatMy)/LatDy)*LatNx + floor((X(3,I)+LatMz)/LatDz)*(LatNx*LatNy)
         Tag = Linklist(I)
 
 #ifdef nConfined

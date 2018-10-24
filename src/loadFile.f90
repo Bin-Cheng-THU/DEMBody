@@ -64,7 +64,7 @@
 
     allocate(Data(nCol))    
     read(iFileUnit,*) (Data(K),K=1,nCol)
-    byteLen = 15
+    byteLen = 14
 
     HeadNo = INT(Data(1))
     LenNode = INT(Data(2))
@@ -75,19 +75,19 @@
     if (nCol .GT. 2) then
         do I = 1,(nCol-2)/byteLen
             No = Data(byteLen*(I-1)+3)
-            recordTime = Data(byteLen*(I-1)+4)
+            !recordTime = Data(byteLen*(I-1)+4)
             do K = 1,3
-                Hertz(K) = Data(byteLen*(I-1)+4+K)
-                Mrot(K) = Data(byteLen*(I-1)+7+K)
-                Mtwist(K) = Data(byteLen*(I-1)+10+K)
+                Hertz(K) = Data(byteLen*(I-1)+3+K)
+                Mrot(K) = Data(byteLen*(I-1)+6+K)
+                Mtwist(K) = Data(byteLen*(I-1)+9+K)
             end do
-            is_touching = Data(byteLen*(I-1)+14)
-            is_slipping = Data(byteLen*(I-1)+15)
-            is_rolling  = Data(byteLen*(I-1)+16)
-            is_twisting = Data(byteLen*(I-1)+17)
+            is_touching = Data(byteLen*(I-1)+13)
+            is_slipping = Data(byteLen*(I-1)+14)
+            is_rolling  = Data(byteLen*(I-1)+15)
+            is_twisting = Data(byteLen*(I-1)+16)
             !// Load Head Linklist
             allocate(TempH)
-            TempH = Nodelink(No,recordTime,Hertz,Mrot,Mtwist,is_touching,is_slipping,is_rolling,is_twisting,NULL(),NULL())           
+            TempH = Nodelink(No,Hertz,Mrot,Mtwist,is_touching,is_slipping,is_rolling,is_twisting,NULL(),NULL())           
             Temp%next => TempH
             TempH%prev => Temp
 
@@ -110,7 +110,7 @@
         if (Head(J)%No .GT. 0) then
             Temp => Head(J)
             do I = 1,Head(J)%No
-                write(13,'(I8,2X,10F18.10,2X,4L8)',advance='no') Temp%next%No,Temp%next%recordTime,Temp%next%Hertz(1),Temp%next%Hertz(2),Temp%next%Hertz(3),Temp%next%Mrot(1),Temp%next%Mrot(2),Temp%next%Mrot(3),Temp%next%Mtwist(1),Temp%next%Mtwist(2),Temp%next%Mtwist(3),Temp%next%is_touching,Temp%next%is_slipping,Temp%next%is_rolling,Temp%next%is_twisting
+                write(13,'(I8,2X,9F18.10,2X,4L8)',advance='no') Temp%next%No,Temp%next%Hertz(1),Temp%next%Hertz(2),Temp%next%Hertz(3),Temp%next%Mrot(1),Temp%next%Mrot(2),Temp%next%Mrot(3),Temp%next%Mtwist(1),Temp%next%Mtwist(2),Temp%next%Mtwist(3),Temp%next%is_touching,Temp%next%is_slipping,Temp%next%is_rolling,Temp%next%is_twisting
                 Temp => Temp%next
             end do
         end if

@@ -49,16 +49,13 @@
     read (1000,*) 
     read (1000,*) LatDx,LatDy,LatDz    !  Parallel Lattice grid interval
     read (1000,*) LatNx,LatNy,LatNz    !  Parallel Lattice grid number
+    read (1000,*) LatMx,LatMy,LatMz    !  Parallel Lattice grid origin
+    read (1000,*) verlet               !  verlet distance
     read (1000,*)
     read (1000,*) Deltat,Tcrit         !  output time interval and termination time
     read (1000,*) CheckPointDt         !  check point time interval
     read (1000,*) Dt                   !  time step of second-step integral
-    read (1000,*)                         
-    read (1000,*) Dx,Dy,Dz             !  mesh grid interval
-    read (1000,*) Mx,My,Mz             !  mesh grid origin
-    read (1000,*) Nx,Ny,Nz             !  mesh grid number
-    read (1000,*) verlet               !  verlet distance
-    read (1000,*)                         
+    read (1000,*)                                            
     read (1000,*) isPlanet             !  whether use Planet Gravity function
     read (1000,*) isRotSystem          !  whether use Rotary System function 
     read (1000,*) isQuaternion         !  whether intergrate Quaternion
@@ -72,7 +69,7 @@
     read (1000,*) isGravTriMesh        !  whether use Gravity TriMesh
     read (1000,*) MAX_ACC              !  maximum contact acceleration
     read (1000,*)                         
-    read (1000,*) G                    !  the totle gravity    
+    read (1000,*) G(1),G(2),G(3)       !  the totle gravity    
     
     wallFlag = 1
     
@@ -189,25 +186,25 @@
             pointTriMesh(3,3) = trimeshWallPoint(3,I) + trimeshWallVectorTy(3,I)
             !  transform points to Inner Mesh
             do J = 1,3
-                if (pointTriMesh(1,J) .LT. -Mx) then
-                    pointTriMesh(1,J) = -Mx
-                else if (pointTriMesh(1,J) .GT. -Mx+(LatDx*LatNx)) then
-                    pointTriMesh(1,J) = -Mx+(LatDx*LatNx)
+                if (pointTriMesh(1,J) .LT. -LatMx) then
+                    pointTriMesh(1,J) = -LatMx
+                else if (pointTriMesh(1,J) .GT. -LatMx+(LatDx*LatNx)) then
+                    pointTriMesh(1,J) = -LatMx+(LatDx*LatNx)
                 end if
-                if (pointTriMesh(2,J) .LT. -My) then
-                    pointTriMesh(2,J) = -My
-                else if (pointTriMesh(2,J) .GT. -My+(LatDy*LatNy)) then
-                    pointTriMesh(2,J) = -My+(LatDy*LatNy)
+                if (pointTriMesh(2,J) .LT. -LatMy) then
+                    pointTriMesh(2,J) = -LatMy
+                else if (pointTriMesh(2,J) .GT. -LatMy+(LatDy*LatNy)) then
+                    pointTriMesh(2,J) = -LatMy+(LatDy*LatNy)
                 end if
-                if (pointTriMesh(3,J) .LT. -Mz) then
-                    pointTriMesh(3,J) = -Mz
-                else if (pointTriMesh(3,J) .GT. -Mz+(LatDz*LatNz)) then
-                    pointTriMesh(3,J) = -Mz+(LatDz*LatNz)
+                if (pointTriMesh(3,J) .LT. -LatMz) then
+                    pointTriMesh(3,J) = -LatMz
+                else if (pointTriMesh(3,J) .GT. -LatMz+(LatDz*LatNz)) then
+                    pointTriMesh(3,J) = -LatMz+(LatDz*LatNz)
                 end if
             end do
             !  find id range
             do J = 1,3
-                TagTriMesh(J) = floor((pointTriMesh(1,J)+Mx)/LatDx) + 1 + floor((pointTriMesh(2,J)+My)/LatDy)*LatNx + floor((pointTriMesh(3,J)+Mz)/LatDz)*(LatNx*LatNy)
+                TagTriMesh(J) = floor((pointTriMesh(1,J)+LatMx)/LatDx) + 1 + floor((pointTriMesh(2,J)+LatMy)/LatDy)*LatNx + floor((pointTriMesh(3,J)+LatMz)/LatDz)*(LatNx*LatNy)
             end do
             do J = 1,3
                 idTriMesh(3,J) = int((TagTriMesh(J)-1)/(LatNx*LatNy))+1
@@ -229,14 +226,14 @@
             do J = 1,(idRange(2,1)-idRange(1,1)+1)
                 do K = 1,(idRange(2,2)-idRange(1,2)+1)
                     do L = 1,(idRange(2,3)-idRange(1,3)+1)
-                        centerLattice(1) = dble(idRange(1,1)+J-1-1+0.5)*LatDx - Mx
-                        centerLattice(2) = dble(idRange(1,2)+K-1-1+0.5)*LatDy - My
-                        centerLattice(3) = dble(idRange(1,3)+L-1-1+0.5)*LatDz - Mz
+                        centerLattice(1) = dble(idRange(1,1)+J-1-1+0.5)*LatDx - LatMx
+                        centerLattice(2) = dble(idRange(1,2)+K-1-1+0.5)*LatDy - LatMy
+                        centerLattice(3) = dble(idRange(1,3)+L-1-1+0.5)*LatDz - LatMz
                         RV(1) = centerLattice(1) - trimeshWallPoint(1,I)
                         RV(2) = centerLattice(2) - trimeshWallPoint(2,I)
                         RV(3) = centerLattice(3) - trimeshWallPoint(3,I)
                         RVL = abs(RV(1)*trimeshWallVectorN(1,I) + RV(2)*trimeshWallVectorN(2,I) + RV(3)*trimeshWallVectorN(3,I))
-                        if (RVL .LE. 2.0*Dx) then
+                        if (RVL .LE. 2.0*LatDx) then
                             index = (idRange(1,1)+J-1) + (idRange(1,2)+K-1-1)*LatNx + (idRange(1,3)+L-1-1)*LatNx*LatNy
                             trimeshDEM(index)%No = trimeshDEM(index)%No + 1
                             Temp => trimeshDEM(index)
@@ -246,7 +243,7 @@
                             allocate(TempH)
                             TempH = trimeshLattice(I,NULL())
                             Temp%next => TempH
-                            !write(3000,"(F10.5,A2,F10.5,A2,F10.5,A2,I6)") (idRange(1,1)+J-1-1+0.5)*LatDx-Mx,',',(idRange(1,2)+K-1-1+0.5)*LatDy-My,',',(idRange(1,3)+L-1-1+0.5)*LatDz-Mz,',',I
+                            !write(3000,"(F10.5,A2,F10.5,A2,F10.5,A2,I6)") (idRange(1,1)+J-1-1+0.5)*LatDx-LatMx,',',(idRange(1,2)+K-1-1+0.5)*LatDy-LatMy,',',(idRange(1,3)+L-1-1+0.5)*LatDz-LatMz,',',I
                         end if
                     end do
                 end do     
@@ -395,9 +392,9 @@
         idz = int((I-1)/(LatNx*LatNy))+1
         idy = int((I-(idz-1)*(LatNx*LatNy)-1)/LatNx)+1
         idx = I-(idz-1)*(LatNx*LatNy)-(idy-1)*LatNx
-        lx = dble(idx-1)*LatDx - Mx
-        ly = dble(idy-1)*LatDy - My
-        lz = dble(idz-1)*LatDz - Mz
+        lx = dble(idx-1)*LatDx - LatMx
+        ly = dble(idy-1)*LatDy - LatMy
+        lz = dble(idz-1)*LatDz - LatMz
         !DEM(I)%ID(1) = idx                 !  IDx of Lattice
         !DEM(I)%ID(2) = idy                 !  IDy of Lattice
         !DEM(I)%ID(3) = idz                 !  IDz of Lattice
@@ -518,7 +515,7 @@
 
     !  Initialize Neighbor Nodelink.
     allocate(IDInner(LatNum))
-    allocate(tailInner(LatNUm))
+    allocate(tailInner(LatNum))
     do I = 1,LatNum
         IDInner(I)%No = 0                 !  Array of Lattice's inner particles
         nullify(IDInner(I)%next)
@@ -531,7 +528,7 @@
     allocate(Head(NMAX))
     do I = 1,NMAX
         Head(I)%No = 0                    !  Length of Linklist
-        Head(I)%recordTime = 0.0D0        !  record time
+        !Head(I)%recordTime = 0.0D0        !  record time
         Head(I)%Hertz(1) = 0.0D0          !  Hertz(1)
         Head(I)%Hertz(2) = 0.0D0          !  Hertz(2)
         Head(I)%Hertz(3) = 0.0D0          !  Hertz(3)

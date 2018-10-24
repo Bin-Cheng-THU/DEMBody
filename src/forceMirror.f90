@@ -49,7 +49,7 @@
     !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,&
     !$OMP& rolling_moment,rolling_momentL,twisting_moment,twisting_momentL,cohesive_force,Ap,An,Rij,Mij,Iij,&
     !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
-    !$OMP& slipping,rolling,twisting,touching) SCHEDULE(DYNAMIC)
+    !$OMP& slipping,rolling,twisting,touching) SCHEDULE(GUIDED)
     do I = 1,N
         
         !################         Wall X1          ################### 
@@ -351,12 +351,12 @@
                                 Temp%is_slipping = slipping
                                 Temp%is_rolling = rolling
                                 Temp%is_twisting = twisting
-                                Temp%recordTime = Time + Dt
+                                !Temp%recordTime = Time + Dt
                                 Tail => Temp
                             else
                                 !  First contacted.
                                 allocate(TempH)
-                                TempH = Nodelink(J,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                                TempH = Nodelink(J,tangential_force,rolling_moment,twisting_moment,&
                                 & touching,slipping,rolling,twisting,Temp,Temp%next)
                                 if (associated(Temp%next)) Temp%next%prev => TempH
                                 Temp%next => TempH
@@ -366,7 +366,7 @@
                         else
                             !  Temp is Head of linklist!!!
                             allocate(TempH)
-                            TempH = Nodelink(J,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                            TempH = Nodelink(J,tangential_force,rolling_moment,twisting_moment,&
                             & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
@@ -727,12 +727,12 @@
                                 Temp%is_slipping = slipping
                                 Temp%is_rolling = rolling
                                 Temp%is_twisting = twisting
-                                Temp%recordTime = Time + Dt
+                                !Temp%recordTime = Time + Dt
                                 Tail => Temp
                             else
                                 !  First contacted.
                                 allocate(TempH)
-                                TempH = Nodelink(J,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                                TempH = Nodelink(J,tangential_force,rolling_moment,twisting_moment,&
                                 & touching,slipping,rolling,twisting,Temp,Temp%next)
                                 if (associated(Temp%next)) Temp%next%prev => TempH
                                 Temp%next => TempH
@@ -742,7 +742,7 @@
                         else
                             !  Temp is Head of linklist!!!
                             allocate(TempH)
-                            TempH = Nodelink(J,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                            TempH = Nodelink(J,tangential_force,rolling_moment,twisting_moment,&
                             & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
@@ -1094,12 +1094,12 @@
                                 Temp%is_slipping = slipping
                                 Temp%is_rolling = rolling
                                 Temp%is_twisting = twisting
-                                Temp%recordTime = Time + Dt
+                                !Temp%recordTime = Time + Dt
                                 Tail => Temp
                             else
                                 !  First contacted.
                                 allocate(TempH)
-                                TempH = Nodelink(J,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                                TempH = Nodelink(J,tangential_force,rolling_moment,twisting_moment,&
                                 & touching,slipping,rolling,twisting,Temp,Temp%next)
                                 if (associated(Temp%next)) Temp%next%prev => TempH
                                 Temp%next => TempH
@@ -1109,7 +1109,7 @@
                         else
                             !  Temp is Head of linklist!!!
                             allocate(TempH)
-                            TempH = Nodelink(J,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                            TempH = Nodelink(J,tangential_force,rolling_moment,twisting_moment,&
                             & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
@@ -1458,12 +1458,12 @@
                                 Temp%is_slipping = slipping
                                 Temp%is_rolling = rolling
                                 Temp%is_twisting = twisting
-                                Temp%recordTime = Time + Dt
+                                !Temp%recordTime = Time + Dt
                                 Tail => Temp
                             else
                                 !  First contacted.
                                 allocate(TempH)
-                                TempH = Nodelink(J,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                                TempH = Nodelink(J,tangential_force,rolling_moment,twisting_moment,&
                                 & touching,slipping,rolling,twisting,Temp,Temp%next)
                                 if (associated(Temp%next)) Temp%next%prev => TempH
                                 Temp%next => TempH
@@ -1473,7 +1473,7 @@
                         else
                             !  Temp is Head of linklist!!!
                             allocate(TempH)
-                            TempH = Nodelink(J,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                            TempH = Nodelink(J,tangential_force,rolling_moment,twisting_moment,&
                             & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH

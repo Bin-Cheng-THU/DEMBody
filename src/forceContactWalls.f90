@@ -62,7 +62,7 @@
                 RV(K) = X(K,I) - OMP_contactWallPoint(K)
             end do
             ERR = RV(1)*OMP_contactWallVector(1) + RV(2)*OMP_contactWallVector(2) + RV(3)*OMP_contactWallVector(3)
-            if (ERR .LE. 0.8D0*Dx) then      
+            if (ERR .LE. 0.8D0*LatDx) then      
                 !  normal vector
                 do K = 1,3
                     Dist(K) = ERR*OMP_contactWallVector(K)
@@ -349,11 +349,11 @@
                             Temp%is_slipping = slipping
                             Temp%is_rolling = rolling
                             Temp%is_twisting = twisting
-                            Temp%recordTime = Time + Dt
+                            !Temp%recordTime = Time + Dt
                         else
                             !  First contacted.
                             allocate(TempH)
-                            TempH = Nodelink(OMP_contactWallTag,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                            TempH = Nodelink(OMP_contactWallTag,tangential_force,rolling_moment,twisting_moment,&
                             & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
@@ -362,7 +362,7 @@
                     else
                         !  Temp is Head of linklist!!!
                         allocate(TempH)
-                        TempH = Nodelink(OMP_contactWallTag,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                        TempH = Nodelink(OMP_contactWallTag,tangential_force,rolling_moment,twisting_moment,&
                         & touching,slipping,rolling,twisting,Temp,Temp%next)
                         if (associated(Temp%next)) Temp%next%prev => TempH
                         Temp%next => TempH

@@ -45,25 +45,25 @@
             refreshLattice = .true.
         end if
 
-        if ((PlaSx1p(1)-X(1,I)-Dx).LE.0.0D0) then
+        if ((PlaSx1p(1)-X(1,I)-LatDx).LE.0.0D0) then
             Tag2(I) = 1
         else
             Tag2(I) = 0
         end if
 
-        if ((X(1,I)-PlaSx2p(1)-Dx).LE.0.0D0) then
+        if ((X(1,I)-PlaSx2p(1)-LatDx).LE.0.0D0) then
             Tag1(I) = 1
         else
             Tag1(I) = 0
         end if
 
-        if ((PlaSy1p(2)-X(2,I)-Dy).LE.0.0D0) then
+        if ((PlaSy1p(2)-X(2,I)-LatDy).LE.0.0D0) then
             Tag4(I) = 1
         else
             Tag4(I) = 0
         end if
 
-        if ((X(2,I)-PlaSy2p(2)-Dy).LE.0.0D0) then
+        if ((X(2,I)-PlaSy2p(2)-LatDy).LE.0.0D0) then
             Tag3(I) = 1
         else
             Tag3(I) = 0

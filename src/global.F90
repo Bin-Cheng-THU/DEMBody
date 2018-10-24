@@ -7,13 +7,6 @@
     !
     !********************************************************************
 
-    !#define Grav self_gravity
-    
-    !#define dims 100
-    !#define GravNx 7
-    !#define GravNy 7
-    !#define GravNz 4
-
     module global
     implicit none
 
@@ -35,10 +28,18 @@
     logical :: isGravTriMesh
     real(8) :: Max_ACC
 
+    !  Define parameters of Program
+    real(8) :: T1,T2
+    real(8) :: Time,Deltat,Tcrit,Dt,Tnext
+    real(8) :: CheckPointDt, CheckPointTnext
+    integer :: Step
+    logical :: refreshLattice
+    integer :: refreshNum
+
     !  Conduct linklist
     type :: Nodelink 
         integer :: No
-        real(8) :: recordTime
+        !real(8) :: recordTime
         real(8) :: Hertz(3)
         real(8) :: Mrot(3)
         real(8) :: Mtwist(3)
@@ -52,6 +53,16 @@
 
     !  Nodelink of Particle
     type(Nodelink),pointer :: Head(:)  
+    
+    !  Define parameters of Parallel Lattice
+    integer :: N
+    real(8) :: LatDx,LatDy,LatDz
+    integer :: LatNx,LatNy,LatNz
+    real(8) :: LatMx,LatMy,LatMz
+    integer :: LatNum
+    integer :: Linklist(NMAX)
+    real(8) :: verlet
+    integer,allocatable :: ParallelLatticeColor(:,:)
     
     !  Conduct Lattice
     type :: Lattice
@@ -74,13 +85,12 @@
 
     !  Nodelink of Neighbor
     type(Neighbor),pointer :: IDInner(:)
-    type(Neighbor),pointer :: tailInner(:)
-
-    !  Parallel Lattice params
-    real(8) :: LatDx,LatDy,LatDz
-    integer :: LatNx,LatNy,LatNz
-    integer :: LatNum
-    integer,allocatable :: ParallelLatticeColor(:,:)
+    type(Neighbor),pointer :: tailInner(:)  
+    
+    !  GravTriMeshNode params
+    real(8) :: TriLatDx,TriLatDy,TriLatDz
+    real(8) :: TriLatMx,TriLatMy,TriLatMz
+    integer :: TriLatNx,TriLatNy,TriLatNz
     
     !  Conduct TriMeshLattice
     type :: GravTriMeshLattice
@@ -91,11 +101,6 @@
     
     !  Grav Tri Mesh
     real(8),allocatable :: GravTriMeshNode(:,:)
-
-    !  GravTriMeshNode params
-    real(8) :: TriLatDx,TriLatDy,TriLatDz
-    real(8) :: TriLatMx,TriLatMy,TriLatMz
-    integer :: TriLatNx,TriLatNy,TriLatNz
 
     !  Define parameters of Particle
     real(8) :: X(3,NMAX),Xdot(3,NMAX),W(3,NMAX)
@@ -194,22 +199,6 @@
     real(8) :: sysGrav
     
     !  Define parameters of Gravity
-    real(8) :: G
-    
-    !  Define parameters of Mesh
-    integer :: N
-    real(8) :: Dx,Dy,Dz
-    real(8) :: Mx,My,Mz
-    integer :: Nx,Ny,Nz
-    integer :: Linklist(NMAX)
-    real(8) :: verlet
-
-    !  Define parameters of Program
-    real(8) :: T1,T2
-    real(8) :: Time,Deltat,Tcrit,Dt,Tnext
-    real(8) :: CheckPointDt, CheckPointTnext
-    integer :: Step
-    logical :: refreshLattice
-    integer :: refreshNum
+    real(8) :: G(3)
    
     end module

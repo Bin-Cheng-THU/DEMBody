@@ -48,8 +48,9 @@
     real(8) ::  edgeFlag                       !  The Flag for distinguishing Faces, Edges and Corners
     real(kind=8)  RVb(3),RV1,RV2,RV3,RV4,RV5,RV6,RVu,RVv,RVn(3),RVt(3),norm
     
-    !character(30) :: FileNameHead
-    !character(30) :: FileNameForce
+    character(30) :: FileNameHead
+    character(30) :: FileNameForce
+    
     !write(FileNameHead,'(F10.5)') Time
     !FileNameHead = trim(FileNameHead)//'TriMesh.txt'
     !open(123,FILE=FileNameHead)
@@ -63,12 +64,12 @@
     !$OMP& rolling_moment,rolling_momentL,twisting_moment,twisting_momentL,cohesive_force,Ap,An,Rij,Mij,Iij,&
     !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
     !$OMP& slipping,rolling,twisting,touching,&
-    !$OMP& NodeMesh,IDMesh,index) SCHEDULE(DYNAMIC)
+    !$OMP& NodeMesh,IDMesh,index) SCHEDULE(GUIDED)
     ! Loop over all lattices
     do I = 1,N
         
         Tail => Head(I)
-        index = floor((X(1,I)+Mx)/LatDx) + 1 + floor((X(2,I)+My)/LatDy)*LatNx + floor((X(3,I)+Mz)/LatDz)*(LatNx*LatNy)        
+        index = floor((X(1,I)+LatMx)/LatDx) + 1 + floor((X(2,I)+LatMy)/LatDy)*LatNx + floor((X(3,I)+LatMz)/LatDz)*(LatNx*LatNy)        
         !  Loop over trimeshLattice
         NodeMesh => trimeshDEM(index)
         do while (associated(NodeMesh%next))
@@ -85,7 +86,7 @@
             end do
             ERR = RV(1)*trimeshWallVectorN(1,IDMesh) + RV(2)*trimeshWallVectorN(2,IDMesh) + RV(3)*trimeshWallVectorN(3,IDMesh)
 
-            if (ERR.GE.-0.8D0*Dx .AND. ERR.LE.0.8D0*Dx) then
+            if (ERR.GE.-0.8D0*LatDx .AND. ERR.LE.0.8D0*LatDx) then
                 do K = 1,3
                     RVb(K) = RV(K) - ERR*trimeshWallVectorN(K,IDMesh)
                 end do
@@ -97,8 +98,8 @@
                 RV6 = RV2 - trimeshWallLength(3,IDMesh)
                 RVu = (RV2*trimeshWallLength(2,IDMesh)-RV1*trimeshWallLength(3,IDMesh))/trimeshWallLength(4,IDMesh)
                 RVv = (RV1*trimeshWallLength(2,IDMesh)-RV2*trimeshWallLength(1,IDMesh))/trimeshWallLength(4,IDMesh)
-                if (RVu.GE.-0.8D0*Dx/sqrt(trimeshWallLength(1,IDMesh)) .AND. RVv.GE.-0.8D0*Dx/sqrt(trimeshWallLength(3,IDMesh)) &
-                & .AND. ((RVu+RVv).LE.(1.0D0+0.8D0*Dx/sqrt(trimeshWallLength(1,IDMesh))+0.8D0*Dx/sqrt(trimeshWallLength(3,IDMesh)))) ) then
+                if (RVu.GE.-0.8D0*LatDx/sqrt(trimeshWallLength(1,IDMesh)) .AND. RVv.GE.-0.8D0*LatDx/sqrt(trimeshWallLength(3,IDMesh)) &
+                & .AND. ((RVu+RVv).LE.(1.0D0+0.8D0*LatDx/sqrt(trimeshWallLength(1,IDMesh))+0.8D0*LatDx/sqrt(trimeshWallLength(3,IDMesh)))) ) then
                     if (RVu.GE.0.0D0 .AND. RVv.GE.0.0D0 .AND. (RVu+RVv).LE.1.0D0) then
                         !  inner triangle
                         enterFlag = .true.
@@ -473,12 +474,12 @@
                             Temp%is_slipping = slipping
                             Temp%is_rolling = rolling
                             Temp%is_twisting = twisting
-                            Temp%recordTime = Time + Dt
+                            !Temp%recordTime = Time + Dt
                             Tail => Temp
                         else
                             !  First contacted.
                             allocate(TempH)
-                            TempH = Nodelink(trimeshWallTag(IDMesh),Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                            TempH = Nodelink(trimeshWallTag(IDMesh),tangential_force,rolling_moment,twisting_moment,&
                             & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
@@ -488,7 +489,7 @@
                     else
                         !  Temp is Head of linklist!!!
                         allocate(TempH)
-                        TempH = Nodelink(trimeshWallTag(IDMesh),Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                        TempH = Nodelink(trimeshWallTag(IDMesh),tangential_force,rolling_moment,twisting_moment,&
                         & touching,slipping,rolling,twisting,Temp,Temp%next)
                         if (associated(Temp%next)) Temp%next%prev => TempH
                         Temp%next => TempH
@@ -515,7 +516,7 @@
     end do
     !$OMP END PARALLEL DO
     !oend = omp_get_wtime()
-    !write(*,*) "forceParticleLattice",(oend-ostart)
+    !write(*,*) "forceTriMeshWalls",(oend-ostart)
     
     !write(FileNameForce,'(F10.5)') Time
     !FileNameForce = trim(FileNameForce)//'Force.txt'

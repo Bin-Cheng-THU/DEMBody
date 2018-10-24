@@ -70,14 +70,14 @@
         !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,&
         !$OMP& rolling_moment,rolling_momentL,twisting_moment,twisting_momentL,cohesive_force,Ap,An,Rij,Mij,Iij,&
         !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
-        !$OMP& slipping,rolling,touching,twisting) SCHEDULE(DYNAMIC)
+        !$OMP& slipping,rolling,touching,twisting) SCHEDULE(GUIDED)
         do I = 1,N
             enterFlag = .false.
             do K = 1,3
                 RV(K) = X(K,I) - OMP_bondedWallPoint(K)
             end do
             ERR = RV(1)*OMP_bondedWallVectorN(1) + RV(2)*OMP_bondedWallVectorN(2) + RV(3)*OMP_bondedWallVectorN(3)
-            if (ERR > -0.8D0*Dx .AND. ERR < 0.8D0*Dx) then
+            if (ERR > -0.8D0*LatDx .AND. ERR < 0.8D0*LatDx) then
                 do K = 1,3
                     RVb(K) = RV(K) - ERR*OMP_bondedWallVectorN(K)
                 end do 
@@ -91,7 +91,7 @@
                     end do
                     edgeFlag = 1.0D0
                     goto 222
-                else if (ABS(RVx).LE.(0.5D0*OMP_bondedWallLx) .AND. ABS(RVy).LE.(0.5D0*OMP_bondedWallLy+0.8D0*Dx)) then
+                else if (ABS(RVx).LE.(0.5D0*OMP_bondedWallLx) .AND. ABS(RVy).LE.(0.5D0*OMP_bondedWallLy+0.8D0*LatDx)) then
                     enterFlag = .true.
                     do K = 1,3
                         RVt(K) = RVy/ABS(RVy)*0.5D0*OMP_bondedWallLy*OMP_bondedWallVectorTy(K) + RVx*OMP_bondedWallVectorTx(K)
@@ -99,7 +99,7 @@
                     end do
                     edgeFlag = 0.5D0
                     goto 222
-                else if (ABS(RVx).LE.(0.5D0*OMP_bondedWallLx+0.8D0*Dx) .AND. ABS(RVy).LE.(0.5D0*OMP_bondedWallLy)) then
+                else if (ABS(RVx).LE.(0.5D0*OMP_bondedWallLx+0.8D0*LatDx) .AND. ABS(RVy).LE.(0.5D0*OMP_bondedWallLy)) then
                     enterFlag = .true.
                     do K = 1,3
                         RVt(K) = RVx/ABS(RVx)*0.5D0*OMP_bondedWallLx*OMP_bondedWallVectorTx(K) + RVy*OMP_bondedWallVectorTy(K)
@@ -107,7 +107,7 @@
                     end do
                     edgeFlag = 0.5D0
                     goto 222
-                else if (ABS(RVx).LE.(0.5D0*OMP_bondedWallLx+0.8D0*Dx) .AND. ABS(RVy).LE.(0.5D0*OMP_bondedWallLy+0.8D0*Dx)) then
+                else if (ABS(RVx).LE.(0.5D0*OMP_bondedWallLx+0.8D0*LatDx) .AND. ABS(RVy).LE.(0.5D0*OMP_bondedWallLy+0.8D0*LatDx)) then
                     enterFlag = .true.
                     do K = 1,3
                         RVt(K) = 0.5D0*OMP_bondedWallLx*OMP_bondedWallVectorTx(K)*RVx/ABS(RVx) + 0.5D0*OMP_bondedWallLy*OMP_bondedWallVectorTy(k)*RVy/ABS(RVy)
@@ -326,11 +326,11 @@
                             Temp%is_slipping = slipping
                             Temp%is_rolling = rolling
                             Temp%is_twisting = twisting
-                            Temp%recordTime = Time + Dt
+                            !Temp%recordTime = Time + Dt
                         else
                             !  First contacted.
                             allocate(TempH)
-                            TempH = Nodelink(OMP_bondedWallTag,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                            TempH = Nodelink(OMP_bondedWallTag,tangential_force,rolling_moment,twisting_moment,&
                             & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
@@ -339,7 +339,7 @@
                     else
                         !  Temp is Head of linklist!!!
                         allocate(TempH)
-                        TempH = Nodelink(OMP_bondedWallTag,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                        TempH = Nodelink(OMP_bondedWallTag,tangential_force,rolling_moment,twisting_moment,&
                         & touching,slipping,rolling,twisting,Temp,Temp%next)
                         if (associated(Temp%next)) Temp%next%prev => TempH
                         Temp%next => TempH

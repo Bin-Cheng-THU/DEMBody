@@ -15,8 +15,8 @@
 
     !$OMP PARALLEL DO PRIVATE(I)
     do I = 1,N
-        !  calculate linklist employing X & Dx
-        Linklist(I) = floor((X(1,I)+Mx)/Dx) + Nx + floor((X(2,I)+My)/Dy)*Ny+ floor((X(3,I)+Mz)/Dz)*Nz
+        !  calculate linklist employing X & LatDx
+        Linklist(I) = floor((X(1,I)+LatMx)/LatDx) + 1 + floor((X(2,I)+LatMy)/LatDy)*LatNx+ floor((X(3,I)+LatMz)/LatDz)*LatNx*LatNy
     end do
     !$OMP END PARALLEL DO
     

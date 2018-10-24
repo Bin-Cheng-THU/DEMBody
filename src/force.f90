@@ -32,6 +32,7 @@
     character(30) :: FileNameForce
 
     !################         Part 1: Particle forces          ###################
+    !ostart = omp_get_wtime()
 #ifdef LatticeSearch
 #ifdef ParticleLattice
     call forceParticleLattice
@@ -41,6 +42,8 @@
 #elif TraverseSearch
     call forceTraverse
 #endif
+    !oend = omp_get_wtime()
+    !write(*,*) "Force",(oend-ostart)
 
     !################         Part 2: Mirrored Particle forces          ###################
     !ostart = omp_get_wtime()
@@ -102,7 +105,7 @@
     !$OMP PARALLEL DO PRIVATE(I,K,accMag)
     do I = 1,N
         do K = 1,3
-            F(K,I) = F(K,I)/Body(I)
+            F(K,I) = F(K,I)/Body(I) + G(K)
             FM(K,I) = FM(K,I)/Inertia(I)
         end do
         accMag = sqrt(F(1,I)**2 + F(2,I)**2+F(3,I)**2)
@@ -112,7 +115,6 @@
                 F(K,I) = F(K,I)/accMag*MAX_ACC
             end do
         end if
-        F(3,I) = F(3,I) - G
     end do
     !$OMP END PARALLEL DO
     !oend = omp_get_wtime()

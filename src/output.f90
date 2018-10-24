@@ -81,6 +81,7 @@
             close(Step+1000)
         end if
 
+#ifdef historyOutput        
         !  Output the tangential contact history of all interactions
         write(FileNameF,'(I4)') Step+1000
         FileNameF = '../Data/'//FileNameF
@@ -92,13 +93,14 @@
             if (Head(J)%No .GT. 0) then
                 Temp => Head(J)
                 do I = 1,Head(J)%No
-                    write(Step+1000,'(I8,2X,10F18.10,2X,4L8)',advance='no') Temp%next%No,Temp%next%recordTime,Temp%next%Hertz(1),Temp%next%Hertz(2),Temp%next%Hertz(3),Temp%next%Mrot(1),Temp%next%Mrot(2),Temp%next%Mrot(3),Temp%next%Mtwist(1),Temp%next%Mtwist(2),Temp%next%Mtwist(3),Temp%next%is_touching,Temp%next%is_slipping,Temp%next%is_rolling,Temp%next%is_twisting
+                    write(Step+1000,'(I8,2X,9F18.10,2X,4L8)',advance='no') Temp%next%No,Temp%next%Hertz(1),Temp%next%Hertz(2),Temp%next%Hertz(3),Temp%next%Mrot(1),Temp%next%Mrot(2),Temp%next%Mrot(3),Temp%next%Mtwist(1),Temp%next%Mtwist(2),Temp%next%Mtwist(3),Temp%next%is_touching,Temp%next%is_slipping,Temp%next%is_rolling,Temp%next%is_twisting
                     Temp => Temp%next
                 end do
             end if
             write(Step+1000,*)
         end do
         close(Step+1000)
+#endif        
         
         !  Output the Bonded Wall Meshfile
         if (isBondedWall) then

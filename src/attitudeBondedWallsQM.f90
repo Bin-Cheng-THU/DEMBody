@@ -4,7 +4,10 @@
     !
     !     N-body integrator of Quaternion.
     !     -------------------------------
+    !     Quaternion to Attitute Matrix
+    !
     !     @Refresh Attitude Matrix of Bonded Walls
+    !     
     !
     !********************************************************************
     subroutine attitudeBondedWallsQM()

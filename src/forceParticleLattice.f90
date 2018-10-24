@@ -55,10 +55,10 @@
     type(Neighbor),pointer :: IDOuterJ      !  List of Outer Particles   
     integer :: particleI,particleJ          !  ID of two interacting particle
     
-    !real(8) :: ostart,oend
+    real(8) :: ostart,oend
 
-    !character(30) :: FileNameHead
-    !character(30) :: FileNameForce
+    character(30) :: FileNameHead
+    character(30) :: FileNameForce
     
     F = 0.0D0
     FM = 0.0D0
@@ -77,7 +77,7 @@
     !$OMP& rolling_moment,rolling_momentL,twisting_moment,twisting_momentL,cohesive_force,gravity_force,Ap,An,Rij,Mij,Iij,&
     !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
     !$OMP& slipping,rolling,twisting,touching,&
-    !$OMP& JJ,IDJ,IDInnerI,IDInnerJ,IDOuterJ,particleI,particleJ) SCHEDULE(DYNAMIC)
+    !$OMP& JJ,IDJ,IDInnerI,IDInnerJ,IDOuterJ,particleI,particleJ) SCHEDULE(GUIDED)
     ! Loop over all lattices
     do I = 1,N
         
@@ -395,12 +395,12 @@
                             Temp%is_slipping = slipping
                             Temp%is_rolling = rolling
                             Temp%is_twisting = twisting
-                            Temp%recordTime = Time + Dt
+                            !Temp%recordTime = Time + Dt
                             Tail => Temp
                         else
                             !  First contacted.
                             allocate(TempH)
-                            TempH = Nodelink(particleJ,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                            TempH = Nodelink(particleJ,tangential_force,rolling_moment,twisting_moment,&
                             & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
@@ -410,7 +410,7 @@
                     else
                         !  Temp is Head of linklist!!!
                         allocate(TempH)
-                        TempH = Nodelink(particleJ,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                        TempH = Nodelink(particleJ,tangential_force,rolling_moment,twisting_moment,&
                         & touching,slipping,rolling,twisting,Temp,Temp%next)
                         if (associated(Temp%next)) Temp%next%prev => TempH
                         Temp%next => TempH
@@ -790,12 +790,12 @@
                                     Temp%is_slipping = slipping
                                     Temp%is_rolling = rolling
                                     Temp%is_twisting = twisting
-                                    Temp%recordTime = Time + Dt
+                                    !Temp%recordTime = Time + Dt
                                     Tail => Temp
                                 else
                                     !  First contacted.
                                     allocate(TempH)
-                                    TempH = Nodelink(particleJ,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                                    TempH = Nodelink(particleJ,tangential_force,rolling_moment,twisting_moment,&
                                     & touching,slipping,rolling,twisting,Temp,Temp%next)
                                     if (associated(Temp%next)) Temp%next%prev => TempH
                                     Temp%next => TempH
@@ -805,7 +805,7 @@
                             else
                                 !  Temp is Head of linklist!!!
                                 allocate(TempH)
-                                TempH = Nodelink(particleJ,Time+Dt,tangential_force,rolling_moment,twisting_moment,&
+                                TempH = Nodelink(particleJ,tangential_force,rolling_moment,twisting_moment,&
                                 & touching,slipping,rolling,twisting,Temp,Temp%next)
                                 if (associated(Temp%next)) Temp%next%prev => TempH
                                 Temp%next => TempH

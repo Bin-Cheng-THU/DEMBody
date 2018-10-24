@@ -1,16 +1,13 @@
-DEMBody 4.3.3
+DEMBody 4.4
 *---Parallel params
 5.0 5.0 5.0
 240	240	120
+600.0	600.0	0.0
+0.2
 *---Console params
 2.0e-1 5.0e3
 2.0e+1
 2.0e-1
-*---Mesh params
-5.0 5.0 5.0
-600.0 600.0 0.0
-1 240 57600
-0.2
 *---System control
 False	# whether use Planet Gravity function
 False	# whether use Rotary System function 
@@ -23,9 +20,9 @@ False	# whether use Funnel Walls
 False	# whether use Periodic function
 False	# whether use Gravity Body
 True	# whether use Gravity TriMesh
-1e1
+1e1		# maximun contact acceleration
 *---Gravity
-0.0
+0.0	0.0	0.0
 *---Contactable walls
 1
 0.0	0.0	0.0	0.0	0.0	1.0
