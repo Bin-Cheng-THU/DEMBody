@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.4
+    !     DEMBody 4.5
     !     ***********
     !
     !     Global parameters.
@@ -13,8 +13,10 @@
     !  Parameters
     real(8),parameter :: GravConst = 6.674D-11
     real(8),parameter :: PI = 3.141592653589793D0
+    character(10),parameter :: VERSION = '4.5'
 
     !  Define control parameters of Program
+    character(10) :: vsDEMBody
     logical :: isPlanet
     logical :: isRotSystem
     logical :: isQuaternion
@@ -22,6 +24,7 @@
     logical :: isMovingWall
     logical :: isBondedWall
     logical :: isTriMeshWall
+    logical :: isBondedTriMeshWall
     logical :: isFunnelWall
     logical :: isPeriodic
     logical :: isGravBody
@@ -82,7 +85,6 @@
         integer :: No
         type(Neighbor),pointer :: next
     end type Neighbor
-
     !  Nodelink of Neighbor
     type(Neighbor),pointer :: IDInner(:)
     type(Neighbor),pointer :: tailInner(:)  
@@ -90,15 +92,13 @@
     !  GravTriMeshNode params
     real(8) :: TriLatDx,TriLatDy,TriLatDz
     real(8) :: TriLatMx,TriLatMy,TriLatMz
-    integer :: TriLatNx,TriLatNy,TriLatNz
-    
+    integer :: TriLatNx,TriLatNy,TriLatNz    
     !  Conduct TriMeshLattice
     type :: GravTriMeshLattice
         real(8) :: PositionCenter(3)
         integer :: NodeID(8)
     end type GravTriMeshLattice
-    type(GravTriMeshLattice),pointer :: GravTriMeshGrid(:)
-    
+    type(GravTriMeshLattice),pointer :: GravTriMeshGrid(:)    
     !  Grav Tri Mesh
     real(8),allocatable :: GravTriMeshNode(:,:)
 
@@ -162,6 +162,21 @@
         type(trimeshLattice),pointer :: next
     end type trimeshLattice
     type(trimeshLattice),pointer :: trimeshDEM(:)
+    
+    !  Define parameters of Bonded TriMesh Walls
+    real(8) :: bondedTriMeshWallX(3),bondedTriMeshWallXdot(3),bondedTriMeshWallW(3)
+    real(8) :: bondedTriMeshWallQ(4),bondedTriMeshWallMatI(3,3),bondedTriMeshWallMatB(3,3)
+    real(8) :: bondedTriMeshWallBody,bondedTriMeshWallInertia(3)
+    real(8) :: bondedTriMeshWallF(3),bondedTriMeshWallFM(3)
+    !  body-fixed frame
+    integer :: bondedTriMeshWallNum
+    integer,allocatable :: bondedTriMeshWallTag(:)
+    real(8),allocatable :: bondedTriMeshWallPoint(:,:)
+    real(8),allocatable :: bondedTriMeshWallVectorN(:,:)
+    real(8),allocatable :: bondedTriMeshWallVectorTx(:,:)
+    real(8),allocatable :: bondedTriMeshWallVectorTy(:,:)
+    real(8),allocatable :: bondedTriMeshWallLength(:,:)  !  Tx2, Tx*Ty, Ty2, L
+    type(triMeshLattice),pointer :: bondedTriMeshDEM(:)
     
     !  Define parameters of Funnel Walls
     integer :: funnelWallNum

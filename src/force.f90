@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.4
+    !     DEMBody 4.5
     !     ***********
     !
     !     Force for all particles.
@@ -11,6 +11,7 @@
     !     @Using forceContactWalls when enable ContactWall
     !     @Using forceBondedWalls when enable BondedWall
     !     @Using forceTriMeshWalls when enable TriMeshWall
+    !     @Using forceBondedTriMeshWalls when enable BondedTriMeshWall
     !     @Using forceFunnelWalls when enable FunnelWall
     !     @Using forceGravBody when enable GravBody
     !     @force to acceleration
@@ -41,6 +42,8 @@
 #endif
 #elif TraverseSearch
     call forceTraverse
+#else
+    write(*,*) 'Error Force Model!'
 #endif
     !oend = omp_get_wtime()
     !write(*,*) "Force",(oend-ostart)
@@ -82,7 +85,16 @@
     !oend = omp_get_wtime()
     !write(*,*) "Tri meshes",(oend-ostart)
     
-    !################         Part 6: Funnel wall forces          ###################
+    !################         Part 6: Bonded Trimesh wall forces          ###################
+    !ostart = omp_get_wtime()
+    !  calculate force of bonded trimesh walls if using bonded trimesh walls
+    if (isBondedTriMeshWall) then                     
+        call forceBondedTriMeshWalls
+    end if
+    !oend = omp_get_wtime()
+    !write(*,*) "Bonded Tri meshes",(oend-ostart)
+    
+    !################         Part 7: Funnel wall forces          ###################
     !ostart = omp_get_wtime()
     !  calculate force of funnel walls if using funnel walls
     if (isFunnelWall) then
@@ -91,7 +103,7 @@
     !oend = omp_get_wtime()
     !write(*,*) "Funnel walls",(oend-ostart)
     
-    !################         Part 7: GravBody forces          ###################
+    !################         Part 8: GravBody forces          ###################
     !ostart = omp_get_wtime()
     !  calculate force of gravity body if using GravBody
     if (isGravBody) then
@@ -100,7 +112,7 @@
     !oend = omp_get_wtime()
     !write(*,*) "Grav bodies",(oend-ostart)
     
-    !################         Part 8: Force to Acceleration          ###################
+    !################         Part 9: Force to Acceleration          ###################
     !ostart = omp_get_wtime()
     !$OMP PARALLEL DO PRIVATE(I,K,accMag)
     do I = 1,N
@@ -120,7 +132,7 @@
     !oend = omp_get_wtime()
     !write(*,*) 'accelerate', (oend-ostart)    
 
-    !################         Part 9: Planet forces          ###################
+    !################         Part 10: Planet forces          ###################
     !ostart = omp_get_wtime()
     !  calculate Planet force if in Planet system
     if (isPlanet) then
@@ -129,7 +141,7 @@
     !oend = omp_get_wtime()
     !write(*,*) 'Planet', (oend-ostart)  
     
-    !################         Part 10: Rotsystem forces          ###################
+    !################         Part 11: Rotsystem forces          ###################
     !ostart = omp_get_wtime()
     !  calculate Noninertial force if in Rotary system
     if (isRotSystem) then
@@ -138,7 +150,7 @@
     !oend = omp_get_wtime()
     !write(*,*) 'Rot system', (oend-ostart)  
     
-    !################         Part 11: GravTriMesh forces          ###################
+    !################         Part 12: GravTriMesh forces          ###################
     !ostart = omp_get_wtime()
     !  calculate force of gravity body if using GravBody
     if (isGravTriMesh) then

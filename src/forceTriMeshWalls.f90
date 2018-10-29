@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.4
+    !     DEMBody 4.5
     !     ***********
     !
     !     Force for trimesh walls.
@@ -43,7 +43,7 @@
                                                
     type(trimeshLattice),pointer :: NodeMesh   !  List of trimesh ID
     integer ::  IDMesh                         !  ID of trimesh
-    integer ::  index                          !  Index of the lattice including the particle
+    integer ::  index                          !  Index of the lattice containing the particle
     logical ::  enterFlag                      !  Whether conduct the contact with trimesh
     real(8) ::  edgeFlag                       !  The Flag for distinguishing Faces, Edges and Corners
     real(kind=8)  RVb(3),RV1,RV2,RV3,RV4,RV5,RV6,RVu,RVv,RVn(3),RVt(3),norm

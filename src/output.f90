@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.4
+    !     DEMBody 4.5
     !     ***********
     !
     !     Output and data save.
@@ -39,6 +39,14 @@
             write(11,'(20E20.10)') Time,(bondedWallX(K),K=1,3),(bondedWallXdot(K),K=1,3),(bondedWallW(K),K=1,3),(bondedWallQ(K),K=1,4),(bondedWallF(K),K=1,3),(bondedWallFM(K),K=1,3)
         end if
     end if
+    
+    if (isBondedTriMeshWall) then
+        !  Output the position, velocity and angular velocity of the Bonded TriMesh Walls
+        open(11,FILE='../Data/BondedTriMeshWalls.txt')
+        if (Time.LE.Tcrit) then
+            write(11,'(7E20.10)') Time,(bondedTriMeshWallF(K),K=1,3),(bondedTriMeshWallFM(K),K=1,3)
+        end if
+    end if    
     
     if (isGravBody) then
         !  Output the position, velocity and angular velocity of the Gravity Body

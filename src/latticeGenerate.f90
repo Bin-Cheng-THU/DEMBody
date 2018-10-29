@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.4
+    !     DEMBody 4.5
     !     ***********
     !
     !     Generate lattice based on partition of Particles.

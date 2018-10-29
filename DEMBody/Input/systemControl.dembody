@@ -1,36 +1,41 @@
-DEMBody 4.4
+DEMBody 4.5
 *---Parallel params
 5.0 5.0 5.0
-240	240	120
-600.0	600.0	0.0
-0.2
+24	24	12
+60.0	60.0	30.0
+0.4
 *---Console params
-2.0e-1 5.0e3
-2.0e+1
-2.0e-1
+1.0e-3 1.0e0
+1.0e-2
+2.0e-5
 *---System control
 False	# whether use Planet Gravity function
 False	# whether use Rotary System function 
-False	# whether intergrate Quaternion
-True	# whether use Contactable Walls
+True	# whether intergrate Quaternion
+False	# whether use Contactable Walls
 False	# whether use Moving Walls
 False	# whether use Bonded Walls
-True	# whether use TriMesh Walls
+False	# whether use TriMesh Walls
+True	# whether use Bonded TriMesh Walls
 False	# whether use Funnel Walls
 False	# whether use Periodic function
 False	# whether use Gravity Body
-True	# whether use Gravity TriMesh
-1e1		# maximun contact acceleration
+False	# whether use Gravity TriMesh
+1e6		# maximun contact acceleration
 *---Gravity
 0.0	0.0	0.0
 *---Contactable walls
-1
-0.0	0.0	0.0	0.0	0.0	1.0
+0
 *---Bonded walls
 0
 *---TriMesh walls
-442
-input: trimeshWall.mesh
+0
+*---Bonded TriMesh walls
+0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0
+0.0	0.0	0.0	1.0
+1.0	1.0	1.0	1.0
+2
+input: bondedTriMeshWall.mesh
 *---Funnel walls
 0
 *---Periodic boundary conditions
@@ -42,7 +47,4 @@ input: trimeshWall.mesh
 *---Rotary System
 0
 *---Gravity TriMesh
-15.0	15.0	15.0
-600.0	600.0	0.0
-80	80	40
-input: gravTriMesh.force
+0

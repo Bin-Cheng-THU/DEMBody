@@ -243,3 +243,15 @@ OpenMP：
 	forceTriMeshWalls中有正向切向力，有滚动摩阻，有凝聚力；
 	forceFunnelWalls中有正向切向力，有滚动摩阻，无凝聚力；
 	forceGravBody中有正向切向力，有滚动摩阻，有凝聚力。
+*********************************************************************
+DEMBody   4.5    22/10/2018上线
+
+架构：
+    加入版本号常量，在系统初始化时校验，以判断是否采用了统一的计算程序与输入文件。
+    之后的文件必须保证输入文件的版本与计算引擎的版本保持匹配。
+BondedTrimeshWall:
+    加入新特性-BondedTrimeshWall，可以输出TrimeshWall所受到的力与力矩，但是本程序不进行BondedTrimesh的姿态与运动积分，留给Bennu等研究中进行特例化。【需要注意的是，由于本版本的BondedTriMeshWall不考虑其运动，因此直接使用本体系下的坐标进行受力计算，在之后的版本中应想办法解决该问题】
+    该特性使用isBondedTrimeshWall控制，需要.dembody文件中定义惯性系下的位置、速度、角速度、姿态，以及质量、转动惯量等信息，同时需指明面元数目；网格输入文件为bondedTriMeshWall.mesh
+    在Output文件中加入bondedTriMeshWalls的输出。
+    通过测试！
+    加入相应的makefile命令
