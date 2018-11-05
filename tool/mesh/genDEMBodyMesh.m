@@ -9,13 +9,11 @@ clc;clear;
 format long;
 %% Parameters
 %---file name
-filename = 'Ryugu_half.vtk';
+filename = 'Bennu.vtk';
 outputfile = strcat(filename(1:end-3),'mesh');
 %% Load Data
 [points,faces] = loadVTK(filename);
-points = points';
-faces = faces';
-TR = triangulation(faces(:,[2 3 4])+1,points);
+TR = triangulation(faces+1,points);
 %% Triangle analyse
 figure (1)
 trisurf(TR.ConnectivityList,points(:,1),points(:,2),points(:,3), ...
@@ -35,41 +33,39 @@ trimeshPoint = zeros(num,3);
 trimeshVectorN = zeros(num,3);
 trimeshVectorTx = zeros(num,3);
 trimeshVectorTy = zeros(num,3);
-trimeshLength = zeros(num,4);
 for ii = 1:num
-    pointA = points(faces(ii,2)+1,:);
-    pointB = points(faces(ii,3)+1,:);
-    pointC = points(faces(ii,4)+1,:);
+    pointA = points(faces(ii,1)+1,:);
+    pointB = points(faces(ii,2)+1,:);
+    pointC = points(faces(ii,3)+1,:);
     AB = pointB - pointA;
     AC = pointC - pointA;
     % Check the order
     if dot(cross(AB,AC),fn(ii,:))<0.0
-        pointB = points(faces(ii,4)+1,:);
-        pointC = points(faces(ii,3)+1,:);
+        disp('Error')
+        pointB = points(faces(ii,3)+1,:);
+        pointC = points(faces(ii,2)+1,:);
         AB = pointB - pointA;
         AC = pointC - pointA;
     end
     trimeshPoint(ii,:) = pointA;
-    trimeshVectorTx(ii,:) = AC;
-    trimeshVectorTy(ii,:) = AB;
+    trimeshVectorTx(ii,:) = AB;
+    trimeshVectorTy(ii,:) = AC;
     vectorN = cross(AB,AC);
     vectorN = vectorN/norm(vectorN);
     trimeshVectorN(ii,:) = vectorN;
-    L1 = dot(AC,AC)*dot(AB,AB) - dot(AB,AC)*dot(AC,AB);
-    L2 = dot(AC,AC);
-    L3 = dot(AC,AB);
-    L4 = dot(AB,AB);
-    trimeshLength(ii,:) = [L1,L2,L3,L4];
+%     L1 = dot(AC,AC)*dot(AB,AB) - dot(AB,AC)*dot(AC,AB);
+%     L2 = dot(AC,AC);
+%     L3 = dot(AC,AB);
+%     L4 = dot(AB,AB);
+%     trimeshLength(ii,:) = [L1,L2,L3,L4];
 end
 
 %% Write data
 fid = fopen(outputfile,'wt');
 for ii = 1:num
     fprintf(fid,'%12.4e %12.4e %12.4e',trimeshPoint(ii,:));
-%     fprintf(fid,'%12.4e %12.4e %12.4e',trimeshVectorN(ii,:));
     fprintf(fid,'%12.4e %12.4e %12.4e',trimeshVectorTx(ii,:));
     fprintf(fid,'%12.4e %12.4e %12.4e\n',trimeshVectorTy(ii,:));
-%     fprintf(fid,'%12.4e %12.4e %12.4e %12.4e\n',trimeshLength(ii,:));
 end
 fclose('all');
     

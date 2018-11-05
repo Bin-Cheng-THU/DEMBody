@@ -10,7 +10,7 @@ fprintf(fid,'ASCII\r\n');
 fprintf(fid,'DATASET POLYDATA\r\n');
 fprintf(fid,'POLYGONS %d %d\r\n',length(faces),length(faces)*4);
 for ii = 1:length(faces)
-    fprintf(fid,'%d %d %d %d\r\n',3,faces(ii,:)-1);
+    fprintf(fid,'%d %d %d %d\r\n',3,faces(ii,:));
 end
 fprintf(fid,'POINTS %d float\r\n',length(points));
 for ii = 1:length(points)

@@ -8,6 +8,6 @@
 #ifndef _CONSTANT_H_
 #define _CONSTANT_H_
 
-const double PI = 3.14159265359;
+const double PI = 3.141592653589793;
 
 #endif

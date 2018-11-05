@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.5
+    !     DEMBody 4.6
     !     ***********
     !
     !     Global parameters.
@@ -11,9 +11,9 @@
     implicit none
 
     !  Parameters
-    real(8),parameter :: GravConst = 6.674D-11
+    real(8),parameter :: GravConst = 6.674184D-11
     real(8),parameter :: PI = 3.141592653589793D0
-    character(10),parameter :: VERSION = '4.5'
+    character(10),parameter :: VERSION = '4.6'
 
     !  Define control parameters of Program
     character(10) :: vsDEMBody

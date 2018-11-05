@@ -9,7 +9,7 @@ for ii = 1:length(points)
     fprintf(fid,'%f %f %f\r\n',points(ii,:));
 end
 for ii = 1:length(faces)
-    fprintf(fid,'%d %d %d\r\n',faces(ii,:)-1);
+    fprintf(fid,'%d %d %d\r\n',faces(ii,:));
 end
 fclose(fid);
 disp('Writting completed.')

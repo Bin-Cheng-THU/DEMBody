@@ -23,8 +23,8 @@ OUTPUTOPTION=-DhistoryOutput
 
 COMPILER=ifort -openmp -O2 -fpp $(NUMBER) $(MODEL) $(SEARCH) $(REGION) $(PARALLEL) $(PARTICLE) $(OUTPUTOPTION)
 
-DEMBody: global.o loadFile.o main.o start.o initialSystem.o attitudeBondedWallsQM.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o force.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceTriMeshWalls.o forceFunnelWalls.o forceGravBody.o planet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o output.o intgrt.o attitudeBondedWalls.o attitudeGravBody.o attitude.o
-	$(COMPILER)  -o DEMBody global.o loadFile.o main.o start.o initialSystem.o attitudeBondedWallsQM.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o force.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceTriMeshWalls.o forceFunnelWalls.o forceGravBody.o planet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o output.o intgrt.o attitudeBondedWalls.o attitudeGravBody.o attitude.o
+DEMBody: global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o force.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o forceFunnelWalls.o forceGravBody.o planet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o output.o intgrt.o attitudeBondedWalls.o attitudeGravBody.o attitude.o
+	$(COMPILER)  -o DEMBody global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o force.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o forceFunnelWalls.o forceGravBody.o planet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o output.o intgrt.o attitudeBondedWalls.o attitudeGravBody.o attitude.o
 
 global.mod: global.o global.f90
 	$(COMPILER)  -c global.f90
@@ -40,8 +40,8 @@ start.o: global.mod start.f90
 	$(COMPILER)  -c start.f90
 initialSystem.o: global.mod loadfile.mod initialSystem.f90
 	$(COMPILER)  -c initialSystem.f90
-attitudeBondedWallsQM.o: global.mod attitudeBondedWallsQM.f90
-	$(COMPILER)  -c attitudeBondedWallsQM.f90
+attitudeQ2M.o: global.mod attitudeQ2M.f90
+	$(COMPILER)  -c attitudeQ2M.f90
 loadRestartData.o: global.mod loadfile.mod loadRestartData.f90
 	$(COMPILER)  -c loadRestartData.f90
 loadData.o: global.mod loadData.f90
@@ -92,5 +92,5 @@ attitude.o: global.mod attitude.f90
 	$(COMPILER)  -c attitude.f90
 
 clean:
-	rm global.mod loadfile.mod global.o loadFile.o main.o start.o initialSystem.o attitudeBondedWallsQM.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o force.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o forceFunnelWalls.o forceGravBody.o planet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o output.o intgrt.o attitudeBondedWalls.o attitudeGravBody.o attitude.o
+	rm global.mod loadfile.mod global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o force.o forceLattice.o forceMirror.o forceContactWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o forceFunnelWalls.o forceGravBody.o planet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o output.o intgrt.o attitudeBondedWalls.o attitudeGravBody.o attitude.o
 # End of the makefile

@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.5
+    !     DEMBody 4.6
     !     ***********
     !
     !     Initialization of global scalars.
@@ -116,7 +116,7 @@
             wallFlag = wallFlag + 1
             read (1000,*) (bondedWallPoint(K,I),K=1,3),(bondedWallVectorN(K,I),K=1,3),(bondedWallVectorTx(K,I),K=1,3),(bondedWallVectorTy(K,I),K=1,3),bondedWallLx(I),bondedWallLy(I)
         end do
-        call attitudeBondedWallsQM
+        call attitudeQ2M(bondedWallQ,bondedWallMatI,bondedWallMatB)
         !  unified input parameters
         do K = 1,3
             bondedWallWB(K) = bondedWallMatI(K,1)*bondedWallW(1) + bondedWallMatI(K,2)*bondedWallW(2) + bondedWallMatI(K,3)*bondedWallW(3)

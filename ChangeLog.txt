@@ -255,3 +255,16 @@ BondedTrimeshWall:
     在Output文件中加入bondedTriMeshWalls的输出。
     通过测试！
     加入相应的makefile命令
+*********************************************************************
+DEMBody   4.6    22/10/2018上线
+
+BondedWall:
+    将所有的四元数与姿态矩阵的转换统一为attitudeQ2M子例行程序。同时修改对应的makefile。
+Tool：
+    新加入Fortran版本的多面体处理文件，由于部分采用了四精度浮点数，该版本的数据更为精确。其中preload程序读取多面体.bt数据，其格式要求与C版本完全相同；gravity程序计算多面体产生的引力势。在使用时需要修改密度数据，同时gravity程序被封装为PolyhedronGravity模块，直接集成在DEMBody程序包中。
+    规范loadVTK、writeVTK、writeBT，均为直接读取、写入，其中loadVTK得到的点源数据为0开头，因此需要+1；writeVTK写入数据也需要先-1转换为0开头编号；writeBT写入数据同样需要-1转换为0开头。
+    规范genDEMBodyMesh.m，使之与load、write文件适配；同时修改其中的错误，并在每次生成数据之前，进行面元法向量的校核。
+    增加函数genGravTriMesh.m，用于生成引力多面体所需的网格节点。
+    增加函数scaleMesh.m，用于缩放多面体网格。
+常数更新：
+    规范目前所有程序中采用的常数，包括万有引力常数，采用Nature文章的最新结果6.674184e-11。

@@ -23,7 +23,7 @@ const double PrecM2E = 1.0e-15; // The iterational precession of Mean Anomaly to
 
 // solar system physical constants
 const double PI = 3.14159265359; // The value of PI
-const double G = 6.67384e-11; // The gravitational constant, unit: m^3/kg/s^2
+const double G = 6.674184e-11; // The gravitational constant, unit: m^3/kg/s^2
 const double SM = 1.9891e30; // The solar mass, unit: kg
 const double AU = 1.49597871e11; // The astronomical unit, unit: m
 const double SRF = 1.361e3; // The solar radiation flux at 1 AU, unit: kg/s^3

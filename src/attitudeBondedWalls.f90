@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.5
+    !     DEMBody 4.6
     !     ***********
     !
     !     N-body integrator of Quaternion.
@@ -42,7 +42,7 @@
         bondedWallQ(K) = bondedWallQ(K)/norm
     end do
     
-    call attitudeBondedWallsQM
+    call attitudeQ2M(bondedWallQ,bondedWallMatI,bondedWallMatB)
     
     !  refresh Angular velocity
     do K = 1,3

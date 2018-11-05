@@ -22,8 +22,8 @@ int main(int argc,char *argv[])
 	Vector r, f;
 	double density;
 
-    r[0] = 2000.0;
-	r[1] = 0.0;
+    r[0] = -2000.0;
+	r[1] = -2000.0;
 	r[2] = 0.0;
 
     setbuf(stdout,(char *)NULL);

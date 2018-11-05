@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.5
+    !     DEMBody 4.6
     !     ***********
     !
     !     Force for bonded trimesh walls.
@@ -113,7 +113,7 @@
                             RVn(K) = RV(K) - RVt(K)
                         end do
                         edgeFlag = 1.0D0
-                        goto 111
+                        goto 333
                     end if
 
                     if (RV1.LE.0.0D0 .AND. RV2.LE.0.0D0) then
@@ -124,7 +124,7 @@
                             RVn(K) = RV(K) - RVt(K)
                         end do
                         edgeFlag = 0.2D0
-                        goto 111
+                        goto 333
                     end if
 
                     if (RV3.GE.0.0D0 .AND. RV4.LE.RV3) then
@@ -135,7 +135,7 @@
                             RVn(K) = RV(K) - RVt(K)
                         end do
                         edgeFlag = 0.2D0
-                        goto 111
+                        goto 333
                     end if
 
                     if (RV5.LE.RV6 .AND. RV6.GE.0.0D0) then
@@ -146,7 +146,7 @@
                             RVn(K) = RV(K) - RVt(K)
                         end do
                         edgeFlag = 0.2D0 
-                        goto 111
+                        goto 333
                     end if
 
                     if (RV1.GT.0.0D0 .AND. RV3.LT.0.0D0 .AND. RVv.LT.0.0D0) then
@@ -158,7 +158,7 @@
                             RVn(K) = RV(K) - RVt(K)
                         end do
                         edgeFlag = 0.5D0
-                        goto 111
+                        goto 333
                     end if
 
                     if (RV2.GT.0.0D0 .AND. RV6.LT.0.0D0 .AND. RVu.LT.0.0D0) then
@@ -170,7 +170,7 @@
                             RVn(K) = RV(K) - RVt(K)
                         end do
                         edgeFlag = 0.5D0
-                        goto 111
+                        goto 333
                     end if
 
                     if (RV5.GT.RV6 .AND. RV4.GT.RV3 .AND. (RVu+RVv).GT.1.0D0) then
@@ -183,7 +183,7 @@
                             RVn(K) = RV(K) - RVt(K)
                         end do
                         edgeFlag = 0.5D0
-                        goto 111
+                        goto 333
                     end if 
                 end if
             end if
@@ -192,7 +192,7 @@
             !    write(124,'(L4,2X,F5.2)',advance='no') enterFlag
             !end if
 
-111         if (enterFlag) then
+333         if (enterFlag) then
                 !  Initialize state params
                 do K = 1,3
                     Dist(K) = RVn(K)
@@ -318,7 +318,7 @@
                     end do
                     DsL = sqrt(Ds(1)*Ds(1) + Ds(2)*Ds(2) + Ds(3)*Ds(3))
 
-                    !  tangential force of Particle J
+                    !  tangential force of Particle I
                     do K = 1,3
                         tangential_force(K) = - Ks*Ds(K) + Cs*Vtan(K) + H(K)
                     end do
@@ -327,11 +327,11 @@
                     if (slipping) then  !  Have slipped
                         if (DsL .GT. 1.0e-8) then  !  Still slipping
                             do K = 1,3
-                                tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle J
+                                tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle I
                             end do
                         else  !  Approach sticking
                             do K = 1,3
-                                tangential_force(K) = 0.0D0  !  Particle J
+                                tangential_force(K) = 0.0D0  !  Particle I
                             end do
                             slipping = .false.
                         end if

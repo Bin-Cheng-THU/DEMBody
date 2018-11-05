@@ -1,0 +1,24 @@
+ Based on the initial fixed system, zeroth moment T0:
+    0.444910214733E-001
+ Based on the initial fixed system, first monent T1=(Tx,Ty,Tz):
+   -0.217032661613E-015   -0.608238017227E-016   -0.335541364013E-016
+ Based on the initial fixed system, second monent T2=(Txx,Tyy,Tzz,Txy,Tyz,xz):
+    0.478818401740E-003    0.447048804881E-003    0.379240966428E-003   -0.856104062177E-017   -0.102789666185E-016   -0.129005805249E-016
+ The volume of asteroid:
+    0.444910214733E-001
+ The bulk density of asteroid:
+    0.126000000000E+013
+ The mass of asteroid:
+    0.560586870564E+011
+ Based on the initial fixed system, mass center coordinates Rc0=(Xc0,yc0,Zc0):
+   -0.487812269591E-014   -0.136710283802E-014   -0.754177703504E-015
+ Based on the initial fixed system, inertial matrix J0:
+    0.104112511185E+010    0.107869111834E-004    0.162547314613E-004
+    0.107869111834E-004    0.108115480389E+010    0.129514979394E-004
+    0.162547314613E-004    0.129514979394E-004    0.116659268034E+010
+ Based on the new fixed system, mass center coordinates Rc=(Xc,yc,Zc):
+    0.000000000000E+000    0.000000000000E+000    0.000000000000E+000
+ Based on the new fixed system, inertial matrix J:
+    0.104112511185E+010    0.000000000000E+000    0.000000000000E+000
+    0.000000000000E+000    0.108115480389E+010    0.000000000000E+000
+    0.000000000000E+000    0.000000000000E+000    0.116659268034E+010

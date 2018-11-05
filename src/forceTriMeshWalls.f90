@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.5
+    !     DEMBody 4.6
     !     ***********
     !
     !     Force for trimesh walls.
@@ -309,7 +309,7 @@
                     end do
                     DsL = sqrt(Ds(1)*Ds(1) + Ds(2)*Ds(2) + Ds(3)*Ds(3))
 
-                    !  tangential force of Particle J
+                    !  tangential force of Particle I
                     do K = 1,3
                         tangential_force(K) = - Ks*Ds(K) + Cs*Vtan(K) + H(K)
                     end do
@@ -318,11 +318,11 @@
                     if (slipping) then  !  Have slipped
                         if (DsL .GT. 1.0e-8) then  !  Still slipping
                             do K = 1,3
-                                tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle J
+                                tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle I
                             end do
                         else  !  Approach sticking
                             do K = 1,3
-                                tangential_force(K) = 0.0D0  !  Particle J
+                                tangential_force(K) = 0.0D0  !  Particle I
                             end do
                             slipping = .false.
                         end if
