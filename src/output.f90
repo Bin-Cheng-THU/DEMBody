@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.6
+    !     DEMBody 5.0
     !     ***********
     !
     !     Output and data save.
@@ -29,7 +29,7 @@
     !  Output the position, velocity and radius of the projectile
     open(10,FILE='../Data/Projectile.txt')
     if (Time.LE.Tcrit) then
-        write(10,'(14E20.8)') Time,(X(K,PP),K=1,3),(Xdot(K,PP),K=1,3),(F(K,PP),K=1,3),(W(K,PP),K=1,3),Energy(PP)
+        write(10,'(20E20.8)') Time,(X(K,PP),K=1,3),(Xdot(K,PP),K=1,3),(F(K,PP),K=1,3),(W(K,PP),K=1,3),(FM(K,PP),K=1,3),Energy(PP),(Heat(K,PP),K=1,3)
     end if
     
     if (isBondedWall) then
@@ -42,17 +42,27 @@
     
     if (isBondedTriMeshWall) then
         !  Output the position, velocity and angular velocity of the Bonded TriMesh Walls
-        open(11,FILE='../Data/BondedTriMeshWalls.txt')
+        open(12,FILE='../Data/BondedTriMeshWalls.txt')
         if (Time.LE.Tcrit) then
-            write(11,'(7E20.10)') Time,(bondedTriMeshWallF(K),K=1,3),(bondedTriMeshWallFM(K),K=1,3)
+            write(12,'(7E20.10)') Time,(bondedTriMeshWallF(K),K=1,3),(bondedTriMeshWallFM(K),K=1,3)
         end if
     end if    
     
     if (isGravBody) then
         !  Output the position, velocity and angular velocity of the Gravity Body
-        open(12,FILE='../Data/GravBody.txt')
+        open(13,FILE='../Data/GravBody.txt')
         if (Time.LE.Tcrit) then
-            write(12,'(20E20.8)') Time,(gravBodyX(K),K=1,3),(gravBodyXdot(K),K=1,3),(gravBodyW(K),K=1,3),(gravBodyF(K),K=1,3),(gravBodyFM(K),K=1,3),(gravBodyQ(K),K=1,4)
+            write(13,'(20E20.8)') Time,(gravBodyX(K),K=1,3),(gravBodyXdot(K),K=1,3),(gravBodyW(K),K=1,3),(gravBodyF(K),K=1,3),(gravBodyFM(K),K=1,3),(gravBodyQ(K),K=1,4)
+        end if
+    end if
+    
+    if (isSphereBody) then
+        !  Output the position, velocity and angular velocity of the Sphere Body
+        open(14,FILE='../Data/SphereBody.txt')
+        if (Time.LE.Tcrit) then
+            do J = 1,sphereBodyNum
+                write(14,'(20E20.8)') Time,(sphereBodyX(K,J),K=1,3),(sphereBodyXdot(K,J),K=1,3),(sphereBodyW(K,J),K=1,3),(sphereBodyF(K,J),K=1,3),(sphereBodyFM(K,J),K=1,3),(sphereBodyQ(K,J),K=1,4)
+            end do
         end if
     end if
 
@@ -67,20 +77,25 @@
 
         if (isQuaternion) then
             open(Step+1000,FILE=FileNameX)
-            write(Step+1000,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','F:1',',','F:2',',','F:3',',','R',',','Time',',','EN',',','W:1',',','W:2',',','W:3',',','X0',',','Y0',',','Z0',',','Q1',',','Q2',',','Q3',',','Q4'
+            write(Step+1000,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','F:1',',','F:2',',','F:3',',','R',',','Time',',','EN',',','W:1',',','W:2',',','W:3',',','Slip',',','Roll',',','Twist',',','Q1',',','Q2',',','Q3',',','Q4'
             do  J=1,N
-                write(Step+1000,21)X(1,J),',',X(2,J),',',X(3,J),',',Xdot(1,J),',',Xdot(2,J),',',Xdot(3,J),',',F(1,J),',',F(2,J),',',F(3,J),',',R(J),',',Time,',',Energy(J),',',W(1,J),',',W(2,J),',',W(3,J),',',X0(1,J),',',X0(2,J),',',X0(3,J),',',Quaternion(1,J),',',Quaternion(2,J),',',Quaternion(3,J),',',Quaternion(4,J)
+                write(Step+1000,21)X(1,J),',',X(2,J),',',X(3,J),',',Xdot(1,J),',',Xdot(2,J),',',Xdot(3,J),',',F(1,J),',',F(2,J),',',F(3,J),',',R(J),',',Time,',',Energy(J),',',W(1,J),',',W(2,J),',',W(3,J),',',Heat(1,J),',',Heat(2,J),',',Heat(3,J),',',Quaternion(1,J),',',Quaternion(2,J),',',Quaternion(3,J),',',Quaternion(4,J)
             end do
             if (isGravBody) then
-                write(Step+1000,21)gravBodyX(1),',',gravBodyX(2),',',gravBodyX(3),',',gravBodyXdot(1),',',gravBodyXdot(2),',',gravBodyXdot(3),',',gravBodyF(1),',',gravBodyF(2),',',gravBodyF(3),',',gravBodyR,',',Time,',',Energy(J),',',gravBodyW(1),',',gravBodyW(2),',',gravBodyW(3),',',X0(1,J),',',X0(2,J),',',X0(3,J),',',gravBodyQ(1),',',gravBodyQ(2),',',gravBodyQ(3),',',gravBodyQ(4)
+                write(Step+1000,21)gravBodyX(1),',',gravBodyX(2),',',gravBodyX(3),',',gravBodyXdot(1),',',gravBodyXdot(2),',',gravBodyXdot(3),',',gravBodyF(1),',',gravBodyF(2),',',gravBodyF(3),',',gravBodyR,',',Time,',',0.0,',',gravBodyW(1),',',gravBodyW(2),',',gravBodyW(3),',',0.0,',',0.0,',',0.0,',',gravBodyQ(1),',',gravBodyQ(2),',',gravBodyQ(3),',',gravBodyQ(4)
             end if
+            if (isSphereBody) then
+                do J=1,sphereBodyNum
+                    write(Step+1000,21)sphereBodyX(1,J),',',sphereBodyX(2,J),',',sphereBodyX(3,J),',',sphereBodyXdot(1,J),',',sphereBodyXdot(2,J),',',sphereBodyXdot(3,J),',',sphereBodyF(1,J),',',sphereBodyF(2,J),',',sphereBodyF(3,J),',',sphereBodyR(J),',',Time,',',0.0,',',sphereBodyW(1,J),',',sphereBodyW(2,J),',',sphereBodyW(3,J),',',0.0,',',0.0,',',0.0,',',sphereBodyQ(1,J),',',sphereBodyQ(2,J),',',sphereBodyQ(3,J),',',sphereBodyQ(4,J)
+                end do
+            end if            
 21          format (E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6)      
             close(Step+1000)
         else
             open(Step+1000,FILE=FileNameX)
-            write(Step+1000,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','F:1',',','F:2',',','F:3',',','R',',','Time',',','EN',',','W:1',',','W:2',',','W:3',',','X0',',','Y0',',','Z0'
+            write(Step+1000,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','F:1',',','F:2',',','F:3',',','R',',','Time',',','EN',',','W:1',',','W:2',',','W:3',',','Slip',',','Roll',',','Twist'
             do  J=1,N
-                write(Step+1000,22)X(1,J),',',X(2,J),',',X(3,J),',',Xdot(1,J),',',Xdot(2,J),',',Xdot(3,J),',',F(1,J),',',F(2,J),',',F(3,J),',',R(J),',',Time,',',Energy(J),',',W(1,J),',',W(2,J),',',W(3,J),',',X0(1,J),',',X0(2,J),',',X0(3,J)
+                write(Step+1000,22)X(1,J),',',X(2,J),',',X(3,J),',',Xdot(1,J),',',Xdot(2,J),',',Xdot(3,J),',',F(1,J),',',F(2,J),',',F(3,J),',',R(J),',',Time,',',Energy(J),',',W(1,J),',',W(2,J),',',W(3,J),',',Heat(1,J),',',Heat(2,J),',',Heat(3,J)
             end do
             if (isGravBody) then
                 write(Step+1000,22)gravBodyX(1),',',gravBodyX(2),',',gravBodyX(3),',',gravBodyXdot(1),',',gravBodyXdot(2),',',gravBodyXdot(3),',',gravBodyF(1),',',gravBodyF(2),',',gravBodyF(3),',',gravBodyR,',',Time,',',Energy(J),',',gravBodyW(1),',',gravBodyW(2),',',gravBodyW(3),',',X0(1,J),',',X0(2,J),',',X0(3,J)
@@ -113,10 +128,15 @@
         !  Output the Bonded Wall Meshfile
         if (isBondedWall) then
             write(FileNameW,'(I4)') Step+1000
+#ifdef Linux
+            FileNameW = '../Data/Wall/'//FileNameW
+            FileNameW = trim(FileNameW)//'W.vtk'            
+            result = systemqq("cp ../Input/bondedWallMesh.vtk "//FileNameW)
+#elif Windows
             FileNameW = '..\Data\Wall\'//FileNameW
-            FileNameW = trim(FileNameW)//'W.vtk'
-            
-            result = systemqq("cp ..\Input\bondedWallMesh.vtk "//FileNameW)
+            FileNameW = trim(FileNameW)//'W.vtk'   
+            result = systemqq("copy ..\Input\bondedWallMesh.vtk "//FileNameW)
+#endif
             open(Step+1000,FILE=FileNameW,position='Append')
             do J=1,size(bondedWallMeshPoint,2)
                 do K = 1,3

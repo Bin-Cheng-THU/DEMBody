@@ -1,11 +1,11 @@
     !********************************************************************
-    !     DEMBody 4.6
+    !     DEMBody 5.0
     !     ***********
     !
     !     N-body integrator flow control.
     !     -------------------------------
     !     @New method to solve the intgret: mid-step velocities verlet algoritm
-    !     @Calculated x & xdot & w from the previous values.
+    !     @Calculated x & xdot & w & Q from the previous values.
 
     !
     !********************************************************************
@@ -37,7 +37,6 @@
             XT(K,I) = XT(K,I) + dist(K)            
             X(K,I) = X(K,I) + dist(K)
             Xdot(K,I) = Xdot(K,I) + F(K,I) * Dt /2.0D0
-            W(K,I) = W(K,I) + FM(K,I) * Dt /2.0D0
         end do
 #ifdef LatticeSearch        
         distL = XT(1,I)*XT(1,I) + XT(2,I)*XT(2,I) + XT(3,I)*XT(3,I)
@@ -48,21 +47,20 @@
     end do
     !$OMP END PARALLEL DO
     
+    if (isQuaternion) then
+        call attitude
+    end if
+    
     if (isBondedWall) then
-        call attitudeBondedWalls
+        call intgrtBondedWalls
     end if
     
     if (isGravBody) then
-        do K = 1,3
-            gravBodyX(K) = gravBodyX(K) + gravBodyXdot(K) * Dt +  gravBodyF(K) * Dt * Dt /2.0D0
-            gravBodyXdot(K) = gravBodyXdot(K) + gravBodyF(K) * Dt /2.0D0
-            gravBodyW(K) = gravBodyW(K) + gravBodyFM(K) * Dt /2.0D0
-        end do
-        call attitudeGravBody
+        call intgrtGravBody
     end if
-
-    if (isQuaternion) then
-        call attitude
+    
+    if (isSphereBody) then
+        call intgrtSphereBody
     end if
     
     if (isPeriodic) then
@@ -115,11 +113,15 @@
             gravBodyXdot(K) = gravBodyXdot(K) + gravBodyF(K) * Dt /2.0D0
             gravBodyW(K) = gravBodyW(K) + gravBodyFM(K) * Dt /2.0D0
         end do
-        call attitudeGravBody
     end if
     
-    if (isQuaternion) then
-        call attitude
+    if (isSphereBody) then
+        do I = 1,sphereBodyNum
+            do K = 1,3
+                sphereBodyXdot(K,I) = sphereBodyXdot(K,I) + sphereBodyF(K,I) * Dt /2.0D0
+                sphereBodyW(K,I) = sphereBodyW(K,I) + sphereBodyFM(K,I) * Dt /2.0D0
+            end do
+        end do
     end if
     
     !o2 = omp_get_wtime()

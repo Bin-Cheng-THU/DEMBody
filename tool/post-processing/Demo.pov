@@ -8,14 +8,14 @@
 #include "metals.inc"  
 #include "functions.inc"
 #version 3.6;
-camera {location <  1.2500e+00,  6.0000e+00,  0.0000e+0> 
+camera {location <  1.2500e+00,  5.0000e+00,  5.0000e+0> 
         sky   <  0.0000e+00,  0.0000e+00,  1.0000e+00> 
         look_at <  1.2500e+0,  0.0000e+00,  0.0000e+0> 
         up <  0.0000e+00,  9.0000e-01,  0.0000e+00> 
         right <  1.6000e+00,  0.0000e+00,  0.0000e+00> 
         }   
-light_source {<  10.5000e+00,  0.0000e+00,  10.5000e+01> color 1.5}
-light_source {<  0.0000e+00,  10.0000e+00,  0.0000e+0> color 0.2}  
+light_source {<  10.5000e+00,  20.0000e+00,  5.0000e+01> color 1.5}
+light_source {<  0.0000e+00,  20.0000e+00,  0.0000e+0> color 0.2}  
 // ==============================================================
 // =======================Asteroid===============================
 // ==============================================================
@@ -296,4 +296,19 @@ sphere {<   -1.25,  0.0,   0.0>,    0.5
     }
    }
 sphere {<   -2.5,  0.0,   0.0>,    0.5 
-    texture {Snow scale 0.2}}
+    texture {Snow scale 0.2}}         
+// ==============================================================
+// =======================Stripe===================================
+// ==============================================================     
+#declare Stripe= 
+  texture {pigment { 
+               gradient <1,0,0> color_map {[0.0 color rgb<0,0,0>]
+                                           [0.15 color rgb<0,0,0>]
+                                           [0.15 color rgb<1,1,1>]
+                                           [0.85 color rgb<1,1,1>]
+                                           [0.85 color rgb<0,0,0>]
+                                           [1.0 color rgb<0,0,0>]}
+              scale 0.5}
+finish {ambient 0.0 diffuse 0.7 brilliance 2.0 specular 0.05 roughness 0.1} normal { agate 0.13 scale 0.08 }}
+sphere {<   1.25,  -1.5,   0.0>,    0.5 
+    texture {Stripe scale 1.0}}

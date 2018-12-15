@@ -10,11 +10,12 @@
     !
     !********************************************************************
     program main
-
+    implicit none
+    
     integer :: I,J,K,L
-    real(8) :: D,H  !mesh grid
+    real(8) :: D(2),H(2),T(2)  !mesh grid
     real(8) :: R,width  !particle params
-    integer :: number,iterate
+    integer :: number,iterate,shooting
     real(8) :: tol
     real(8) :: gamma
     real(8) :: mass,surface
@@ -42,25 +43,25 @@
     Distribution = 0
     !################         Input         ###################
     !--- Mesh Region
-    D = 25005.0
-    H = 6270.0
-    T = 15.0
+    D = (/-20,20/)
+    H = (/-20,20/)
+    T = (/0,60/)
     
     !--- Particle Params
-    R = 5.0
-    width = 1.0
-    Rho = 0.4*1000
+    R = 1.5
+    width = 0.5
+    Rho = 2.5
     
     !--- Particle Number
-    number = 1200000
-    tol = 0.1
+    number = 2000
+    tol = 0.01
     iterate = 200
-    gamma = -1.261058874800597e-04
-    shooting = 50
+    gamma = 0.0
+    shooting = 100
     allocate(points(4,number))
     
     !--- Power Law
-    Distribution = 1
+    Distribution = 0
     power = 2.8
     r_law_n = 100
     r_law_step = width*2.0/REAL(r_law_n)
@@ -74,7 +75,7 @@
     open(10,FILE='particles.txt')
     call random_seed()
     do I = 1,number
-        if (MODULO(I,10000)==0) then
+        if (MODULO(I,1000)==0) then
             write(*,*) I
         end if
         Tag = 1
@@ -89,11 +90,11 @@
             end if
             
             call random_number(point(1))
-            point(1) = 2.0*(D-radius)*point(1)-(D-radius)
+            point(1) = (D(2)-D(1))*point(1)+D(1)
             call random_number(point(2))
-            point(2) = 2.0*(H-radius)*point(2)-(H-radius)
+            point(2) = (H(2)-H(1))*point(2)+H(1)
             call random_number(point(3))
-            point(3) = 2.0*T*point(3)-T
+            point(3) = (T(2)-T(1))*point(3)+T(1)
     
             Flag = 1
             if (I > 1) then
@@ -117,7 +118,7 @@
                         point(K) = point(K) + dist(K)*dx*2.0
                     end do
                     
-                    if (abs(point(1)).GE.D .OR. abs(point(2)).GE.H .OR. abs(point(3)).GE.T) then
+                    if (point(1).LE.D(1) .OR. point(1).GE.D(2) .OR. point(2).LE.H(1) .OR. point(2).GE.H(2) .OR. point(3).LE.T(1) .OR. point(3).GE.T(2)) then
                         exit
                     end if
     

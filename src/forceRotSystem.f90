@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.6
+    !     DEMBody 5.0
     !     ***********
     !
     !     Rotary system force.
@@ -32,16 +32,16 @@
         F(1,I) = F(1,I) + 2.0D0*sysOmega*Xdot(2,I)
         F(2,I) = F(2,I) - 2.0D0*sysOmega*Xdot(1,I)
         
-        !  Gravity
-        do K = 1,3
-            dist(K) = 0.0D0 - X(K,I)
-        end do
-        distS = Dist(1)*Dist(1) + Dist(2)*Dist(2) + Dist(3)*Dist(3)
-        distL = sqrt(DistS)
-        center = sysGrav/distS/distL
-        do K = 1,3
-            F(K,I) = F(K,I) + center*dist(K)
-        end do
+        !!  Gravity
+        !do K = 1,3
+        !    dist(K) = 0.0D0 - X(K,I)
+        !end do
+        !distS = Dist(1)*Dist(1) + Dist(2)*Dist(2) + Dist(3)*Dist(3)
+        !distL = sqrt(DistS)
+        !center = sysGrav/distS/distL
+        !do K = 1,3
+        !    F(K,I) = F(K,I) + center*dist(K)
+        !end do
     end do
     !$OMP END PARALLEL DO
 

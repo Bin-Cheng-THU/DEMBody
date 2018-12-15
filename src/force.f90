@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.6
+    !     DEMBody 5.0
     !     ***********
     !
     !     Force for all particles.
@@ -14,6 +14,7 @@
     !     @Using forceBondedTriMeshWalls when enable BondedTriMeshWall
     !     @Using forceFunnelWalls when enable FunnelWall
     !     @Using forceGravBody when enable GravBody
+    !     @Using forceSphereBody when enable SphereBody
     !     @force to acceleration
     !     @Using Planet force when enable Planet
     !     @Using forceRotSystem when enbale RotSystem
@@ -112,7 +113,16 @@
     !oend = omp_get_wtime()
     !write(*,*) "Grav bodies",(oend-ostart)
     
-    !################         Part 9: Force to Acceleration          ###################
+    !################         Part 9: SphereBody forces          ###################
+    !ostart = omp_get_wtime()
+    !  calculate force of sphere body if using SphereBody
+    if (isSphereBody) then
+        call forceSphereBody
+    end if
+    !oend = omp_get_wtime()
+    !write(*,*) "Sphere bodies",(oend-ostart)
+    
+    !################         Part 10: Force to Acceleration          ###################
     !ostart = omp_get_wtime()
     !$OMP PARALLEL DO PRIVATE(I,K,accMag)
     do I = 1,N
@@ -132,7 +142,7 @@
     !oend = omp_get_wtime()
     !write(*,*) 'accelerate', (oend-ostart)    
 
-    !################         Part 10: Planet forces          ###################
+    !################         Part 11: Planet forces          ###################
     !ostart = omp_get_wtime()
     !  calculate Planet force if in Planet system
     if (isPlanet) then
@@ -141,7 +151,7 @@
     !oend = omp_get_wtime()
     !write(*,*) 'Planet', (oend-ostart)  
     
-    !################         Part 11: Rotsystem forces          ###################
+    !################         Part 12: Rotsystem forces          ###################
     !ostart = omp_get_wtime()
     !  calculate Noninertial force if in Rotary system
     if (isRotSystem) then
@@ -150,14 +160,14 @@
     !oend = omp_get_wtime()
     !write(*,*) 'Rot system', (oend-ostart)  
     
-    !################         Part 12: GravTriMesh forces          ###################
+    !################         Part 13: GravTriMesh forces          ###################
     !ostart = omp_get_wtime()
-    !  calculate force of gravity body if using GravBody
+    !  calculate force of gravity body if using GravTriMesh
     if (isGravTriMesh) then
         call forceGravTriMesh
     end if
     !oend = omp_get_wtime()
-    !write(*,*) "Grav bodies",(oend-ostart)
+    !write(*,*) "GravTriMesh",(oend-ostart)
     
     !write(FileNameForce,'(F10.5)') Time
     !FileNameForce = trim(FileNameForce)//'Force.txt'

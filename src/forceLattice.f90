@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.6
+    !     DEMBody 5.0
     !     ***********
     !
     !     Force for all Parallel Lattice.
@@ -21,9 +21,9 @@
     real(8) ::  Dist(3),DistS,DistL,DistR,DistU(3)
     real(8) ::  Vrel(3),Vrot(3),Vtot(3),ERR,Vnor(3),Vtan(3)
     real(8) ::  normal_force(3),normal_forceL
-    real(8) ::  tangential_force(3),tangential_forceL
-    real(8) ::  rolling_moment(3),rolling_momentL
-    real(8) ::  twisting_moment(3),twisting_momentL
+    real(8) ::  tangential_force(3),tangential_forceL,tangential_history(3)
+    real(8) ::  rolling_moment(3),rolling_momentL,rolling_history(3)
+    real(8) ::  twisting_moment(3),twisting_momentL,twisting_history(3)
     real(8) ::  cohesive_force(3)
     real(8) ::  Ap,An
     real(8) ::  Rij,Mij,Iij
@@ -58,6 +58,7 @@
     F = 0.0D0
     FM = 0.0D0
     Energy = 0.0D0
+    Heat = 0.0D0
     
     !write(FileNameHead,'(F10.5)') Time
     !FileNameHead = trim(FileNameHead)//'Head.txt'
@@ -68,8 +69,8 @@
     !$OMP PARALLEL DO &
     !$OMP& PRIVATE(check,shearPBC,LenNodeJ,LenNode,Temp,TempH,Tail,num1,num2,limit,&
     !$OMP& I,J,K,L,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
-    !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,&
-    !$OMP& rolling_moment,rolling_momentL,twisting_moment,twisting_momentL,cohesive_force,Ap,An,Rij,Mij,Iij,&
+    !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,tangential_history,&
+    !$OMP& rolling_moment,rolling_momentL,rolling_history,twisting_moment,twisting_momentL,twisting_history,cohesive_force,Ap,An,Rij,Mij,Iij,&
     !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
     !$OMP& slipping,rolling,twisting,touching,&
     !$OMP& II,JJ,IDJ,IDInnerI,IDInnerJ,IDOuterJ,particleI,particleJ) SCHEDULE(GUIDED)
@@ -211,8 +212,8 @@
                         normal_forceL = sqrt(normal_force(1)*normal_force(1) + normal_force(2)*normal_force(2) + normal_force(3)*normal_force(3))
 
                         !  Add energy
-                        Energy(particleI) = Energy(particleI) + 0.4D0*Kn*(Dn**2)
-                        !Energy(particleJ) = Energy(particleJ) + 0.4D0*Kn*(Dn**2)
+                        Energy(particleI) = Energy(particleI) + 0.2D0*Kn*(Dn**2)
+                        !Energy(particleJ) = Energy(particleJ) + 0.2D0*Kn*(Dn**2)
 
                         !  tangential deform
                         do K = 1,3
@@ -226,33 +227,41 @@
                         end do
                         tangential_forceL = sqrt(tangential_force(1)*tangential_force(1) + tangential_force(2)*tangential_force(2) + tangential_force(3)*tangential_force(3))
 
-                        if (slipping) then  !  Have slipped
-                            if (DsL .GT. 1.0e-8) then  !  Still slipping
-                                do K = 1,3
-                                    tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle J
-                                end do
-                            else  !  Approach sticking
-                                do K = 1,3
-                                    tangential_force(K) = 0.0D0  !  Particle J
-                                end do
-                                slipping = .false.
-                            end if
-                        else
+                        !if (slipping) then  !  Have slipped
+                        !    if (DsL .GT. 1.0e-14) then  !  Still slipping
+                        !        do K = 1,3
+                        !            tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle J
+                        !        end do
+                        !    else  !  Approach sticking
+                        !        do K = 1,3
+                        !            tangential_force(K) = 0.0D0  !  Particle J
+                        !        end do
+                        !        slipping = .false.
+                        !    end if
+                        !else
                             if (tangential_forceL .GT. normal_forceL*m_mu_s) then  !  Slipping
                                 slipping = .true.
                                 if (DsL .GT. 1.0e-14) then
                                     do K = 1,3
                                         tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL
+                                        tangential_history(K) = tangential_force(K)
                                     end do
+                                    !  Add frictional heat
+                                    Heat(1,particleI) = Heat(1,particleI) + 0.5D0*m_mu_d*normal_forceL*DsL
+                                    !Heat(1,particleJ) = Heat(1,particleJ) + 0.5D0*m_mu_d*normal_forceL*DsL
                                 else
                                     do K = 1,3
                                         tangential_force(K) = 0.0D0
+                                        tangential_history(K) = tangential_force(K)
                                     end do
                                 end if
                             else
                                 slipping = .false.  !  Sticking
+                                do K = 1,3
+                                    tangential_history(K) = tangential_force(K) - Cs*Vtan(K)
+                                end do
                             end if
-                        end if
+                        !end if
 
                         touching = .true.
                         !  Apply force
@@ -290,36 +299,42 @@
                         end do
                         rolling_momentL = sqrt(rolling_moment(1)*rolling_moment(1) + rolling_moment(2)*rolling_moment(2) + rolling_moment(3)*rolling_moment(3))                
 
-                        if (rolling) then  !  Have rolled
-                            if (DthetaRL .GT. 1.0e-8) then  !  Still slipping
-                                do K = 1,3
-                                    rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle J
-                                end do
-                            else  !  Approach sticking
-                                do K = 1,3
-                                    rolling_moment(K) = 0.0D0  !  Particle J
-                                end do
-                                rolling = .false.
-                            end if
-                        else
+                        !if (rolling) then  !  Have rolled
+                        !    if (DthetaRL .GT. 1.0e-14) then  !  Still slipping
+                        !        do K = 1,3
+                        !            rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle J
+                        !        end do
+                        !    else  !  Approach sticking
+                        !        do K = 1,3
+                        !            rolling_moment(K) = 0.0D0  !  Particle J
+                        !        end do
+                        !        rolling = .false.
+                        !    end if
+                        !else
                             if (rolling_momentL .GT. 2.1D0*0.25D0*m_Beta*Rij*normal_forceL) then  !  Rolling
                                 rolling = .true.
                                 if (DthetaRL .GT. 1.0e-14) then
                                     do K = 1,3
                                         rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL
+                                        rolling_history(K) = rolling_moment(K)
                                     end do
+                                    !  Add frictional heat
+                                    Heat(2,particleI) = Heat(2,particleI) + 0.5D0*2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaRL
+                                    !Heat(2,particleJ) = Heat(2,particleJ) + 0.5D0*2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaRL
                                 else
                                     do K = 1,3
                                         rolling_moment(K) = 0.0D0
+                                        rolling_history(K) = rolling_moment(K)
                                     end do
                                 end if
                             else
                                 rolling = .false.  !  Sticking
                                 do K = 1,3
+                                    rolling_history(K) = rolling_moment(K)
                                     rolling_moment(K) = rolling_moment(K) - Cr*DthetaR(K)/Dt
                                 end do
                             end if
-                        end if  
+                        !end if  
 
                         !  twisting moment of Particle J
                         do K = 1,3
@@ -327,36 +342,42 @@
                         end do
                         twisting_momentL = sqrt(twisting_moment(1)*twisting_moment(1) + twisting_moment(2)*twisting_moment(2) + twisting_moment(3)*twisting_moment(3))                
 
-                        if (twisting) then  !  Have twisted
-                            if (DthetaTL .GT. 1.0e-8) then  !  Still slipping
-                                do K = 1,3
-                                    twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle J
-                                end do
-                            else  !  Approach sticking
-                                do K = 1,3
-                                    twisting_moment(K) = 0.0D0  !  Particle J
-                                end do
-                                twisting = .false.
-                            end if
-                        else
+                        !if (twisting) then  !  Have twisted
+                        !    if (DthetaTL .GT. 1.0e-14) then  !  Still slipping
+                        !        do K = 1,3
+                        !            twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle J
+                        !        end do
+                        !    else  !  Approach sticking
+                        !        do K = 1,3
+                        !            twisting_moment(K) = 0.0D0  !  Particle J
+                        !        end do
+                        !        twisting = .false.
+                        !    end if
+                        !else
                             if (twisting_momentL .GT. 0.65D0*m_mu_s*m_Beta*Rij*normal_forceL) then  !  Rolling
                                 twisting = .true.
                                 if (DthetaTL .GT. 1.0e-14) then
                                     do K = 1,3
                                         twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL
+                                        twisting_history(K) = twisting_moment(K)
                                     end do
+                                    !  Add frictional heat
+                                    Heat(3,particleI) = Heat(3,particleI) + 0.5D0*0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaTL
+                                    !Heat(3,particleJ) = Heat(3,particleJ) + 0.5D0*0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaTL
                                 else
                                     do K = 1,3
                                         twisting_moment(K) = 0.0D0
+                                        twisting_history(K) = twisting_moment(K)
                                     end do
                                 end if
                             else
                                 twisting = .false.  !  Sticking
                                 do K = 1,3
+                                    twisting_history(K) = twisting_moment(K)
                                     twisting_moment(K) = twisting_moment(K) - Ct*DthetaT(K)/Dt
                                 end do
                             end if
-                        end if  
+                        !end if  
 
                         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
                         !  Apply moment
@@ -385,9 +406,9 @@
                             if (Temp%No .EQ. particleJ) then
                                 !  Have contacted.
                                 do K = 1,3
-                                    Temp%Hertz(K) = tangential_force(K)
-                                    Temp%Mrot(K) = rolling_moment(K)
-                                    Temp%Mtwist(K) = twisting_moment(K)
+                                    Temp%Hertz(K) = tangential_history(K)
+                                    Temp%Mrot(K) = rolling_history(K)
+                                    Temp%Mtwist(K) = twisting_history(K)
                                 end do
                                 Temp%is_touching = touching
                                 Temp%is_slipping = slipping
@@ -398,7 +419,7 @@
                             else
                                 !  First contacted.
                                 allocate(TempH)
-                                TempH = Nodelink(particleJ,tangential_force,rolling_moment,twisting_moment,&
+                                TempH = Nodelink(particleJ,tangential_history,rolling_history,twisting_history,&
                                 & touching,slipping,rolling,twisting,Temp,Temp%next)
                                 if (associated(Temp%next)) Temp%next%prev => TempH
                                 Temp%next => TempH
@@ -408,7 +429,7 @@
                         else
                             !  Temp is Head of linklist!!!
                             allocate(TempH)
-                            TempH = Nodelink(particleJ,tangential_force,rolling_moment,twisting_moment,&
+                            TempH = Nodelink(particleJ,tangential_history,rolling_history,twisting_history,&
                             & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
@@ -608,8 +629,8 @@
                                 normal_forceL = sqrt(normal_force(1)*normal_force(1) + normal_force(2)*normal_force(2) + normal_force(3)*normal_force(3))
 
                                 !  Add energy
-                                Energy(particleI) = Energy(particleI) + 0.4D0*Kn*(Dn**2)
-                                !Energy(particleJ) = Energy(particleJ) + 0.4D0*Kn*(Dn**2)
+                                Energy(particleI) = Energy(particleI) + 0.2D0*Kn*(Dn**2)
+                                !Energy(particleJ) = Energy(particleJ) + 0.2D0*Kn*(Dn**2)
 
                                 !  tangential deform
                                 do K = 1,3
@@ -627,33 +648,41 @@
                                 !    write(123,'(14F15.5,2X)',advance='no') normal_forceL,tangential_forceL,(H(K),K=1,3),(Vtan(K),K=1,3),(Ds(K),K=1,3),(tangential_force(K),K=1,3)
                                 !end if
 
-                                if (slipping) then  !  Have slipped
-                                    if (DsL .GT. 1.0e-8) then  !  Still slipping
-                                        do K = 1,3
-                                            tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle J
-                                        end do
-                                    else  !  Approach sticking
-                                        do K = 1,3
-                                            tangential_force(K) = 0.0D0  !  Particle J
-                                        end do
-                                        slipping = .false.
-                                    end if
-                                else
+                                !if (slipping) then  !  Have slipped
+                                !    if (DsL .GT. 1.0e-14) then  !  Still slipping
+                                !        do K = 1,3
+                                !            tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle J
+                                !        end do
+                                !    else  !  Approach sticking
+                                !        do K = 1,3
+                                !            tangential_force(K) = 0.0D0  !  Particle J
+                                !        end do
+                                !        slipping = .false.
+                                !    end if
+                                !else
                                     if (tangential_forceL .GT. normal_forceL*m_mu_s) then  !  Slipping
                                         slipping = .true.
                                         if (DsL .GT. 1.0e-14) then
                                             do K = 1,3
                                                 tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL
+                                                tangential_history(K) = tangential_force(K)
                                             end do
+                                            !  Add frictional heat
+                                            Heat(1,particleI) = Heat(1,particleI) + 0.5D0*m_mu_d*normal_forceL*DsL
+                                            !Heat(1,particleJ) = Heat(1,particleJ) + 0.5D0*m_mu_d*normal_forceL*DsL
                                         else
                                             do K = 1,3
                                                 tangential_force(K) = 0.0D0
+                                                tangential_history(K) = tangential_force(K)
                                             end do
                                         end if
                                     else
                                         slipping = .false.  !  Sticking
+                                        do K = 1,3
+                                            tangential_history(K) = tangential_force(K) - Cs*Vtan(K)
+                                        end do
                                     end if
-                                end if
+                                !end if
 
                                 touching = .true.
                                 !  Apply force
@@ -691,36 +720,42 @@
                                 end do
                                 rolling_momentL = sqrt(rolling_moment(1)*rolling_moment(1) + rolling_moment(2)*rolling_moment(2) + rolling_moment(3)*rolling_moment(3))                
 
-                                if (rolling) then  !  Have rolled
-                                    if (DthetaRL .GT. 1.0e-8) then  !  Still slipping
-                                        do K = 1,3
-                                            rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle J
-                                        end do
-                                    else  !  Approach sticking
-                                        do K = 1,3
-                                            rolling_moment(K) = 0.0D0  !  Particle J
-                                        end do
-                                        rolling = .false.
-                                    end if
-                                else
+                                !if (rolling) then  !  Have rolled
+                                !    if (DthetaRL .GT. 1.0e-14) then  !  Still slipping
+                                !        do K = 1,3
+                                !            rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle J
+                                !        end do
+                                !    else  !  Approach sticking
+                                !        do K = 1,3
+                                !            rolling_moment(K) = 0.0D0  !  Particle J
+                                !        end do
+                                !        rolling = .false.
+                                !    end if
+                                !else
                                     if (rolling_momentL .GT. 2.1D0*0.25D0*m_Beta*Rij*normal_forceL) then  !  Rolling
                                         rolling = .true.
                                         if (DthetaRL .GT. 1.0e-14) then
                                             do K = 1,3
                                                 rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL
+                                                rolling_history(K) = rolling_moment(K)
                                             end do
+                                            !  Add frictional heat
+                                            Heat(2,particleI) = Heat(2,particleI) + 0.5D0*2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaRL
+                                            !Heat(2,particleJ) = Heat(2,particleJ) + 0.5D0*2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaRL
                                         else
                                             do K = 1,3
                                                 rolling_moment(K) = 0.0D0
+                                                rolling_history(K) = rolling_moment(K)
                                             end do
                                         end if
                                     else
                                         rolling = .false.  !  Sticking
                                         do K = 1,3
+                                            rolling_history(K) = rolling_moment(K)
                                             rolling_moment(K) = rolling_moment(K) - Cr*DthetaR(K)/Dt
                                         end do
                                     end if
-                                end if     
+                                !end if     
 
                                 !  twisting moment of Particle J
                                 do K = 1,3
@@ -728,36 +763,42 @@
                                 end do
                                 twisting_momentL = sqrt(twisting_moment(1)*twisting_moment(1) + twisting_moment(2)*twisting_moment(2) + twisting_moment(3)*twisting_moment(3))                
 
-                                if (twisting) then  !  Have twisted
-                                    if (DthetaTL .GT. 1.0e-8) then  !  Still slipping
-                                        do K = 1,3
-                                            twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle J
-                                        end do
-                                    else  !  Approach sticking
-                                        do K = 1,3
-                                            twisting_moment(K) = 0.0D0  !  Particle J
-                                        end do
-                                        twisting = .false.
-                                    end if
-                                else
+                                !if (twisting) then  !  Have twisted
+                                !    if (DthetaTL .GT. 1.0e-14) then  !  Still slipping
+                                !        do K = 1,3
+                                !            twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle J
+                                !        end do
+                                !    else  !  Approach sticking
+                                !        do K = 1,3
+                                !            twisting_moment(K) = 0.0D0  !  Particle J
+                                !        end do
+                                !        twisting = .false.
+                                !    end if
+                                !else
                                     if (twisting_momentL .GT. 0.65D0*m_mu_s*m_Beta*Rij*normal_forceL) then  !  Rolling
                                         twisting = .true.
                                         if (DthetaTL .GT. 1.0e-14) then
                                             do K = 1,3
                                                 twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL
+                                                twisting_history(K) = twisting_moment(K)
                                             end do
+                                            !  Add frictional heat
+                                            Heat(3,particleI) = Heat(3,particleI) + 0.5D0*0.65D0*m_mu_s*m_Beta*Rij*normal_forceL*DthetaTL
+                                            !Heat(3,particleJ) = Heat(3,particleJ) + 0.5D0*0.65D0*m_mu_s*m_Beta*Rij*normal_forceL*DthetaTL
                                         else
                                             do K = 1,3
                                                 twisting_moment(K) = 0.0D0
+                                                twisting_history(K) = twisting_moment(K)
                                             end do
                                         end if
                                     else
                                         twisting = .false.  !  Sticking
                                         do K = 1,3
+                                            twisting_history(K) = twisting_moment(K)
                                             twisting_moment(K) = twisting_moment(K) - Ct*DthetaT(K)/Dt
                                         end do
                                     end if
-                                end if  
+                                !end if  
 
                                 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
                                 !  Apply moment
@@ -786,9 +827,9 @@
                                     if (Temp%No .EQ. particleJ) then
                                         !  Have contacted.
                                         do K = 1,3
-                                            Temp%Hertz(K) = tangential_force(K)
-                                            Temp%Mrot(K) = rolling_moment(K)
-                                            Temp%Mtwist(K) = twisting_moment(K)
+                                            Temp%Hertz(K) = tangential_history(K)
+                                            Temp%Mrot(K) = rolling_history(K)
+                                            Temp%Mtwist(K) = twisting_history(K)
                                         end do
                                         Temp%is_touching = touching
                                         Temp%is_slipping = slipping
@@ -799,7 +840,7 @@
                                     else
                                         !  First contacted.
                                         allocate(TempH)
-                                        TempH = Nodelink(particleJ,tangential_force,rolling_moment,twisting_moment,&
+                                        TempH = Nodelink(particleJ,tangential_history,rolling_history,twisting_history,&
                                         & touching,slipping,rolling,twisting,Temp,Temp%next)
                                         if (associated(Temp%next)) Temp%next%prev => TempH
                                         Temp%next => TempH
@@ -809,7 +850,7 @@
                                 else
                                     !  Temp is Head of linklist!!!
                                     allocate(TempH)
-                                    TempH = Nodelink(particleJ,tangential_force,rolling_moment,twisting_moment,&
+                                    TempH = Nodelink(particleJ,tangential_history,rolling_history,twisting_history,&
                                     & touching,slipping,rolling,twisting,Temp,Temp%next)
                                     if (associated(Temp%next)) Temp%next%prev => TempH
                                     Temp%next => TempH

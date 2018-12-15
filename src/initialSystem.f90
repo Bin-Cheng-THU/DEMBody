@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.6
+    !     DEMBody 5.0
     !     ***********
     !
     !     Initialization of global scalars.
@@ -23,14 +23,6 @@
     integer :: numNode
     integer :: numGrid
     integer :: idNode
-    real(8) :: pointTriMesh(3,3)
-    real(8) :: centerLattice(3),RV(3),RVL
-    integer :: TagTriMesh(3)
-    integer :: idTriMesh(3,3)
-    integer :: idRange(2,3)
-    integer :: index
-    type(trimeshLattice),pointer :: Temp
-    type(trimeshLattice),pointer :: TempH
     real(8) :: ostart,oend
 
     !  Initialize parameters and set useful constants.
@@ -71,6 +63,7 @@
     read (1000,*) isFunnelWall         !  whether use Funnel Walls
     read (1000,*) isPeriodic           !  whether use Periodic function
     read (1000,*) isGravBody           !  whether use Gravity Body
+    read (1000,*) isSphereBody         !  whether use Sphere Body
     read (1000,*) isGravTriMesh        !  whether use Gravity TriMesh
     read (1000,*) MAX_ACC              !  maximum contact acceleration
     read (1000,*)                         
@@ -122,6 +115,7 @@
             bondedWallWB(K) = bondedWallMatI(K,1)*bondedWallW(1) + bondedWallMatI(K,2)*bondedWallW(2) + bondedWallMatI(K,3)*bondedWallW(3)
         end do
         !  load bonded wall mesh
+        read (1000,*)
         open (1500,File="../Input/bondedWallPoint.vtk")
         nRow = GetFileN(1500)
         allocate (bondedWallMeshPoint(3,nRow))
@@ -139,7 +133,6 @@
         write(*,*) '< is TriMesh walls, loading...'
         read (1000,*)
         read (1000,*) trimeshWallNum
-        read (1000,*)
         allocate (trimeshWallTag(trimeshWallNum))
         allocate (trimeshWallPoint(3,trimeshWallNum))
         allocate (trimeshWallVectorN(3,trimeshWallNum))
@@ -147,6 +140,7 @@
         allocate (trimeshWallVectorTy(3,trimeshWallNum))
         allocate (trimeshWallLength(4,trimeshWallNum))
         !  load trimesh wall
+        read (1000,*)
         open (1500,File="../Input/trimeshWall.mesh")
         do I = 1,trimeshWallNum
             trimeshWallTag(I) = NMAX + wallFlag
@@ -167,100 +161,8 @@
             trimeshWallLength(4,I) = trimeshWallLength(2,I)*trimeshWallLength(2,I) - trimeshWallLength(1,I)*trimeshWallLength(3,I)
         end do
         close(1500)
-        !!********************************Test for trimeshLattice******************************************
-        !ostart = omp_get_wtime()
-        !open(3000,File="trimeshLattice_test.csv")
-        !write(3000,*) 'X',',','Y',',','Z',',','N'
-        !  allocate trimesh to Lattice
-        LatNum = LatNx*LatNy*LatNz 
-        allocate(trimeshDEM(LatNum))
-        do I = 1,LatNum
-            trimeshDEM(I)%No = 0
-            nullify(trimeshDEM(I)%next)
-        end do
-        do I = 1,trimeshWallNum
-            !  triangle vertexes
-            pointTriMesh(1,1) = trimeshWallPoint(1,I)
-            pointTriMesh(2,1) = trimeshWallPoint(2,I)
-            pointTriMesh(3,1) = trimeshWallPoint(3,I)
-            pointTriMesh(1,2) = trimeshWallPoint(1,I) + trimeshWallVectorTx(1,I)
-            pointTriMesh(2,2) = trimeshWallPoint(2,I) + trimeshWallVectorTx(2,I)
-            pointTriMesh(3,2) = trimeshWallPoint(3,I) + trimeshWallVectorTx(3,I)
-            pointTriMesh(1,3) = trimeshWallPoint(1,I) + trimeshWallVectorTy(1,I)
-            pointTriMesh(2,3) = trimeshWallPoint(2,I) + trimeshWallVectorTy(2,I)
-            pointTriMesh(3,3) = trimeshWallPoint(3,I) + trimeshWallVectorTy(3,I)
-            !  transform points to Inner Mesh
-            do J = 1,3
-                if (pointTriMesh(1,J) .LT. -LatMx) then
-                    pointTriMesh(1,J) = -LatMx
-                else if (pointTriMesh(1,J) .GT. -LatMx+(LatDx*LatNx)) then
-                    pointTriMesh(1,J) = -LatMx+(LatDx*LatNx)
-                end if
-                if (pointTriMesh(2,J) .LT. -LatMy) then
-                    pointTriMesh(2,J) = -LatMy
-                else if (pointTriMesh(2,J) .GT. -LatMy+(LatDy*LatNy)) then
-                    pointTriMesh(2,J) = -LatMy+(LatDy*LatNy)
-                end if
-                if (pointTriMesh(3,J) .LT. -LatMz) then
-                    pointTriMesh(3,J) = -LatMz
-                else if (pointTriMesh(3,J) .GT. -LatMz+(LatDz*LatNz)) then
-                    pointTriMesh(3,J) = -LatMz+(LatDz*LatNz)
-                end if
-            end do
-            !  find id range
-            do J = 1,3
-                TagTriMesh(J) = floor((pointTriMesh(1,J)+LatMx)/LatDx) + 1 + floor((pointTriMesh(2,J)+LatMy)/LatDy)*LatNx + floor((pointTriMesh(3,J)+LatMz)/LatDz)*(LatNx*LatNy)
-            end do
-            do J = 1,3
-                idTriMesh(3,J) = int((TagTriMesh(J)-1)/(LatNx*LatNy))+1
-                idTriMesh(2,J) = int((TagTriMesh(J)-(idTriMesh(3,J)-1)*(LatNx*LatNy)-1)/LatNx)+1
-                idTriMesh(1,J) = TagTriMesh(J)-(idTriMesh(3,J)-1)*(LatNx*LatNy)-(idTriMesh(2,J)-1)*LatNx
-            end do
-            idRange(1,1) = min(idTriMesh(1,1),idTriMesh(1,2),idTriMesh(1,3))
-            idRange(1,1) = max(idRange(1,1)-1,1)
-            idRange(2,1) = max(idTriMesh(1,1),idTriMesh(1,2),idTriMesh(1,3))
-            idRange(2,1) = min(idRange(2,1)+1,LatNx)
-            idRange(1,2) = min(idTriMesh(2,1),idTriMesh(2,2),idTriMesh(2,3))
-            idRange(1,2) = max(idRange(1,2)-1,1)
-            idRange(2,2) = max(idTriMesh(2,1),idTriMesh(2,2),idTriMesh(2,3))
-            idRange(2,2) = min(idRange(2,2)+1,LatNy)
-            idRange(1,3) = min(idTriMesh(3,1),idTriMesh(3,2),idTriMesh(3,3))
-            idRange(1,3) = max(idRange(1,3)-1,1)
-            idRange(2,3) = max(idTriMesh(3,1),idTriMesh(3,2),idTriMesh(3,3))
-            idRange(2,3) = min(idRange(2,3)+1,LatNx)
-            do J = 1,(idRange(2,1)-idRange(1,1)+1)
-                do K = 1,(idRange(2,2)-idRange(1,2)+1)
-                    do L = 1,(idRange(2,3)-idRange(1,3)+1)
-                        centerLattice(1) = dble(idRange(1,1)+J-1-1+0.5)*LatDx - LatMx
-                        centerLattice(2) = dble(idRange(1,2)+K-1-1+0.5)*LatDy - LatMy
-                        centerLattice(3) = dble(idRange(1,3)+L-1-1+0.5)*LatDz - LatMz
-                        RV(1) = centerLattice(1) - trimeshWallPoint(1,I)
-                        RV(2) = centerLattice(2) - trimeshWallPoint(2,I)
-                        RV(3) = centerLattice(3) - trimeshWallPoint(3,I)
-                        RVL = abs(RV(1)*trimeshWallVectorN(1,I) + RV(2)*trimeshWallVectorN(2,I) + RV(3)*trimeshWallVectorN(3,I))
-                        if (RVL .LE. 2.0*LatDx) then
-                            index = (idRange(1,1)+J-1) + (idRange(1,2)+K-1-1)*LatNx + (idRange(1,3)+L-1-1)*LatNx*LatNy
-                            trimeshDEM(index)%No = trimeshDEM(index)%No + 1
-                            Temp => trimeshDEM(index)
-                            do while (associated(Temp%next))
-                                Temp => Temp%next
-                            end do
-                            allocate(TempH)
-                            TempH = trimeshLattice(I,NULL())
-                            Temp%next => TempH
-                            !write(3000,"(F10.5,A2,F10.5,A2,F10.5,A2,I6)") (idRange(1,1)+J-1-1+0.5)*LatDx-LatMx,',',(idRange(1,2)+K-1-1+0.5)*LatDy-LatMy,',',(idRange(1,3)+L-1-1+0.5)*LatDz-LatMz,',',I
-                        end if
-                    end do
-                end do     
-            end do
-        end do
-        !open(3000,File='trimeshLattice_num.txt')
-        !do I = 1,LatNum
-        !    write(3000,*) trimeshDEM(I)%No
-        !end do
-        !close(3000)
-        !oend = omp_get_wtime()
-        !write(*,*) oend-ostart
+        !  Distribute into Lattice
+        call initialTriMesh
     else
         read (1000,*)
         read (1000,*)
@@ -274,7 +176,6 @@
         read (1000,*) (bondedTriMeshWallQ(K),K=1,4)
         read (1000,*) bondedTriMeshWallBody,(bondedTriMeshWallInertia(K),K=1,3)
         read (1000,*) bondedTriMeshWallNum
-        read (1000,*)
         allocate (bondedTriMeshWallTag(bondedTriMeshWallNum))
         allocate (bondedTriMeshWallPoint(3,bondedTriMeshWallNum))
         allocate (bondedTriMeshWallVectorN(3,bondedTriMeshWallNum))
@@ -282,6 +183,7 @@
         allocate (bondedTriMeshWallVectorTy(3,bondedTriMeshWallNum))
         allocate (bondedTriMeshWallLength(4,bondedTriMeshWallNum))
         !  load trimesh wall
+        read (1000,*)
         open (1500,File="../Input/bondedTriMeshWall.mesh")
         do I = 1,bondedTriMeshWallNum
             bondedTriMeshWallTag(I) = NMAX + wallFlag
@@ -302,90 +204,8 @@
             bondedTriMeshWallLength(4,I) = bondedTriMeshWallLength(2,I)*bondedTriMeshWallLength(2,I) - bondedTriMeshWallLength(1,I)*bondedTriMeshWallLength(3,I)
         end do
         close(1500)
-        !!********************************Test for bondedTriMeshLattice******************************************
-        !  allocate trimesh to Lattice
-        LatNum = LatNx*LatNy*LatNz 
-        allocate(bondedTriMeshDEM(LatNum))
-        do I = 1,LatNum
-            bondedTriMeshDEM(I)%No = 0
-            nullify(bondedTriMeshDEM(I)%next)
-        end do
-        do I = 1,bondedTriMeshWallNum
-            !  triangle vertexes
-            pointTriMesh(1,1) = bondedTriMeshWallPoint(1,I)
-            pointTriMesh(2,1) = bondedTriMeshWallPoint(2,I)
-            pointTriMesh(3,1) = bondedTriMeshWallPoint(3,I)
-            pointTriMesh(1,2) = bondedTriMeshWallPoint(1,I) + bondedTriMeshWallVectorTx(1,I)
-            pointTriMesh(2,2) = bondedTriMeshWallPoint(2,I) + bondedTriMeshWallVectorTx(2,I)
-            pointTriMesh(3,2) = bondedTriMeshWallPoint(3,I) + bondedTriMeshWallVectorTx(3,I)
-            pointTriMesh(1,3) = bondedTriMeshWallPoint(1,I) + bondedTriMeshWallVectorTy(1,I)
-            pointTriMesh(2,3) = bondedTriMeshWallPoint(2,I) + bondedTriMeshWallVectorTy(2,I)
-            pointTriMesh(3,3) = bondedTriMeshWallPoint(3,I) + bondedTriMeshWallVectorTy(3,I)
-            !  transform points to Inner Mesh
-            do J = 1,3
-                if (pointTriMesh(1,J) .LT. -LatMx) then
-                    pointTriMesh(1,J) = -LatMx
-                else if (pointTriMesh(1,J) .GT. -LatMx+(LatDx*LatNx)) then
-                    pointTriMesh(1,J) = -LatMx+(LatDx*LatNx)
-                end if
-                if (pointTriMesh(2,J) .LT. -LatMy) then
-                    pointTriMesh(2,J) = -LatMy
-                else if (pointTriMesh(2,J) .GT. -LatMy+(LatDy*LatNy)) then
-                    pointTriMesh(2,J) = -LatMy+(LatDy*LatNy)
-                end if
-                if (pointTriMesh(3,J) .LT. -LatMz) then
-                    pointTriMesh(3,J) = -LatMz
-                else if (pointTriMesh(3,J) .GT. -LatMz+(LatDz*LatNz)) then
-                    pointTriMesh(3,J) = -LatMz+(LatDz*LatNz)
-                end if
-            end do
-            !  find id range
-            do J = 1,3
-                TagTriMesh(J) = floor((pointTriMesh(1,J)+LatMx)/LatDx) + 1 + floor((pointTriMesh(2,J)+LatMy)/LatDy)*LatNx + floor((pointTriMesh(3,J)+LatMz)/LatDz)*(LatNx*LatNy)
-            end do
-            do J = 1,3
-                idTriMesh(3,J) = int((TagTriMesh(J)-1)/(LatNx*LatNy))+1
-                idTriMesh(2,J) = int((TagTriMesh(J)-(idTriMesh(3,J)-1)*(LatNx*LatNy)-1)/LatNx)+1
-                idTriMesh(1,J) = TagTriMesh(J)-(idTriMesh(3,J)-1)*(LatNx*LatNy)-(idTriMesh(2,J)-1)*LatNx
-            end do
-            idRange(1,1) = min(idTriMesh(1,1),idTriMesh(1,2),idTriMesh(1,3))
-            idRange(1,1) = max(idRange(1,1)-1,1)
-            idRange(2,1) = max(idTriMesh(1,1),idTriMesh(1,2),idTriMesh(1,3))
-            idRange(2,1) = min(idRange(2,1)+1,LatNx)
-            idRange(1,2) = min(idTriMesh(2,1),idTriMesh(2,2),idTriMesh(2,3))
-            idRange(1,2) = max(idRange(1,2)-1,1)
-            idRange(2,2) = max(idTriMesh(2,1),idTriMesh(2,2),idTriMesh(2,3))
-            idRange(2,2) = min(idRange(2,2)+1,LatNy)
-            idRange(1,3) = min(idTriMesh(3,1),idTriMesh(3,2),idTriMesh(3,3))
-            idRange(1,3) = max(idRange(1,3)-1,1)
-            idRange(2,3) = max(idTriMesh(3,1),idTriMesh(3,2),idTriMesh(3,3))
-            idRange(2,3) = min(idRange(2,3)+1,LatNx)
-            do J = 1,(idRange(2,1)-idRange(1,1)+1)
-                do K = 1,(idRange(2,2)-idRange(1,2)+1)
-                    do L = 1,(idRange(2,3)-idRange(1,3)+1)
-                        centerLattice(1) = dble(idRange(1,1)+J-1-1+0.5)*LatDx - LatMx
-                        centerLattice(2) = dble(idRange(1,2)+K-1-1+0.5)*LatDy - LatMy
-                        centerLattice(3) = dble(idRange(1,3)+L-1-1+0.5)*LatDz - LatMz
-                        RV(1) = centerLattice(1) - bondedTriMeshWallPoint(1,I)
-                        RV(2) = centerLattice(2) - bondedTriMeshWallPoint(2,I)
-                        RV(3) = centerLattice(3) - bondedTriMeshWallPoint(3,I)
-                        RVL = abs(RV(1)*bondedTriMeshWallVectorN(1,I) + RV(2)*bondedTriMeshWallVectorN(2,I) + RV(3)*bondedTriMeshWallVectorN(3,I))
-                        if (RVL .LE. 2.0*LatDx) then
-                            index = (idRange(1,1)+J-1) + (idRange(1,2)+K-1-1)*LatNx + (idRange(1,3)+L-1-1)*LatNx*LatNy
-                            bondedTriMeshDEM(index)%No = bondedTriMeshDEM(index)%No + 1
-                            Temp => bondedTriMeshDEM(index)
-                            do while (associated(Temp%next))
-                                Temp => Temp%next
-                            end do
-                            allocate(TempH)
-                            TempH = trimeshLattice(I,NULL())
-                            Temp%next => TempH
-                            !write(3000,"(F10.5,A2,F10.5,A2,F10.5,A2,I6)") (idRange(1,1)+J-1-1+0.5)*LatDx-LatMx,',',(idRange(1,2)+K-1-1+0.5)*LatDy-LatMy,',',(idRange(1,3)+L-1-1+0.5)*LatDz-LatMz,',',I
-                        end if
-                    end do
-                end do     
-            end do
-        end do
+        !  Distribute into Lattice
+        call initialBondedTriMesh
     else
         read (1000,*)
         read (1000,*)
@@ -445,6 +265,35 @@
         read (1000,*)
     end if
     
+    !  initial the sphere body
+    if (isSphereBody) then
+        write(*,*) '< is Sphere Body, loading...'
+        read (1000,*)
+        read (1000,*) sphereBodyNum
+        allocate (sphereBodyTag(sphereBodyNum))
+        allocate (sphereBodyX(3,sphereBodyNum))
+        allocate (sphereBodyXdot(3,sphereBodyNum))
+        allocate (sphereBodyW(3,sphereBodyNum))
+        allocate (sphereBodyQ(4,sphereBodyNum))
+        allocate (sphereBodyBody(sphereBodyNum))
+        allocate (sphereBodyR(sphereBodyNum))
+        allocate (sphereBodyInertia(sphereBodyNum))
+        allocate (sphereBodyF(3,sphereBodyNum))
+        allocate (sphereBodyFM(3,sphereBodyNum))
+        do I = 1,sphereBodyNum
+            sphereBodyTag(I) = NMAX + wallFlag
+            wallFlag = wallFlag + 1
+            read (1000,*) sphereBodyBody(I),sphereBodyInertia(I),(sphereBodyX(K,I),K=1,3),(sphereBodyXdot(K,I),K=1,3),(sphereBodyW(K,I),K=1,3),sphereBodyR(I)
+            sphereBodyQ(1,I) = 0.0D0
+            sphereBodyQ(2,I) = 0.0D0
+            sphereBodyQ(3,I) = 0.0D0
+            sphereBodyQ(4,I) = 1.0D0
+        end do
+    else
+        read (1000,*)
+        read (1000,*)
+    end if
+    
     !  initial the properties of Saturn and Pan
     if (isPlanet) then
         write(*,*) '< is Planet system, loading'
@@ -462,7 +311,7 @@
     if (isRotSystem) then
         write(*,*) '< is Rotary System, loading...'
         read (1000,*)
-        read (1000,*) sysOmega, sysGrav
+        read (1000,*) sysOmega
     else
         read (1000,*)
         read (1000,*)

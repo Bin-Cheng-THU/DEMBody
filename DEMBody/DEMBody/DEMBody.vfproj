@@ -35,7 +35,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|x64">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes" PreprocessorDefinitions="TraverseSearch;Confined;openmp;NMAX=10;HertzMindlinResti;PP=1;historyOutput" OpenMP="OpenMPParallelCode"/>
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes" PreprocessorDefinitions="LatticeSearch;ParticleLattice;Confined;openmp;NMAX=5000;HertzMindlinResti;PP=1;historyOutput;Windows" OpenMP="OpenMPParallelCode"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
@@ -51,9 +51,7 @@
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
 		<File RelativePath="..\..\src\attitude.f90"/>
-		<File RelativePath="..\..\src\attitudeBondedWalls.f90"/>
 		<File RelativePath="..\..\src\attitudeQ2M.f90"/>
-		<File RelativePath="..\..\src\attitudeGravBody.f90"/>
 		<File RelativePath="..\..\src\force.f90"/>
 		<File RelativePath="..\..\src\forceBondedTriMeshWalls.f90"/>
 		<File RelativePath="..\..\src\forceBondedWalls.f90"/>
@@ -65,10 +63,16 @@
 		<File RelativePath="..\..\src\forceMirror.f90"/>
 		<File RelativePath="..\..\src\forceParticleLattice.f90"/>
 		<File RelativePath="..\..\src\forceRotSystem.f90"/>
+		<File RelativePath="..\..\src\forceSphereBody.f90"/>
 		<File RelativePath="..\..\src\forceTraverse.f90"/>
 		<File RelativePath="..\..\src\forceTriMeshWalls.f90"/>
+		<File RelativePath="..\..\src\initialBondedTriMesh.f90"/>
 		<File RelativePath="..\..\src\initialSystem.f90"/>
+		<File RelativePath="..\..\src\initialTriMesh.f90"/>
 		<File RelativePath="..\..\src\intgrt.f90"/>
+		<File RelativePath="..\..\src\intgrtBondedWalls.f90"/>
+		<File RelativePath="..\..\src\intgrtGravBody.f90"/>
+		<File RelativePath="..\..\src\intgrtSphereBody.f90"/>
 		<File RelativePath="..\..\src\latticeGenerate.f90"/>
 		<File RelativePath="..\..\src\loadData.f90"/>
 		<File RelativePath="..\..\src\loadRestartData.f90"/>

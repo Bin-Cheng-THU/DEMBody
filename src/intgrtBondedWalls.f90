@@ -1,20 +1,22 @@
     !********************************************************************
-    !     DEMBody 4.6
+    !     DEMBody 5.0
     !     ***********
     !
-    !     N-body integrator of Quaternion.
+    !     N-body integrator of bonded walls.
     !     -------------------------------
-    !     @Refresh the quaternion of bonded walls in T/2
+    !     @Refresh the position of bonded walls in T
+    !     @Refresh the quaternion of bonded walls in T
+    !     @Refresh the velocity/anglar velocity of bonded walls in T/2
     !
     !********************************************************************
-    subroutine attitudeBondedWalls()
+    subroutine intgrtBondedWalls()
     
     use global
     implicit none
     
     real(8) :: Qdot(4),Qdotdot(4)
     real(8) :: norm
-    integer :: K,II
+    integer :: K
     
     !  refresh X, V
     do K = 1,3
@@ -22,12 +24,13 @@
         bondedWallXdot(K) = bondedWallXdot(K) + bondedWallF(K) * Dt /2.0D0
     end do
     
-    !  refresh Quaternion dot
+    !  refresh Q
+    !  Q, omega -> Qdot
     Qdot(1) = ( bondedWallWB(1)*bondedWallQ(4) - bondedWallWB(2)*bondedWallQ(3) + bondedWallWB(3)*bondedWallQ(2))*0.5D0
     Qdot(2) = ( bondedWallWB(1)*bondedWallQ(3) + bondedWallWB(2)*bondedWallQ(4) - bondedWallWB(3)*bondedWallQ(1))*0.5D0
     Qdot(3) = (-bondedWallWB(1)*bondedWallQ(2) + bondedWallWB(2)*bondedWallQ(1) + bondedWallWB(3)*bondedWallQ(4))*0.5D0
     Qdot(4) = (-bondedWallWB(1)*bondedWallQ(1) - bondedWallWB(2)*bondedWallQ(2) - bondedWallWB(3)*bondedWallQ(3))*0.5D0
-    !  refresh Quaternion dot dot
+    !  Q, omegaDot, Qdot -> Qdotdot
     Qdotdot(1) = ( bondedWallWdotB(1)*bondedWallQ(4) - bondedWallWdotB(2)*bondedWallQ(3) + bondedWallWdotB(3)*bondedWallQ(2))*0.5D0 + ( bondedWallWB(1)*Qdot(4) - bondedWallWB(2)*Qdot(3) + bondedWallWB(3)*Qdot(2))*0.5D0
     Qdotdot(2) = ( bondedWallWdotB(1)*bondedWallQ(3) + bondedWallWdotB(2)*bondedWallQ(4) - bondedWallWdotB(3)*bondedWallQ(1))*0.5D0 + ( bondedWallWB(1)*Qdot(3) + bondedWallWB(2)*Qdot(4) - bondedWallWB(3)*Qdot(1))*0.5D0
     Qdotdot(3) = (-bondedWallWdotB(1)*bondedWallQ(2) + bondedWallWdotB(2)*bondedWallQ(1) + bondedWallWdotB(3)*bondedWallQ(4))*0.5D0 + (-bondedWallWB(1)*Qdot(2) + bondedWallWB(2)*Qdot(1) + bondedWallWB(3)*Qdot(4))*0.5D0
@@ -48,7 +51,7 @@
     do K = 1,3
         bondedWallWB(K) = bondedWallWB(K) + bondedWallWdotB(K) * Dt /2.0D0
     end do
-    !  refresh inertial bondwall angular velocity
+    !  refresh Inertial bondwall angular velocity
     do K = 1,3
         bondedWallW(K) = bondedWallMatB(K,1)*bondedWallWB(1) + bondedWallMatB(K,2)*bondedWallWB(2) + bondedWallMatB(K,3)*bondedWallWB(3)
     end do

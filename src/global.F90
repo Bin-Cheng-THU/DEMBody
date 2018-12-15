@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.6
+    !     DEMBody 5.0
     !     ***********
     !
     !     Global parameters.
@@ -13,7 +13,7 @@
     !  Parameters
     real(8),parameter :: GravConst = 6.674184D-11
     real(8),parameter :: PI = 3.141592653589793D0
-    character(10),parameter :: VERSION = '4.6'
+    character(10),parameter :: VERSION = '5.0'
 
     !  Define control parameters of Program
     character(10) :: vsDEMBody
@@ -28,6 +28,7 @@
     logical :: isFunnelWall
     logical :: isPeriodic
     logical :: isGravBody
+    logical :: isSphereBody
     logical :: isGravTriMesh
     real(8) :: Max_ACC
 
@@ -76,7 +77,6 @@
 #endif
         integer :: NeighborID(26) 
     end type Lattice
-    
     !  DEM Lattice
     type(Lattice),pointer :: DEM(:)
     
@@ -107,6 +107,7 @@
     real(8) :: Body(NMAX),R(NMAX),Inertia(NMAX)
     real(8) :: F(3,NMAX),FM(3,NMAX)
     real(8) :: Energy(NMAX)
+    real(8) :: Heat(3,NMAX)
     real(8) :: X0(3,NMAX)
     real(8) :: XT(3,NMAX)
     
@@ -196,12 +197,20 @@
     real(8) :: gamma
     integer :: Tag1(NMAX),Tag2(NMAX),Tag3(NMAX),Tag4(NMAX)
     
-    !Define parameters of GravBody
+    !  Define parameters of GravBody
     integer :: gravBodyTag
     real(8) :: gravBodyX(3),gravBodyXdot(3),gravBodyW(3)
     real(8) :: gravBodyQ(4)
     real(8) :: gravBodyBody,gravBodyR,gravBodyInertia
     real(8) :: gravBodyF(3),gravBodyFM(3)
+    
+    !  Define parameters of SphereBody
+    integer :: sphereBodyNum
+    integer,allocatable :: sphereBodyTag(:)
+    real(8),allocatable :: sphereBodyX(:,:),sphereBodyXdot(:,:),sphereBodyW(:,:)
+    real(8),allocatable :: sphereBodyQ(:,:)
+    real(8),allocatable :: sphereBodyBody(:),sphereBodyR(:),sphereBodyInertia(:)
+    real(8),allocatable :: sphereBodyF(:,:),sphereBodyFM(:,:)
         
     !  Define parameters of Saturn and Pan
     real(8) :: muS
@@ -211,7 +220,6 @@
     
     !  Define parameters of Rotary system
     real(8) :: sysOmega
-    real(8) :: sysGrav
     
     !  Define parameters of Gravity
     real(8) :: G(3)

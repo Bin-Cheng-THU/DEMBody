@@ -7,9 +7,9 @@ clc;clear;
 format long;
 %% parameters
 fps = 10;
-N = 70;
-folderPath = 'C:\Users\chengbin\Desktop\File\Data\';
-aviobj = VideoWriter('out-tumb-foot.avi'); %初始化一个avi文件
+N = 193;
+folderPath = 'C:\Users\chengbin\Desktop\genWallPovRay\genWallPovRay\Data\';
+aviobj = VideoWriter('out-yorp-x.avi'); %初始化一个avi文件
 aviobj.FrameRate = fps;
 open(aviobj);
 

@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 4.6
+    !     DEMBody 5.0
     !     ***********
     !
     !     Grav TriMesh force.
@@ -7,9 +7,9 @@
     !
     !     @Gravity of Grav TriMesh
     !
-    !     Note that considering the movement of Pan nucleus, 
-    !     the gravity of Pan must be transferred from the origin point.
-    !     So we use Gravity Body instead.
+    !     Note that considering the irregular geometry of asteroid, 
+    !     we use Polyhedron Gravity to conduct the force of asteroid.
+    !     But the Polyhedron Code is time-costing, so we use mesh-interpolation here.
     !
     !********************************************************************
     subroutine forceGravTriMesh()
