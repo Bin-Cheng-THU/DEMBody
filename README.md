@@ -29,7 +29,7 @@ We developed [DEMTool](https://github.com/Bin-Cheng-THU/DEMTool.git) for pre- an
 
 * **Bin Cheng** - *Initial work* - [Bin-Cheng-THU](https://github.com/Bin-Cheng-THU)
 
-See also the list of [contributors](AUTHORS) who participated in this project.
+See also the list of [contributors](AUTHORS.md) who participated in this project.
 
 ## License
 
