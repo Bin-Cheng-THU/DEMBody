@@ -36,16 +36,14 @@
     real(8) ::  Dn,Ds(3),DsL,Dtheta(3),DthetaL,DthetaR(3),DthetaRL,DthetaT(3),DthetaTL
     real(8) ::  H(3),Mr(3),Mt(3)
     real(8) ::  RV(3)
-    logical :: slipping,rolling,twisting    !  State of friction of T
-    logical :: touching                     !  State of touch of T
-    integer :: I,J,K,L,LenNodeJ,LenNode     !  Linklist
-    integer :: num1,num2,limit              !  Neighbor
+    logical ::  slipping,rolling,twisting   !  State of friction of T
+    logical ::  touching                    !  State of touch of T
+    integer ::  I,J,K,L,LenNodeJ,LenNode    !  Linklist
+    integer ::  num1,num2,limit             !  Neighbor
     type(Nodelink),pointer :: Temp          !  Temporary pointer
     type(Nodelink),pointer :: TempH         !  Contact pointer
     type(Nodelink),pointer :: Tail          !  Tail pointer
-    real(8) ShearPBC                        !  shearPBC
-    real(8) accMag                          !  Magtitude of contact acceleration                
-    integer :: region                       !  Upper limit of Loops 
+                  
     logical :: check                        !  Check for meshgrid
 
     integer :: JJ                           !  Parallel Lattice
@@ -72,7 +70,7 @@
     !ostart = omp_get_wtime()
     !  Loop over all bodies through the NodeTree.
     !$OMP PARALLEL DO &
-    !$OMP& PRIVATE(check,shearPBC,LenNodeJ,LenNode,Temp,TempH,Tail,num1,num2,limit,&
+    !$OMP& PRIVATE(check,LenNodeJ,LenNode,Temp,TempH,Tail,num1,num2,limit,&
     !$OMP& I,J,K,L,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
     !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,tangential_history,&
     !$OMP& rolling_moment,rolling_momentL,rolling_history,twisting_moment,twisting_momentL,twisting_history,cohesive_force,gravity_force,Ap,An,Rij,Mij,Iij,&

@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.0
+    !     DEMBody 5.1
     !     ***********
     !
     !     Force for all particles.
@@ -9,12 +9,14 @@
     !     @Using forceTraverse when enable Traverse
     !     @Using forceMirror when enable Periodic
     !     @Using forceContactWalls when enable ContactWall
+    !     @Using forceMovingWalls when enable MovingWall
     !     @Using forceBondedWalls when enable BondedWall
     !     @Using forceTriMeshWalls when enable TriMeshWall
     !     @Using forceBondedTriMeshWalls when enable BondedTriMeshWall
     !     @Using forceFunnelWalls when enable FunnelWall
     !     @Using forceGravBody when enable GravBody
     !     @Using forceSphereBody when enable SphereBody
+    !     @Using forceBiDisperse when enable BiDisperse
     !     @force to acceleration
     !     @Using Planet force when enable Planet
     !     @Using forceRotSystem when enbale RotSystem
@@ -67,7 +69,16 @@
     !oend = omp_get_wtime()
     !write(*,*) "Contact walls", (oend-ostart)
     
-    !################         Part 4: Bonded wall forces          ###################
+    !################         Part 4: Moving wall forces          ###################
+    !ostart = omp_get_wtime()
+    !  calculate force of moving walls if using moving walls
+    if (isMovingWall) then
+        call forceMovingWalls
+    end if
+    !oend = omp_get_wtime()
+    !write(*,*) "Moving walls", (oend-ostart)
+    
+    !################         Part 5: Bonded wall forces          ###################
     !  calculate force of bonded walls if using bonded walls
     !ostart = omp_get_wtime()
     !  calculate force of bonded walls if using bonded walls
@@ -77,7 +88,7 @@
     !oend = omp_get_wtime()
     !write(*,*) "Bonded walls",(oend-ostart)
     
-    !################         Part 5: Trimesh wall forces          ###################
+    !################         Part 6: Trimesh wall forces          ###################
     !ostart = omp_get_wtime()
     !  calculate force of trimesh walls if using trimesh walls
     if (isTriMeshWall) then                     
@@ -86,7 +97,7 @@
     !oend = omp_get_wtime()
     !write(*,*) "Tri meshes",(oend-ostart)
     
-    !################         Part 6: Bonded Trimesh wall forces          ###################
+    !################         Part 7: Bonded Trimesh wall forces          ###################
     !ostart = omp_get_wtime()
     !  calculate force of bonded trimesh walls if using bonded trimesh walls
     if (isBondedTriMeshWall) then                     
@@ -95,7 +106,7 @@
     !oend = omp_get_wtime()
     !write(*,*) "Bonded Tri meshes",(oend-ostart)
     
-    !################         Part 7: Funnel wall forces          ###################
+    !################         Part 8: Funnel wall forces          ###################
     !ostart = omp_get_wtime()
     !  calculate force of funnel walls if using funnel walls
     if (isFunnelWall) then
@@ -104,7 +115,7 @@
     !oend = omp_get_wtime()
     !write(*,*) "Funnel walls",(oend-ostart)
     
-    !################         Part 8: GravBody forces          ###################
+    !################         Part 9: GravBody forces          ###################
     !ostart = omp_get_wtime()
     !  calculate force of gravity body if using GravBody
     if (isGravBody) then
@@ -113,7 +124,7 @@
     !oend = omp_get_wtime()
     !write(*,*) "Grav bodies",(oend-ostart)
     
-    !################         Part 9: SphereBody forces          ###################
+    !################         Part 10: SphereBody forces          ###################
     !ostart = omp_get_wtime()
     !  calculate force of sphere body if using SphereBody
     if (isSphereBody) then
@@ -122,7 +133,16 @@
     !oend = omp_get_wtime()
     !write(*,*) "Sphere bodies",(oend-ostart)
     
-    !################         Part 10: Force to Acceleration          ###################
+    !################         Part 11: BiDisperse forces          ###################
+    !ostart = omp_get_wtime()
+    !  calculate force of biDisperse particles if using BiDisperse
+    if (isBiDisperse) then
+        call forceBiDisperse
+    end if
+    !oend = omp_get_wtime()
+    !write(*,*) "Disperse particles",(oend-ostart)
+    
+    !################         Part 12: Force to Acceleration          ###################
     !ostart = omp_get_wtime()
     !$OMP PARALLEL DO PRIVATE(I,K,accMag)
     do I = 1,N
@@ -142,16 +162,16 @@
     !oend = omp_get_wtime()
     !write(*,*) 'accelerate', (oend-ostart)    
 
-    !################         Part 11: Planet forces          ###################
+    !################         Part 13: Planet forces          ###################
     !ostart = omp_get_wtime()
     !  calculate Planet force if in Planet system
     if (isPlanet) then
-        call Planet
+        call forcePlanet
     end if
     !oend = omp_get_wtime()
     !write(*,*) 'Planet', (oend-ostart)  
     
-    !################         Part 12: Rotsystem forces          ###################
+    !################         Part 14: Rotsystem forces          ###################
     !ostart = omp_get_wtime()
     !  calculate Noninertial force if in Rotary system
     if (isRotSystem) then
@@ -160,7 +180,7 @@
     !oend = omp_get_wtime()
     !write(*,*) 'Rot system', (oend-ostart)  
     
-    !################         Part 13: GravTriMesh forces          ###################
+    !################         Part 15: GravTriMesh forces          ###################
     !ostart = omp_get_wtime()
     !  calculate force of gravity body if using GravTriMesh
     if (isGravTriMesh) then

@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.0
+    !     DEMBody 5.1
     !     ***********
     !
     !     Initialization of bondedTriMesh.
@@ -42,6 +42,7 @@
         pointTriMesh(3,3) = bondedTriMeshWallPoint(3,I) + bondedTriMeshWallVectorTy(3,I)
         !  transform points to Inner Mesh
         do J = 1,3
+            !  in case of TriMeshes out of mesh
             if (pointTriMesh(1,J) .LT. -LatMx) then
                 pointTriMesh(1,J) = -LatMx
             else if (pointTriMesh(1,J) .GT. -LatMx+(LatDx*LatNx)) then
@@ -78,7 +79,7 @@
         idRange(1,3) = min(idTriMesh(3,1),idTriMesh(3,2),idTriMesh(3,3))
         idRange(1,3) = max(idRange(1,3)-1,1)
         idRange(2,3) = max(idTriMesh(3,1),idTriMesh(3,2),idTriMesh(3,3))
-        idRange(2,3) = min(idRange(2,3)+1,LatNx)
+        idRange(2,3) = min(idRange(2,3)+1,LatNz)
         do J = 1,(idRange(2,1)-idRange(1,1)+1)
             do K = 1,(idRange(2,2)-idRange(1,2)+1)
                 do L = 1,(idRange(2,3)-idRange(1,3)+1)

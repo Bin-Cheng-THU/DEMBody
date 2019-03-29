@@ -49,7 +49,7 @@
     !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,tangential_history,&
     !$OMP& rolling_moment,rolling_momentL,rolling_history,twisting_moment,twisting_momentL,twisting_history,cohesive_force,Ap,An,Rij,Mij,Iij,&
     !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
-    !$OMP& slipping,rolling,twisting,touching) SCHEDULE(GUIDED)
+    !$OMP& slipping,rolling,twisting,touching) SCHEDULE(DYNAMIC)
     do I = 1,N
         
         !################         Wall X1          ################### 

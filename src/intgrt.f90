@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.0
+    !     DEMBody 5.1
     !     ***********
     !
     !     N-body integrator flow control.
@@ -20,6 +20,7 @@
     real(8) :: ostart,oend
     real(8) :: o1,o2
     real(8) :: dist(3),distL
+    real(8) :: Tmoving,Dmoving,Vmoving
 
 1   norm = 1
     
@@ -27,6 +28,7 @@
     
     !################         Part 1          ###################
     Time = Time + Dt 
+    currentStep = currentStep + 1
 
     !################         Part 2          ###################  
     !  calculated the force from the current x & xdot.
@@ -51,6 +53,33 @@
         call attitude
     end if
     
+    if (isMovingWall) then
+        Tmoving = Time - movingWallTstart
+        if (Tmoving.GE.0.0D0 .AND. Tmoving.LT.(movingWallTend-movingWallTstart)) then
+            Dmoving = movingWallA*sin(movingWallOmega*Tmoving)
+            Vmoving = movingWallA*movingWallOmega*cos(movingWallOmega*Tmoving)
+        else if (Tmoving.GE.(movingWallTend-movingWallTstart)) then
+            Dmoving = movingWallA*sin(movingWallOmega*(movingWallTend-movingWallTstart))
+            Vmoving = 0.0D0
+        else
+            Dmoving = 0.0D0
+            Vmoving = 0.0D0
+        end if
+        do I = 1,movingWallNum
+            do K = 1,3
+                movingWallPoint(K,I) = movingWallPointInit(K,I) + Dmoving*movingWallNormal(K)
+                movingWallVelocity(K,I) = Vmoving*movingWallNormal(K)
+            end do
+        end do
+        !do I = 1,movingWallNum
+        !    do K = 1,3
+        !        movingWallPoint(K,I) = movingWallPointStore(K,I,(currentStep+1))
+        !        movingWallVector(K,I) = movingWallVectorStore(K,I,(currentStep+1))
+        !        movingWallVelocity(K,I) = movingWallVelocityStore(K,I,(currentStep+1))
+        !    end do
+        !end do
+    end if
+    
     if (isBondedWall) then
         call intgrtBondedWalls
     end if
@@ -61,6 +90,10 @@
     
     if (isSphereBody) then
         call intgrtSphereBody
+    end if
+    
+    if (isBiDisperse) then
+        call intgrtBiDisperse
     end if
     
     if (isPeriodic) then
@@ -78,6 +111,13 @@
         call latticeGenerate
         !oend = omp_get_wtime()
         !write(*,*) 'lattice', (oend-ostart)
+        
+        !ostart = omp_get_wtime()
+        if (isBiDisperse) then
+            call latticeGenerateBiDisperse
+        end if    
+        !oend = omp_get_wtime()
+        !write(*,*) 'biDisperse lattice', (oend-ostart)
     end if
 #endif
     
@@ -122,6 +162,17 @@
                 sphereBodyW(K,I) = sphereBodyW(K,I) + sphereBodyFM(K,I) * Dt /2.0D0
             end do
         end do
+    end if
+    
+    if (isBiDisperse) then
+        !$OMP PARALLEL DO PRIVATE(I,K)
+        do I = 1,biDisperseNum
+            do K = 1,3
+                biDisperseXdot(K,I) = biDisperseXdot(K,I) + biDisperseF(K,I) * Dt /2.0D0
+                biDisperseW(K,I) = biDisperseW(K,I) + biDisperseFM(K,I) * Dt /2.0D0
+            end do
+        end do
+        !$OMP END PARALLEL DO
     end if
     
     !o2 = omp_get_wtime()

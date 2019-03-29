@@ -2,8 +2,11 @@
 # Add these lines into Preprocessor of VS
 
 LatticeSearch
+ParticleLattice
 nConfined
 openmp
 NMAX=300800
 HertzMindlinResti
 PP=1524
+nhistoryOutput
+Windows

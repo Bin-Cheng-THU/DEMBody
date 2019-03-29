@@ -1,29 +1,25 @@
 ///////////////////////////////////////////////////////////
 //                                                       //
-// Copyright (c) 2016-2018 by The School of Aerospace    //
+// Copyright (c) 2016-2019 by The School of Aerospace    //
 // Enginnering, Tsinghua University                      //
 //                                                       //
 // Contributor: B. Cheng, Y. Yu, Y. Zhang                //
 //                                                       //
 // DEMBody                                               //
 //                                                       //
-// Inverstigations of geological features, surface       //
-// modifications and topographic evolutions of           //
-// celestial bodies, e.g., granular convection in        //
-// asteroid, groove structures and rings in moonlets.    //
+// Investigation of geological features, surface         //
+// evolution and in-situ exploration on celestrial       //
+// bodies, e.g., size sorting/segregation on asteroid,   //
+// mass creep/wasting during geological processes and    //
+// locomotion dynamics of asteroid lander on granular    //
+// layer.                                                //
 //                                                       //
 ///////////////////////////////////////////////////////////
 
-DEMBody is Open Source software for Granular Dynamics in Astronomy.
-
-The software implements the Discrete Element Method (DEM), coupled with NBody simulation in astronomy.
-DEMBody is designed for execution on parallel supercomputers, clusters or multi-core PCs running a 
-Linux(or Windows)-based operating system. 
-
 DEMBody software contributors include:
 
-Bin Cheng
-Yang Yu
-Yun Zhang
+*[Bin Cheng](https://www.researchgate.net/profile/Bin_Cheng21), Tsinghua University
+*[Yang Yu](https://www.researchgate.net/profile/Yang_Yu16), Beihang University
+*[Yun Zhang](https://www.researchgate.net/profile/Yun_Zhang50), Tsinghua University
 
-For further information about DEMBody authors, email chengb16@mails.tsinghua.edu.cn
+For further information about DEMBody authors, please email chengb16@mails.tsinghua.edu.cn

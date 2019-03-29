@@ -444,37 +444,37 @@
     !write(*,*) "GravBody",(oend-ostart)
     
     do K = 1,3
-        gravBodyF(K) = gravBodyF(K)/gravBodyBody
-        gravBodyFM(K) = gravBodyFM(K)/gravBodyInertia
+        gravBodyF(K) = 0.0!gravBodyF(K)/gravBodyBody
+        gravBodyFM(K) = 0.0!gravBodyFM(K)/gravBodyInertia
     end do
     
-    if (isPlanet) then
-        !  Gravity of Saturn
-        do K = 1,3
-            rPanV(K) = rOrig(K) + gravBodyX(K)
-        end do
-        rPan = sqrt(rPanV(1)*rPanV(1) + rPanV(2)*rPanV(2) + rPanV(3)*rPanV(3))
-        center = -muS/(rPan*rPan*rPan)
-        do K = 1,3
-            gravBodyF(K) = gravBodyF(K) + center*rPanV(K)
-        end do
-
-        !  Centrifugal force
-        do K = 1,2
-            gravBodyF(K) = gravBodyF(K) + omega*omega*gravBodyX(K)
-        end do
-
-        !  Rotation transport force
-        rOrigM = sqrt(rOrig(1)*rOrig(1) + rOrig(2)*rOrig(2) +rOrig(3)*rOrig(3))
-        center = muS/(rOrigM*rOrigM*rOrigM)
-        do K = 1,3
-            gravBodyF(K) = gravBodyF(K) + center*rOrig(K)
-        end do
-
-        !  Coriolis force
-        gravBodyF(1) = gravBodyF(1) + 2.0D0*omega*gravBodyXdot(2)
-        gravBodyF(2) = gravBodyF(2) - 2.0D0*omega*gravBodyXdot(1)
-    end if
+    !if (isPlanet) then
+    !    !  Gravity of Saturn
+    !    do K = 1,3
+    !        rPanV(K) = rOrig(K) + gravBodyX(K)
+    !    end do
+    !    rPan = sqrt(rPanV(1)*rPanV(1) + rPanV(2)*rPanV(2) + rPanV(3)*rPanV(3))
+    !    center = -muS/(rPan*rPan*rPan)
+    !    do K = 1,3
+    !        gravBodyF(K) = gravBodyF(K) + center*rPanV(K)
+    !    end do
+    !
+    !    !  Centrifugal force
+    !    do K = 1,2
+    !        gravBodyF(K) = gravBodyF(K) + omega*omega*gravBodyX(K)
+    !    end do
+    !
+    !    !  Rotation transport force
+    !    rOrigM = sqrt(rOrig(1)*rOrig(1) + rOrig(2)*rOrig(2) +rOrig(3)*rOrig(3))
+    !    center = muS/(rOrigM*rOrigM*rOrigM)
+    !    do K = 1,3
+    !        gravBodyF(K) = gravBodyF(K) + center*rOrig(K)
+    !    end do
+    !
+    !    !  Coriolis force
+    !    gravBodyF(1) = gravBodyF(1) + 2.0D0*omega*gravBodyXdot(2)
+    !    gravBodyF(2) = gravBodyF(2) - 2.0D0*omega*gravBodyXdot(1)
+    !end if
     
     return
     end

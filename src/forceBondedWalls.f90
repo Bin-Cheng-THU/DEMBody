@@ -316,7 +316,7 @@
                     
                     !  rolling
                     do K = 1,3
-                        Dtheta(K) = (W(K,I) - bondedWallW(I))*Dt
+                        Dtheta(K) = (W(K,I) - bondedWallW(K))*Dt
                     end do                            
                     DthetaL = Dtheta(1)*DistU(1) + Dtheta(2)*DistU(2) + Dtheta(3)*DistU(3)
                     !  twisting deform

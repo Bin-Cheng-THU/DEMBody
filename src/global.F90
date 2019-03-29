@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.0
+    !     DEMBody 5.1
     !     ***********
     !
     !     Global parameters.
@@ -13,7 +13,7 @@
     !  Parameters
     real(8),parameter :: GravConst = 6.674184D-11
     real(8),parameter :: PI = 3.141592653589793D0
-    character(10),parameter :: VERSION = '5.0'
+    character(10),parameter :: VERSION = '5.1'
 
     !  Define control parameters of Program
     character(10) :: vsDEMBody
@@ -29,6 +29,7 @@
     logical :: isPeriodic
     logical :: isGravBody
     logical :: isSphereBody
+    logical :: isBiDisperse
     logical :: isGravTriMesh
     real(8) :: Max_ACC
 
@@ -131,7 +132,16 @@
     integer :: movingWallNum
     integer,allocatable :: movingWallTag(:)
     real(8),allocatable :: movingWallPoint(:,:)
-    real(8),allocatable :: movingWallVector(:,:)
+    real(8),allocatable :: movingWallPointInit(:,:)
+    real(8),allocatable :: movingWallVector(:,:)    
+    real(8),allocatable :: movingWallVelocity(:,:)
+    real(8) :: movingWallTstart,movingWallTend
+    real(8) :: movingWallA,movingWallOmega
+    real(8) :: movingWallNormal(3)
+    integer :: currentStep
+    !real(8),allocatable :: movingWallPointStore(:,:,:)
+    !real(8),allocatable :: movingWallVectorStore(:,:,:)
+    !real(8),allocatable :: movingWallVelocityStore(:,:,:)
     
     !  Define parameters of Bonded Walls
     real(8) :: bondedWallX(3),bondedWallXdot(3),bondedWallW(3)
@@ -211,6 +221,25 @@
     real(8),allocatable :: sphereBodyQ(:,:)
     real(8),allocatable :: sphereBodyBody(:),sphereBodyR(:),sphereBodyInertia(:)
     real(8),allocatable :: sphereBodyF(:,:),sphereBodyFM(:,:)
+        
+    !  Define parameters of BiDisperse
+    integer :: biDisperseNum
+    integer,allocatable :: biDisperseTag(:)
+    real(8),allocatable :: biDisperseX(:,:),biDisperseXdot(:,:),biDisperseW(:,:)
+    real(8),allocatable :: biDisperseQ(:,:)
+    real(8),allocatable :: biDisperseBody(:),biDisperseR(:),biDisperseInertia(:)
+    real(8),allocatable :: biDisperseF(:,:),biDisperseFM(:,:)
+    real(8),allocatable :: biDisperseXT(:,:)
+    integer :: biDisperseScale
+    !  Define bidisperse in lattice
+    type :: biDisperseLattice
+        integer :: No
+        type(biDisperseLattice),pointer :: next
+    end type biDisperseLattice
+    type(biDisperseLattice),pointer :: biDisperseDEM(:)
+    type(biDisperseLattice),pointer :: biDisperseDEMtail(:)
+    !  Nodelink of BiDisperse
+    type(Nodelink),pointer :: HeadBiDisperse(:) 
         
     !  Define parameters of Saturn and Pan
     real(8) :: muS

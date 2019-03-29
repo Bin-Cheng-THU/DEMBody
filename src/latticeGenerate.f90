@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.0
+    !     DEMBody 5.1
     !     ***********
     !
     !     Generate lattice based on partition of Particles.
@@ -11,6 +11,10 @@
     !     @particle IDs, and use Lower Right lattice to conduct force.
     !     @Tests show that half-search method is not suitable for this question,
     !     @so we change the code to full-search method.    
+    !
+    !     @Strategy: allocate particles into inner Lattices, so for particles in Lattice
+    !     @     A, you just need to search contact of particles in Lattice A and Neighbor
+    !     @     lattices (The neighbor lattices is stored in DEM)
     !
     !     @Allocate particles into Gravity Lattice.
     !     @Memory the total mass and mass center of particles in Gravity Lattices.
@@ -48,7 +52,7 @@
     !$OMP END PARALLEL DO
     !o2 = omp_get_wtime()
     !write(*,*) "Lattice Empty",(o2-o1)
-       
+      
     !o1 = omp_get_wtime()
     ! $OMP PARALLEL DO PRIVATE(I,J,K,Tag,Flag,positionD,positionU) SCHEDULE(GUIDED)
     do I = 1,N

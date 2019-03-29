@@ -55,6 +55,11 @@
     
     !  generate DEM Parallel Latice based on partition of Particles
     call latticeGenerate
+    
+    !  generate biDisperse DEM Parallel Latice based on partition of biDisperse Particles
+    if (isBiDisperse) then
+        call latticeGenerateBiDisperse
+    end if
 #endif
 
     !  initial the force in case exiting overlaps at the initial-time.
