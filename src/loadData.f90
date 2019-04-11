@@ -47,6 +47,10 @@
     !  change position and velocity according to PBC & Shear PBC
     if (isPeriodic) then
         call periodic
+        
+        if (isBiDisperse) then
+            call periodicBiDisperse
+        end if
     end if
 
 #ifdef LatticeSearch

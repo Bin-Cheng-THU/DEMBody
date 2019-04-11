@@ -1,43 +1,36 @@
 DEMBody 5.1
 *---Parallel params
 5.0	5.0	5.0
-20	20	82
-50.0	50.0	10.0
+28	28	61
+70.0	70.0	0.0
 0.4
 *---Console params
-1.00e-2 1.00e+2
-2.00e-1
-1.00e-4
+1.00e-3 5.00e-2
+5.00e-2
+5.00e-5 
 *---System control
 False	# whether use Planet Gravity function
 False	# whether use Rotary System function 
 True	# whether intergrate Quaternion
-False	# whether use Contactable Walls
-True	# whether use Moving Walls
+True	# whether use Contactable Walls
+False	# whether use Moving Walls
 False	# whether use Bonded Walls
 False	# whether use TriMesh Walls
 False	# whether use Bonded TriMesh Walls
 False	# whether use Funnel Walls
-False	# whether use Periodic function
+True	# whether use Periodic function
 False	# whether use Gravity Body
 False	# whether use Sphere Body
-True	# whether use BiDisperse particles
+False	# whether use BiDisperse particles
 False	# whether use Gravity TriMesh
-1e6		# maximun contact acceleration
+5e6		# maximun contact acceleration
 *---Gravity
--6.929646455628166e+02	0.0	-6.929646455628166e+02
+0.0	0.0	-980.0
 *---Contactable walls
-0
+1
+0.0	0.0	0.0	0.0	0.0	1.0
 *---Moving walls
-5
-0.0	0.0	0.0	0.0	0.0	1.0	0.0	0.0	0.0
--50.0	0.0	0.0	1.0	0.0	0.0	0.0	0.0	0.0
-50.0	0.0	0.0	-1.0	0.0	0.0	0.0	0.0	0.0
-0.0	-50.0	0.0	0.0	1.0	0.0	0.0	0.0	0.0
-0.0	50.0	0.0	0.0	-1.0	0.0	0.0	0.0	0.0
-1.0	95.0
-8	20.0
-0.0	0.0	1.0
+0
 *---Bonded walls
 0
 *---TriMesh walls
@@ -47,15 +40,19 @@ False	# whether use Gravity TriMesh
 *---Funnel walls
 0
 *---Periodic boundary conditions
-0
+65.0	0.0	0.0	-1.0	0.0	0.0
+-65.0	0.0	0.0	1.0	0.0	0.0
+0.0	65.0	0.0	0.0	-1.0	0.0
+0.0	-65.0	0.0	0.0	1.0	0.0
+130.0
+130.0
+0.0
 *---Gravity Body
 0
 *---Sphere Body
 0
 *---BiDisperse particles
-72
-2
-input: largeParticles.biDisperse
+0
 *---Planet System
 0
 *---Rotary System

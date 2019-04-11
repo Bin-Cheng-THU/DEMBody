@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.0
+    !     DEMBody 5.2
     !     ***********
     !
     !     Force for mirrored particles.
@@ -49,7 +49,7 @@
     !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,tangential_history,&
     !$OMP& rolling_moment,rolling_momentL,rolling_history,twisting_moment,twisting_momentL,twisting_history,cohesive_force,Ap,An,Rij,Mij,Iij,&
     !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
-    !$OMP& slipping,rolling,twisting,touching) SCHEDULE(DYNAMIC)
+    !$OMP& slipping,rolling,twisting,touching) SCHEDULE(GUIDED)
     do I = 1,N
         
         !################         Wall X1          ################### 
@@ -69,7 +69,9 @@
                         Mr(K) = 0.0D0
                         Mt(K) = 0.0D0
                     end do
+                    !**************************
                     Dist(1) = Dist(1) - LenBoxX
+                    !**************************
                     touching = .false.
                     slipping = .false.
                     rolling = .false.
@@ -462,7 +464,9 @@
                         Mr(K) = 0.0D0
                         Mt(K) = 0.0D0
                     end do
+                    !**************************
                     Dist(1) = Dist(1) + LenBoxX
+                    !**************************
                     touching = .false.
                     slipping = .false.
                     rolling = .false.
@@ -849,10 +853,12 @@
                         Mr(K) = 0.0D0
                         Mt(K) = 0.0D0
                     end do
+                    !**************************
                     Dist(2) = Dist(2) - LenBoxY
                     shearPBC = X(1,J) + LenBoxY*gamma*time
                     shearPBC = shearPBC - ((shearPBC+0.5D0*LenBoxX) - MODULO((shearPBC+0.5D0*LenBoxX),LenBoxX))
                     Dist(1) = shearPBC - X(1,I)
+                    !**************************
                     touching = .false.
                     slipping = .false.
                     rolling = .false.
@@ -932,7 +938,9 @@
                         do K = 1,3
                             Vrel(K) = Xdot(K,J) - Xdot(K,I)
                         end do
+                        !**************************
                         Vrel(1) = Vrel(1) + LenBoxY*gamma
+                        !**************************
                         !  negative rotate relative velocity
                         Vrot(1) = (DistU(2)*W(3,J) - DistU(3)*W(2,J))*An + (DistU(2)*W(3,I) - DistU(3)*W(2,I))*Ap
                         Vrot(2) = (DistU(3)*W(1,J) - DistU(1)*W(3,J))*An + (DistU(3)*W(1,I) - DistU(1)*W(3,I))*Ap
@@ -1230,10 +1238,12 @@
                         Mr(K) = 0.0D0
                         Mt(K) = 0.0D0
                     end do
+                    !**************************
                     Dist(2) = Dist(2) + LenBoxY
                     shearPBC = X(1,J) - LenBoxY*gamma*time
                     shearPBC = shearPBC - ((shearPBC+0.5D0*LenBoxX) - MODULO((shearPBC+0.5D0*LenBoxX),LenBoxX))
                     Dist(1) = shearPBC - X(1,I)
+                    !**************************
                     touching = .false.
                     slipping = .false.
                     rolling = .false.
@@ -1313,7 +1323,9 @@
                         do K = 1,3
                             Vrel(K) = Xdot(K,J) - Xdot(K,I)
                         end do
+                        !**************************
                         Vrel(1) = Vrel(1) - LenBoxY*gamma
+                        !**************************
                         !  negative rotate relative velocity
                         Vrot(1) = (DistU(2)*W(3,J) - DistU(3)*W(2,J))*An + (DistU(2)*W(3,I) - DistU(3)*W(2,I))*Ap
                         Vrot(2) = (DistU(3)*W(1,J) - DistU(1)*W(3,J))*An + (DistU(3)*W(1,I) - DistU(1)*W(3,I))*Ap

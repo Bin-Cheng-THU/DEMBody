@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.1
+    !     DEMBody 5.2
     !     ***********
     !
     !     Initialization of global scalars.
@@ -301,8 +301,8 @@
         read (1000,*) LenBoxX
         read (1000,*) LenBoxY
         read (1000,*) gamma
-        LenBoxX = PlaSx1p(1) - PlaSx2p(1)
-        LenBoxY = PlaSy1p(2) - PlaSy2p(2)
+        LenBoxX = abs(PlaSx1p(1) - PlaSx2p(1))
+        LenBoxY = abs(PlaSy1p(2) - PlaSy2p(2))
     else
         read (1000,*)
         read (1000,*)
@@ -384,6 +384,21 @@
         end do
         close(1500)
         call initialBiDisperse
+        !  periodic Tag
+        if (isPeriodic) then
+            allocate (BiSTag1(NMAX))
+            allocate (BiSTag2(NMAX))
+            allocate (BiSTag3(NMAX))
+            allocate (BiSTag4(NMAX))
+            allocate (BiLTag1(biDisperseNum))
+            allocate (BiLTag2(biDisperseNum))
+            allocate (BiLTag3(biDisperseNum))
+            allocate (BiLTag4(biDisperseNum))
+            allocate (BiTag1(biDisperseNum))
+            allocate (BiTag2(biDisperseNum))
+            allocate (BiTag3(biDisperseNum))
+            allocate (BiTag4(biDisperseNum))
+        end if
     else
         read (1000,*)
         read (1000,*)

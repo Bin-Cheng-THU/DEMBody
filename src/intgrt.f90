@@ -98,11 +98,15 @@
     
     if (isPeriodic) then
         call periodic
+        
+        if (isBiDisperse) then
+            call periodicBiDisperse
+        end if
     end if
 
 #ifdef LatticeSearch    
     if (refreshLattice) then
-        !ostart = omp_get_wtime()
+        ostart = omp_get_wtime()
         call meshGenerate
         !oend = omp_get_wtime()
         !write(*,*) 'mesh', (oend-ostart)
@@ -116,16 +120,19 @@
         if (isBiDisperse) then
             call latticeGenerateBiDisperse
         end if    
-        !oend = omp_get_wtime()
-        !write(*,*) 'biDisperse lattice', (oend-ostart)
+        oend = omp_get_wtime()
+        write(*,*) 'biDisperse lattice', (oend-ostart)
     end if
 #endif
     
     !################         Part 3          ################### 
     !  calculated the force from the current x & xdot.
     !write(*,*) "start"
+    ostart = omp_get_wtime()
     call force
     !write(*,*) "end"
+    oend = omp_get_wtime()
+    write(*,*) 'force', (oend-ostart)
 
     !################         Part 4          ################### 
     !  calculated the current xdot

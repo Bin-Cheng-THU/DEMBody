@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.1
+    !     DEMBody 5.2
     !     ***********
     !
     !     Force for biDisperse particles.
@@ -12,6 +12,9 @@
     !
     !     @The interaction between contact walls and biDisperse particles
     !     @The interaction between moving walls and biDisperse particles
+    !
+    !     @The interaction between particles and mirrored bidisperse particles
+    !     @The interaction between mirrored bidispere particles
     !
     !     @Using rolling friction similar to LIGGGHTS
     !     @Using Hertz-Mindlin contact model similar to Wada
@@ -454,6 +457,14 @@
     !pause
     !
     !stop
+    
+    !  periodic boundary
+    if (isPeriodic) then
+        !  calculate forces between particles and mirrored bidisperse particles
+        call forceBiDisperseMirror
+        !  calculate forces between mirrored bidisperse particles
+        call forceBiDisperseInnerMirror
+    end if
     
     !  calculate forces between biDisperse particles
     call forceBiDisperseTraverse

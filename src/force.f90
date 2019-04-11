@@ -36,7 +36,7 @@
     character(30) :: FileNameForce
 
     !################         Part 1: Particle forces          ###################
-    !ostart = omp_get_wtime()
+    ostart = omp_get_wtime()
 #ifdef LatticeSearch
 #ifdef ParticleLattice
     call forceParticleLattice
@@ -48,17 +48,17 @@
 #else
     write(*,*) 'Error Force Model!'
 #endif
-    !oend = omp_get_wtime()
-    !write(*,*) "Force",(oend-ostart)
+    oend = omp_get_wtime()
+    write(*,*) "Force",(oend-ostart)
 
     !################         Part 2: Mirrored Particle forces          ###################
-    !ostart = omp_get_wtime()
+    ostart = omp_get_wtime()
     !  calculate mirrored force if using PBC & Shear PBC
     if (isPeriodic) then
         call forceMirror
     end if
-    !oend = omp_get_wtime()
-    !write(*,*) "Mirror",(oend-ostart)
+    oend = omp_get_wtime()
+    write(*,*) "Mirror",(oend-ostart)
     
     !################         Part 3: Contact wall forces          ###################
     !ostart = omp_get_wtime()
@@ -152,7 +152,7 @@
         end do
         accMag = sqrt(F(1,I)**2 + F(2,I)**2+F(3,I)**2)
         if (accMag .GE. MAX_ACC) then
-            write(*,*) 'exceed Max Acc',I,accMag
+            !write(*,*) 'exceed Max Acc',I,accMag
             do K = 1,3
                 F(K,I) = F(K,I)/accMag*MAX_ACC
             end do

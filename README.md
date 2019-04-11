@@ -23,7 +23,7 @@ These instructions will get you a copy of the project for development and testin
 
 ### Pre-/Post-process
 
-We developed [DEMTool](https://github.com/Bin-Cheng-THU/DEMTool.git) for pre- and post- process for DEMBody, e.g., point/mesh file generation and data rending based on [POV-Ray](http://www.povray.org/). Please read the instruction for that.
+We developed [DEMTool](https://github.com/Bin-Cheng-THU/DEMTool.git) for pre- and post-process for DEMBody, e.g., point/mesh file generation and data rending based on [POV-Ray](http://www.povray.org/). It is a standalone package whose output files are easily imported into most commercial and Open Source DEM software. Please read the instruction in [DEMTool](https://github.com/Bin-Cheng-THU/DEMTool.git) for details.
 
 ## Authors
 

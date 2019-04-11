@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.1
+    !     DEMBody 5.2
     !     ***********
     !
     !     Global parameters.
@@ -206,6 +206,10 @@
     real(8) :: LenBoxY
     real(8) :: gamma
     integer :: Tag1(NMAX),Tag2(NMAX),Tag3(NMAX),Tag4(NMAX)
+    !  For biDisperse particles
+    integer,allocatable :: BiSTag1(:),BiSTag2(:),BiSTag3(:),BiSTag4(:)
+    integer,allocatable :: BiLTag1(:),BiLTag2(:),BiLTag3(:),BiLTag4(:)
+    integer,allocatable :: BiTag1(:),BiTag2(:),BiTag3(:),BiTag4(:)
     
     !  Define parameters of GravBody
     integer :: gravBodyTag
