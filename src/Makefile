@@ -5,7 +5,7 @@
 PLATFORM=-DLinux
 #PLATFORM=-DWindows
 
-NUMBER=-DNMAX=1000000
+NUMBER=-DNMAX=1300000
 
 #MODEL=-DHertzMindlinVisco
 MODEL=-DHertzMindlinResti
@@ -27,14 +27,14 @@ OUTPUTOPTION=-DnhistoryOutput
 COMPILER=ifort -openmp -O2 -fpp $(PLATFORM) $(NUMBER) $(MODEL) $(SEARCH) $(REGION) $(PARALLEL) $(PARTICLE) $(OUTPUTOPTION)
 
 DEMBody: global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o initialTriMesh.o initialBondedTriMesh.o \
-	initialBiDisperse.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
-	force.o forceLattice.o forceMirror.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
-	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseTraverse.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
+	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o periodicBiDisperse.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
+	force.o forceLattice.o forcePBC.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
+	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseMirror.o forceBiDisperseInnerMirror.o forceBiDisperseTraverse.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
 	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o intgrtBiDisperse.o
 	$(COMPILER)  -o DEMBody global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o initialTriMesh.o initialBondedTriMesh.o \
-	initialBiDisperse.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
-	force.o forceLattice.o forceMirror.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
-	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseTraverse.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
+	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o periodicBiDisperse.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
+	force.o forceLattice.o forcePBC.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
+	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseMirror.o forceBiDisperseInnerMirror.o forceBiDisperseTraverse.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
 	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o intgrtBiDisperse.o
 
 global.mod: global.o global.f90
@@ -59,12 +59,18 @@ initialBondedTriMesh.o: global.mod initialBondedTriMesh.f90
 	$(COMPILER)  -c initialBondedTriMesh.f90
 initialBiDisperse.o: global.mod initialBiDisperse.f90
 	$(COMPILER)  -c initialBiDisperse.f90
+initialLattice.o: global.mod initialLattice.f90
+	$(COMPILER)  -c initialLattice.f90
+latticeXY2ID.o: latticeXY2ID.f90
+	$(COMPILER)  -c latticeXY2ID.f90
 loadRestartData.o: global.mod loadfile.mod loadRestartData.f90
 	$(COMPILER)  -c loadRestartData.f90
 loadData.o: global.mod loadData.f90
 	$(COMPILER)  -c loadData.f90
 periodic.o: global.mod periodic.f90
 	$(COMPILER)  -c periodic.f90
+periodicBiDisperse.o: global.mod periodicBiDisperse.f90
+	$(COMPILER)  -c periodicBiDisperse.f90
 meshGenerate.o: global.mod meshGenerate.f90
 	$(COMPILER)  -c meshGenerate.f90
 latticeGenerate.o: global.mod latticeGenerate.f90
@@ -75,8 +81,8 @@ force.o: global.mod force.f90
 	$(COMPILER)  -c force.f90
 forceLattice.o: global.mod forceLattice.f90
 	$(COMPILER)  -c forceLattice.f90
-forceMirror.o: global.mod forceMirror.f90
-	$(COMPILER)  -c forceMirror.f90
+forcePBC.o: global.mod forcePBC.f90
+	$(COMPILER)  -c forcePBC.f90
 forceContactWalls.o: global.mod forceContactWalls.f90
 	$(COMPILER)  -c forceContactWalls.f90
 forceMovingWalls.o: global.mod forceMovingWalls.f90
@@ -95,6 +101,10 @@ forceSphereBody.o: global.mod forceSphereBody.f90
 	$(COMPILER)  -c forceSphereBody.f90
 forceBiDisperse.o: global.mod forceBiDisperse.f90
 	$(COMPILER)  -c forceBiDisperse.f90
+forceBiDisperseMirror.o: global.mod forceBiDisperseMirror.f90
+	$(COMPILER)  -c forceBiDisperseMirror.f90
+forceBiDisperseInnerMirror.o: global.mod forceBiDisperseInnerMirror.f90
+	$(COMPILER)  -c forceBiDisperseInnerMirror.f90
 forceBiDisperseTraverse.o: global.mod forceBiDisperseTraverse.f90
 	$(COMPILER)  -c forceBiDisperseTraverse.f90
 forceBiDisperseContactWalls.o: global.mod forceBiDisperseContactWalls.f90
@@ -128,8 +138,8 @@ intgrtBiDisperse.o: global.mod intgrtBiDisperse.f90
 
 clean:
 	rm global.mod loadfile.mod global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o initialTriMesh.o initialBondedTriMesh.o \
-	initialBiDisperse.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
-	force.o forceLattice.o forceMirror.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
-	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseTraverse.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
+	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o periodicBiDisperse.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
+	force.o forceLattice.o forcePBC.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
+	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseMirror.o forceBiDisperseInnerMirror.o forceBiDisperseTraverse.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
 	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o intgrtBiDisperse.o
 # End of the makefile

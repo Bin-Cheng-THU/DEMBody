@@ -805,9 +805,6 @@
                     end do
                     !**************************
                     Dist(2) = Dist(2) - LenBoxY
-                    shearPBC = biDisperseX(1,J) + LenBoxY*gamma*time
-                    shearPBC = shearPBC - ((shearPBC+0.5D0*LenBoxX) - MODULO((shearPBC+0.5D0*LenBoxX),LenBoxX))
-                    Dist(1) = shearPBC - X(1,I)
                     !**************************
                     touching = .false.
                     slipping = .false.
@@ -888,9 +885,6 @@
                         do K = 1,3
                             Vrel(K) = biDisperseXdot(K,J) - Xdot(K,I)
                         end do
-                        !**************************
-                        Vrel(1) = Vrel(1) + LenBoxY*gamma
-                        !**************************
                         !  negative rotate relative velocity
                         Vrot(1) = (DistU(2)*biDisperseW(3,J) - DistU(3)*biDisperseW(2,J))*An + (DistU(2)*W(3,I) - DistU(3)*W(2,I))*Ap
                         Vrot(2) = (DistU(3)*biDisperseW(1,J) - DistU(1)*biDisperseW(3,J))*An + (DistU(3)*W(1,I) - DistU(1)*W(3,I))*Ap
@@ -1164,9 +1158,6 @@
                     end do
                     !**************************
                     Dist(2) = Dist(2) + LenBoxY
-                    shearPBC = biDisperseX(1,J) - LenBoxY*gamma*time
-                    shearPBC = shearPBC - ((shearPBC+0.5D0*LenBoxX) - MODULO((shearPBC+0.5D0*LenBoxX),LenBoxX))
-                    Dist(1) = shearPBC - X(1,I)
                     !**************************
                     touching = .false.
                     slipping = .false.
@@ -1247,9 +1238,6 @@
                         do K = 1,3
                             Vrel(K) = biDisperseXdot(K,J) - Xdot(K,I)
                         end do
-                        !**************************
-                        Vrel(1) = Vrel(1) - LenBoxY*gamma
-                        !**************************
                         !  negative rotate relative velocity
                         Vrot(1) = (DistU(2)*biDisperseW(3,J) - DistU(3)*biDisperseW(2,J))*An + (DistU(2)*W(3,I) - DistU(3)*W(2,I))*Ap
                         Vrot(2) = (DistU(3)*biDisperseW(1,J) - DistU(1)*biDisperseW(3,J))*An + (DistU(3)*W(1,I) - DistU(1)*W(3,I))*Ap

@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.1
+    !     DEMBody 5.2
     !     ***********
     !
     !     Force for all particles.
@@ -36,7 +36,7 @@
     character(30) :: FileNameForce
 
     !################         Part 1: Particle forces          ###################
-    ostart = omp_get_wtime()
+    !ostart = omp_get_wtime()
 #ifdef LatticeSearch
 #ifdef ParticleLattice
     call forceParticleLattice
@@ -48,17 +48,17 @@
 #else
     write(*,*) 'Error Force Model!'
 #endif
-    oend = omp_get_wtime()
-    write(*,*) "Force",(oend-ostart)
+    !oend = omp_get_wtime()
+    !write(*,*) "Force",(oend-ostart)
 
     !################         Part 2: Mirrored Particle forces          ###################
-    ostart = omp_get_wtime()
+    !ostart = omp_get_wtime()
     !  calculate mirrored force if using PBC & Shear PBC
     if (isPeriodic) then
-        call forceMirror
+        call forcePBC
     end if
-    oend = omp_get_wtime()
-    write(*,*) "Mirror",(oend-ostart)
+    !oend = omp_get_wtime()
+    !write(*,*) "PBC force",(oend-ostart)
     
     !################         Part 3: Contact wall forces          ###################
     !ostart = omp_get_wtime()

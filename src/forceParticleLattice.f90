@@ -39,7 +39,6 @@
     logical ::  slipping,rolling,twisting   !  State of friction of T
     logical ::  touching                    !  State of touch of T
     integer ::  I,J,K,L,LenNodeJ,LenNode    !  Linklist
-    integer ::  num1,num2,limit             !  Neighbor
     type(Nodelink),pointer :: Temp          !  Temporary pointer
     type(Nodelink),pointer :: TempH         !  Contact pointer
     type(Nodelink),pointer :: Tail          !  Tail pointer
@@ -48,7 +47,6 @@
 
     integer :: JJ                           !  Parallel Lattice
     integer :: IDJ                          !  Parallel Lattice J (outer lattice)
-    type(Neighbor),pointer :: IDInnerI      !  List of Inner Particles
     type(Neighbor),pointer :: IDInnerJ      !  List of Inner Particles
     type(Neighbor),pointer :: IDOuterJ      !  List of Outer Particles   
     integer :: particleI,particleJ          !  ID of two interacting particle
@@ -70,13 +68,13 @@
     !ostart = omp_get_wtime()
     !  Loop over all bodies through the NodeTree.
     !$OMP PARALLEL DO &
-    !$OMP& PRIVATE(check,LenNodeJ,LenNode,Temp,TempH,Tail,num1,num2,limit,&
+    !$OMP& PRIVATE(check,LenNodeJ,LenNode,Temp,TempH,Tail,&
     !$OMP& I,J,K,L,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
     !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,tangential_history,&
     !$OMP& rolling_moment,rolling_momentL,rolling_history,twisting_moment,twisting_momentL,twisting_history,cohesive_force,gravity_force,Ap,An,Rij,Mij,Iij,&
     !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
     !$OMP& slipping,rolling,twisting,touching,&
-    !$OMP& JJ,IDJ,IDInnerI,IDInnerJ,IDOuterJ,particleI,particleJ) SCHEDULE(GUIDED)
+    !$OMP& JJ,IDJ,IDInnerJ,IDOuterJ,particleI,particleJ) SCHEDULE(GUIDED)
     ! Loop over all lattices
     do I = 1,N
         
@@ -90,7 +88,7 @@
             particleJ = IDInnerJ%No    
 
             !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
-            !    write(123,'(F15.5,2X,A5,2X,2I5,2X)',advance='no') Time,'Inner',particleI,particleJ
+            !    write(123,'(F15.5,2X,A5,2X,2I8,2X)',advance='no') Time,'Inner',particleI,particleJ
             !end if
 
             !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
@@ -388,8 +386,8 @@
                     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
                     !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
-                    !    write(123,'(2I5,2X,15F30.17)',advance='no') particleI,particleJ,(Vtot(K),K=1,3),DistS,DistL,ERR,(DistU(K),K=1,3),(Vnor(K),K=1,3),(Vtan(K),K=1,3)
-                    !    write(123,'(18F30.17)') (rolling_moment(K),K=1,3),(DthetaR(K),K=1,3),(Mr(K),K=1,3),(twisting_moment(K),K=1,3),(DthetaT(K),K=1,3),(Mt(K),K=1,3)
+                        !write(123,'(2I5,2X,15F30.17)',advance='no') particleI,particleJ,(Vtot(K),K=1,3),DistS,DistL,ERR,(DistU(K),K=1,3),(Vnor(K),K=1,3),(Vtan(K),K=1,3)
+                        !write(123,'(18F30.17)') (rolling_moment(K),K=1,3),(DthetaR(K),K=1,3),(Mr(K),K=1,3),(twisting_moment(K),K=1,3),(DthetaT(K),K=1,3),(Mt(K),K=1,3)
                     !end if
 
                     !  cohesive force
@@ -501,7 +499,7 @@
                     particleJ = IDOuterJ%No
 
                     !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
-                    !    write(123,'(F15.5,2X,A5,2X,2I5,2X)',advance='no') Time,'outer',particleI,particleJ
+                    !    write(123,'(F15.5,2X,A5,2X,2I8,2X)',advance='no') Time,'outer',particleI,particleJ
                     !end if
 
                     !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then

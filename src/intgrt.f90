@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.1
+    !     DEMBody 5.2
     !     ***********
     !
     !     N-body integrator flow control.
@@ -95,18 +95,21 @@
     if (isBiDisperse) then
         call intgrtBiDisperse
     end if
-    
-    if (isPeriodic) then
-        call periodic
         
-        if (isBiDisperse) then
-            call periodicBiDisperse
-        end if
-    end if
-
 #ifdef LatticeSearch    
-    if (refreshLattice) then
-        ostart = omp_get_wtime()
+    if (refreshLattice) then    
+        !ostart = omp_get_wtime()
+        if (isPeriodic) then
+            call periodic
+
+            if (isBiDisperse) then
+                call periodicBiDisperse
+            end if
+        end if
+        !oend = omp_get_wtime()
+        !write(*,*) 'periodic', (oend-ostart)
+    
+        !ostart = omp_get_wtime()
         call meshGenerate
         !oend = omp_get_wtime()
         !write(*,*) 'mesh', (oend-ostart)
@@ -120,19 +123,17 @@
         if (isBiDisperse) then
             call latticeGenerateBiDisperse
         end if    
-        oend = omp_get_wtime()
-        write(*,*) 'biDisperse lattice', (oend-ostart)
+        !oend = omp_get_wtime()
+        !write(*,*) 'bidisperse lattice', (oend-ostart)
     end if
 #endif
     
     !################         Part 3          ################### 
     !  calculated the force from the current x & xdot.
-    !write(*,*) "start"
-    ostart = omp_get_wtime()
+    !ostart = omp_get_wtime()
     call force
-    !write(*,*) "end"
-    oend = omp_get_wtime()
-    write(*,*) 'force', (oend-ostart)
+    !oend = omp_get_wtime()
+    !write(*,*) 'force', (oend-ostart)
 
     !################         Part 4          ################### 
     !  calculated the current xdot

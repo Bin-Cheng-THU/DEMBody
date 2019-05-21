@@ -13,7 +13,7 @@
     !  Parameters
     real(8),parameter :: GravConst = 6.674184D-11
     real(8),parameter :: PI = 3.141592653589793D0
-    character(10),parameter :: VERSION = '5.1'
+    character(10),parameter :: VERSION = '5.2'
 
     !  Define control parameters of Program
     character(10) :: vsDEMBody
@@ -81,6 +81,16 @@
     !  DEM Lattice
     type(Lattice),pointer :: DEM(:)
     
+    !  Periodic Lattice
+    type :: PeriodicLattice
+        real(8) :: xFlag
+        real(8) :: yFlag
+        integer :: ID
+        type(PeriodicLattice),pointer :: next
+    end type PeriodicLattice
+    !  DEM Periodic Lattice
+    type(PeriodicLattice),pointer :: periodicDEM(:)
+        
     !  Conduct Neighbor
     type :: Neighbor
         integer :: No

@@ -1,7 +1,0 @@
-        !COMPILER-GENERATED INTERFACE MODULE: Sun Mar 17 23:06:36 2019
-        MODULE PLANET__genmod
-          INTERFACE 
-            SUBROUTINE PLANET
-            END SUBROUTINE PLANET
-          END INTERFACE 
-        END MODULE PLANET__genmod

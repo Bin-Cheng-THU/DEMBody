@@ -21,28 +21,18 @@
         !Wallx1
         if (biDisperseX(1,I).GT.(PlaSx1p(1))) then
             biDisperseX(1,I) = biDisperseX(1,I) - LenBoxX
-            refreshLattice = .true.
         end if
         !Wallx2
         if (biDisperseX(1,I).LT.(PlaSx2p(1))) then
             biDisperseX(1,I) = biDisperseX(1,I) + LenBoxX
-            refreshLattice = .true.
         end if
         !Wally1
         if (biDisperseX(2,I).GT.(PlaSy1p(2))) then
             biDisperseX(2,I) = biDisperseX(2,I) - LenBoxY
-            biDisperseX(1,I) = biDisperseX(1,I) + LenBoxY*gamma*time
-            biDisperseX(1,I) = biDisperseX(1,I) - ((biDisperseX(1,I)+0.5D0*LenBoxX) - MODULO((biDisperseX(1,I)+0.5D0*LenBoxX),LenBoxX))
-            biDisperseXdot(1,I) = biDisperseXdot(1,I) + LenBoxY*gamma
-            refreshLattice = .true.
         end if
         !Wally2
         if (biDisperseX(2,I).LT.(PlaSy2p(2))) then
             biDisperseX(2,I) = biDisperseX(2,I) + LenBoxY
-            biDisperseX(1,I) = biDisperseX(1,I) - LenBoxY*gamma*time
-            biDisperseX(1,I) = biDisperseX(1,I) - ((biDisperseX(1,I)+0.5D0*LenBoxX) - MODULO((biDisperseX(1,I)+0.5D0*LenBoxX),LenBoxX))
-            biDisperseXdot(1,I) = biDisperseXdot(1,I) - LenBoxY*gamma
-            refreshLattice = .true.
         end if
 
         !  Periodic Tag for biDisperse particles
