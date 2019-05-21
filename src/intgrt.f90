@@ -1,12 +1,11 @@
     !********************************************************************
-    !     DEMBody 5.2
+    !     DEMBody 6.0
     !     ***********
     !
     !     N-body integrator flow control.
     !     -------------------------------
     !     @New method to solve the intgret: mid-step velocities verlet algoritm
     !     @Calculated x & xdot & w & Q from the previous values.
-
     !
     !********************************************************************
     subroutine intgrt()
@@ -91,20 +90,12 @@
     if (isSphereBody) then
         call intgrtSphereBody
     end if
-    
-    if (isBiDisperse) then
-        call intgrtBiDisperse
-    end if
         
 #ifdef LatticeSearch    
     if (refreshLattice) then    
         !ostart = omp_get_wtime()
         if (isPeriodic) then
             call periodic
-
-            if (isBiDisperse) then
-                call periodicBiDisperse
-            end if
         end if
         !oend = omp_get_wtime()
         !write(*,*) 'periodic', (oend-ostart)
@@ -118,13 +109,6 @@
         call latticeGenerate
         !oend = omp_get_wtime()
         !write(*,*) 'lattice', (oend-ostart)
-        
-        !ostart = omp_get_wtime()
-        if (isBiDisperse) then
-            call latticeGenerateBiDisperse
-        end if    
-        !oend = omp_get_wtime()
-        !write(*,*) 'bidisperse lattice', (oend-ostart)
     end if
 #endif
     
@@ -170,17 +154,6 @@
                 sphereBodyW(K,I) = sphereBodyW(K,I) + sphereBodyFM(K,I) * Dt /2.0D0
             end do
         end do
-    end if
-    
-    if (isBiDisperse) then
-        !$OMP PARALLEL DO PRIVATE(I,K)
-        do I = 1,biDisperseNum
-            do K = 1,3
-                biDisperseXdot(K,I) = biDisperseXdot(K,I) + biDisperseF(K,I) * Dt /2.0D0
-                biDisperseW(K,I) = biDisperseW(K,I) + biDisperseFM(K,I) * Dt /2.0D0
-            end do
-        end do
-        !$OMP END PARALLEL DO
     end if
     
     !o2 = omp_get_wtime()

@@ -14,7 +14,7 @@
     !
     !     @Strategy: allocate particles into inner Lattices, so for particles in Lattice
     !     @     A, you just need to search contact of particles in Lattice A and Neighbor
-    !     @     lattices (The neighbor lattices is stored in DEM)
+    !     @     lattices (The neighbor lattices are stored in DEM)
     !
     !     @Allocate particles into Gravity Lattice.
     !     @Memory the total mass and mass center of particles in Gravity Lattices.

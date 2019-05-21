@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.2
+    !     DEMBody 6.0
     !     ***********
     !
     !     Global parameters.
@@ -13,7 +13,7 @@
     !  Parameters
     real(8),parameter :: GravConst = 6.674184D-11
     real(8),parameter :: PI = 3.141592653589793D0
-    character(10),parameter :: VERSION = '5.2'
+    character(10),parameter :: VERSION = '6.0'
 
     !  Define control parameters of Program
     character(10) :: vsDEMBody
@@ -29,7 +29,6 @@
     logical :: isPeriodic
     logical :: isGravBody
     logical :: isSphereBody
-    logical :: isBiDisperse
     logical :: isGravTriMesh
     real(8) :: Max_ACC
 
@@ -67,7 +66,7 @@
     integer :: LatNum
     integer :: Linklist(NMAX)
     real(8) :: verlet
-    integer,allocatable :: ParallelLatticeColor(:,:)
+    !integer,allocatable :: ParallelLatticeColor(:,:)
     
     !  Conduct Lattice
     type :: Lattice
@@ -215,11 +214,6 @@
     real(8) :: LenBoxX
     real(8) :: LenBoxY
     real(8) :: gamma
-    integer :: Tag1(NMAX),Tag2(NMAX),Tag3(NMAX),Tag4(NMAX)
-    !  For biDisperse particles
-    integer,allocatable :: BiSTag1(:),BiSTag2(:),BiSTag3(:),BiSTag4(:)
-    integer,allocatable :: BiLTag1(:),BiLTag2(:),BiLTag3(:),BiLTag4(:)
-    integer,allocatable :: BiTag1(:),BiTag2(:),BiTag3(:),BiTag4(:)
     
     !  Define parameters of GravBody
     integer :: gravBodyTag
@@ -235,25 +229,6 @@
     real(8),allocatable :: sphereBodyQ(:,:)
     real(8),allocatable :: sphereBodyBody(:),sphereBodyR(:),sphereBodyInertia(:)
     real(8),allocatable :: sphereBodyF(:,:),sphereBodyFM(:,:)
-        
-    !  Define parameters of BiDisperse
-    integer :: biDisperseNum
-    integer,allocatable :: biDisperseTag(:)
-    real(8),allocatable :: biDisperseX(:,:),biDisperseXdot(:,:),biDisperseW(:,:)
-    real(8),allocatable :: biDisperseQ(:,:)
-    real(8),allocatable :: biDisperseBody(:),biDisperseR(:),biDisperseInertia(:)
-    real(8),allocatable :: biDisperseF(:,:),biDisperseFM(:,:)
-    real(8),allocatable :: biDisperseXT(:,:)
-    integer :: biDisperseScale
-    !  Define bidisperse in lattice
-    type :: biDisperseLattice
-        integer :: No
-        type(biDisperseLattice),pointer :: next
-    end type biDisperseLattice
-    type(biDisperseLattice),pointer :: biDisperseDEM(:)
-    type(biDisperseLattice),pointer :: biDisperseDEMtail(:)
-    !  Nodelink of BiDisperse
-    type(Nodelink),pointer :: HeadBiDisperse(:) 
         
     !  Define parameters of Saturn and Pan
     real(8) :: muS

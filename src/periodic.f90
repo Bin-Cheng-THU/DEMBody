@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.2
+    !     DEMBody 6.0
     !     ***********
     !
     !     Change position and velocity when crossing boundary.
@@ -7,6 +7,7 @@
     !
     !     @Periodic boundary
     !     @Shear periodic boundary
+    !     @Can not solve shear periodic boundary in current version (v6.0)
     !
     !********************************************************************
     subroutine periodic()

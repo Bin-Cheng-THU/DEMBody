@@ -53,12 +53,6 @@
 		<File RelativePath="..\..\src\attitude.f90"/>
 		<File RelativePath="..\..\src\attitudeQ2M.f90"/>
 		<File RelativePath="..\..\src\force.f90"/>
-		<File RelativePath="..\..\src\forceBiDisperse.f90"/>
-		<File RelativePath="..\..\src\forceBiDisperseContactWalls.f90"/>
-		<File RelativePath="..\..\src\forceBiDisperseInnerMirror.f90"/>
-		<File RelativePath="..\..\src\forceBiDisperseMirror.f90"/>
-		<File RelativePath="..\..\src\forceBiDisperseMovingWalls.f90"/>
-		<File RelativePath="..\..\src\forceBiDisperseTraverse.f90"/>
 		<File RelativePath="..\..\src\forceBondedTriMeshWalls.f90"/>
 		<File RelativePath="..\..\src\forceBondedWalls.f90"/>
 		<File RelativePath="..\..\src\forceContactWalls.f90"/>
@@ -74,18 +68,15 @@
 		<File RelativePath="..\..\src\forceSphereBody.f90"/>
 		<File RelativePath="..\..\src\forceTraverse.f90"/>
 		<File RelativePath="..\..\src\forceTriMeshWalls.f90"/>
-		<File RelativePath="..\..\src\initialBiDisperse.f90"/>
 		<File RelativePath="..\..\src\initialBondedTriMesh.f90"/>
 		<File RelativePath="..\..\src\initialLattice.f90"/>
 		<File RelativePath="..\..\src\initialSystem.f90"/>
 		<File RelativePath="..\..\src\initialTriMesh.f90"/>
 		<File RelativePath="..\..\src\intgrt.f90"/>
-		<File RelativePath="..\..\src\intgrtBiDisperse.f90"/>
 		<File RelativePath="..\..\src\intgrtBondedWalls.f90"/>
 		<File RelativePath="..\..\src\intgrtGravBody.f90"/>
 		<File RelativePath="..\..\src\intgrtSphereBody.f90"/>
 		<File RelativePath="..\..\src\latticeGenerate.f90"/>
-		<File RelativePath="..\..\src\latticeGenerateBiDisperse.f90"/>
 		<File RelativePath="..\..\src\latticeXY2ID.f90"/>
 		<File RelativePath="..\..\src\loadData.f90"/>
 		<File RelativePath="..\..\src\loadRestartData.f90"/>
@@ -93,6 +84,5 @@
 		<File RelativePath="..\..\src\meshGenerate.f90"/>
 		<File RelativePath="..\..\src\output.f90"/>
 		<File RelativePath="..\..\src\periodic.f90"/>
-		<File RelativePath="..\..\src\periodicBiDisperse.f90"/>
 		<File RelativePath="..\..\src\start.f90"/></Filter></Files>
 	<Globals/></VisualStudioProject>

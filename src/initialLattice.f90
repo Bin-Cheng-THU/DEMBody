@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.2
+    !     DEMBody 6.0
     !     ***********
     !
     !     Initialization of DEM Lattice.
@@ -21,10 +21,10 @@
     type(PeriodicLattice),pointer :: Tail
     real(8) :: ostart,oend
     
-    real(8),allocatable :: test_lattice(:,:)
-    integer,allocatable :: test_color(:)
-    integer :: count
-    integer :: test_index
+    !real(8),allocatable :: test_lattice(:,:)
+    !integer,allocatable :: test_color(:)
+    !integer :: count
+    !integer :: test_index
 
 #ifdef LatticeSearch
     !  Initialize Parallel Lattice.
