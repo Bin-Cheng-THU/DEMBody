@@ -19,6 +19,8 @@
     real(8) :: ostart,oend
     real(8) :: o1,o2
     real(8) :: dist(3),distL
+    integer :: index
+    real(8) :: t_r(3)
     real(8) :: Tmoving,Dmoving,Vmoving
 
 1   norm = 1
@@ -29,24 +31,9 @@
     Time = Time + Dt 
     currentStep = currentStep + 1
 
-    !################         Part 2          ###################  
-    !  calculated the force from the current x & xdot.
-    !$OMP PARALLEL DO PRIVATE(I,K,dist,distL)
-    do I = 1,N
-        do K = 1,3
-            dist(K) = Xdot(K,I) * Dt +  F(K,I) * Dt * Dt /2.0D0
-            XT(K,I) = XT(K,I) + dist(K)            
-            X(K,I) = X(K,I) + dist(K)
-            Xdot(K,I) = Xdot(K,I) + F(K,I) * Dt /2.0D0
-        end do
-#ifdef LatticeSearch        
-        distL = XT(1,I)*XT(1,I) + XT(2,I)*XT(2,I) + XT(3,I)*XT(3,I)
-        if (distL .GE. verlet) then
-            refreshLattice = .true.
-        end if
-#endif LatticeSearch        
-    end do
-    !$OMP END PARALLEL DO
+    !################         Part 2          ###################
+    !  intgrt bond-assembly
+    call intgrtAssembly
     
     if (isQuaternion) then
         call attitude
@@ -122,11 +109,30 @@
     !################         Part 4          ################### 
     !  calculated the current xdot
     !$OMP PARALLEL DO PRIVATE(I,K)
-    do I = 1,N
+    do I = 1,bondN
         do K = 1,3
-            Xdot(K,I) = Xdot(K,I) + F(K,I) * Dt /2.0D0
-            W(K,I) = W(K,I) + FM(K,I) * Dt /2.0D0     
+            bondXdot(K,I) = bondXdot(K,I) + bondF(K,I) * Dt /2.0D0
+            bondWB(K,I) = bondWB(K,I) + bondWdotB(K,I) * Dt /2.0D0
+        end do
+        do K = 1,3
+            bondW(K,I) = bondMatB(K,1,I)*bondWB(1,I) + bondMatB(K,2,I)*bondWB(2,I) + bondMatB(K,3,I)*bondWB(3,I)
+        end do
+    end do
+    !$OMP END PARALLEL DO
+    
+    !$OMP PARALLEL DO PRIVATE(I,K,index,t_r)
+    do I = 1,N
+        index = bondTag(I)
+        do K = 1,3
+            !  refresh W
+            W(K,I) = bondW(K,index)
+            !  refresh R
+            t_r(K) = bondMatB(K,1,index)*bondParticles(1,I) + bondMatB(K,2,index)*bondParticles(2,I) + bondMatB(K,3,index)*bondParticles(3,I)
         end do       
+        !  refresh Xdot
+        Xdot(1,I) = bondXdot(1,index) + W(2,I)*t_r(3) - W(3,I)*t_r(2)
+        Xdot(2,I) = bondXdot(2,index) + W(3,I)*t_r(1) - W(1,I)*t_r(3)
+        Xdot(3,I) = bondXdot(3,index) + W(1,I)*t_r(2) - W(2,I)*t_r(1)
     end do
     !$OMP END PARALLEL DO
     

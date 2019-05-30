@@ -112,6 +112,19 @@
     !  Grav Tri Mesh
     real(8),allocatable :: GravTriMeshNode(:,:)
 
+    !  Granular assembly
+    integer :: bondN
+    integer,allocatable :: bondNumN(:)
+    real(8),allocatable :: bondX(:,:),bondXdot(:,:),bondW(:,:)
+    real(8),allocatable :: bondBody(:),bondInertia(:,:)
+    real(8),allocatable :: bondF(:,:),bondFM(:,:)
+    real(8),allocatable :: bondQ(:,:),bondMatI(:,:,:),bondMatB(:,:,:)
+    real(8),allocatable :: bondWB(:,:),bondWdotB(:,:)
+    real(8),allocatable :: bondMoveX(:,:),bondMoveMat(:,:,:)
+    integer,allocatable :: bondRange(:,:)
+    integer :: bondTag(NMAX)
+    real(8) :: bondParticles(3,NMAX)
+    
     !  Define parameters of Particle
     real(8) :: X(3,NMAX),Xdot(3,NMAX),W(3,NMAX)
     real(8) :: Body(NMAX),R(NMAX),Inertia(NMAX)

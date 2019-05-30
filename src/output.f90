@@ -15,6 +15,7 @@
     integer :: I,J,K
     type(Nodelink),pointer :: Temp
     character(20) :: FileNameX
+    character(20) :: FileNameB
     character(20) :: FileNameF
     character(25) :: FileNameW
     integer(4) :: result
@@ -77,32 +78,45 @@
 
         if (isQuaternion) then
             open(Step+1000,FILE=FileNameX)
-            write(Step+1000,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','R',',','Time',',','EN',',','W:1',',','W:2',',','W:3',',','Slip',',','Roll',',','Twist',',','Q1',',','Q2',',','Q3',',','Q4'
+            write(Step+1000,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','R',',','Time',',','EN',',','W:1',',','W:2',',','W:3',',','Slip',',','Roll',',','Twist',',','Q1',',','Q2',',','Q3',',','Q4',',','Cell'
             do  J=1,N
-                write(Step+1000,21)X(1,J),',',X(2,J),',',X(3,J),',',Xdot(1,J),',',Xdot(2,J),',',Xdot(3,J),',',R(J),',',Time,',',Energy(J),',',W(1,J),',',W(2,J),',',W(3,J),',',Heat(1,J),',',Heat(2,J),',',Heat(3,J),',',Quaternion(1,J),',',Quaternion(2,J),',',Quaternion(3,J),',',Quaternion(4,J)
+                write(Step+1000,21)X(1,J),',',X(2,J),',',X(3,J),',',Xdot(1,J),',',Xdot(2,J),',',Xdot(3,J),',',R(J),',',Time,',',Energy(J),',',W(1,J),',',W(2,J),',',W(3,J),',',Heat(1,J),',',Heat(2,J),',',Heat(3,J),',',Quaternion(1,J),',',Quaternion(2,J),',',Quaternion(3,J),',',Quaternion(4,J),',',bondTag(J)
             end do
             if (isGravBody) then
-                write(Step+1000,21)gravBodyX(1),',',gravBodyX(2),',',gravBodyX(3),',',gravBodyXdot(1),',',gravBodyXdot(2),',',gravBodyXdot(3),',',gravBodyR,',',Time,',',0.0,',',gravBodyW(1),',',gravBodyW(2),',',gravBodyW(3),',',0.0,',',0.0,',',0.0,',',gravBodyQ(1),',',gravBodyQ(2),',',gravBodyQ(3),',',gravBodyQ(4)
+                write(Step+1000,21)gravBodyX(1),',',gravBodyX(2),',',gravBodyX(3),',',gravBodyXdot(1),',',gravBodyXdot(2),',',gravBodyXdot(3),',',gravBodyR,',',Time,',',0.0,',',gravBodyW(1),',',gravBodyW(2),',',gravBodyW(3),',',0.0,',',0.0,',',0.0,',',gravBodyQ(1),',',gravBodyQ(2),',',gravBodyQ(3),',',gravBodyQ(4),',',0
             end if
             if (isSphereBody) then
                 do J=1,sphereBodyNum
-                    write(Step+1000,21)sphereBodyX(1,J),',',sphereBodyX(2,J),',',sphereBodyX(3,J),',',sphereBodyXdot(1,J),',',sphereBodyXdot(2,J),',',sphereBodyXdot(3,J),',',sphereBodyR(J),',',Time,',',0.0,',',sphereBodyW(1,J),',',sphereBodyW(2,J),',',sphereBodyW(3,J),',',0.0,',',0.0,',',0.0,',',sphereBodyQ(1,J),',',sphereBodyQ(2,J),',',sphereBodyQ(3,J),',',sphereBodyQ(4,J)
+                    write(Step+1000,21)sphereBodyX(1,J),',',sphereBodyX(2,J),',',sphereBodyX(3,J),',',sphereBodyXdot(1,J),',',sphereBodyXdot(2,J),',',sphereBodyXdot(3,J),',',sphereBodyR(J),',',Time,',',0.0,',',sphereBodyW(1,J),',',sphereBodyW(2,J),',',sphereBodyW(3,J),',',0.0,',',0.0,',',0.0,',',sphereBodyQ(1,J),',',sphereBodyQ(2,J),',',sphereBodyQ(3,J),',',sphereBodyQ(4,J),',',0
                 end do
             end if            
-21          format (E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6)      
+21          format (E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,I8)
             close(Step+1000)
         else
             open(Step+1000,FILE=FileNameX)
-            write(Step+1000,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','R',',','Time',',','EN',',','W:1',',','W:2',',','W:3',',','Slip',',','Roll',',','Twist'
+            write(Step+1000,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','R',',','Time',',','EN',',','W:1',',','W:2',',','W:3',',','Slip',',','Roll',',','Twist',',','Cell'
             do  J=1,N
-                write(Step+1000,22)X(1,J),',',X(2,J),',',X(3,J),',',Xdot(1,J),',',Xdot(2,J),',',Xdot(3,J),',',R(J),',',Time,',',Energy(J),',',W(1,J),',',W(2,J),',',W(3,J),',',Heat(1,J),',',Heat(2,J),',',Heat(3,J)
+                write(Step+1000,22)X(1,J),',',X(2,J),',',X(3,J),',',Xdot(1,J),',',Xdot(2,J),',',Xdot(3,J),',',R(J),',',Time,',',Energy(J),',',W(1,J),',',W(2,J),',',W(3,J),',',Heat(1,J),',',Heat(2,J),',',Heat(3,J),',',bondTag(J)
             end do
             if (isGravBody) then
-                write(Step+1000,22)gravBodyX(1),',',gravBodyX(2),',',gravBodyX(3),',',gravBodyXdot(1),',',gravBodyXdot(2),',',gravBodyXdot(3),',',gravBodyR,',',Time,',',Energy(J),',',gravBodyW(1),',',gravBodyW(2),',',gravBodyW(3),',',X0(1,J),',',X0(2,J),',',X0(3,J)
+                write(Step+1000,22)gravBodyX(1),',',gravBodyX(2),',',gravBodyX(3),',',gravBodyXdot(1),',',gravBodyXdot(2),',',gravBodyXdot(3),',',gravBodyR,',',Time,',',Energy(J),',',gravBodyW(1),',',gravBodyW(2),',',gravBodyW(3),',',X0(1,J),',',X0(2,J),',',X0(3,J),',',0
             end if
-22          format (E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6)      
+22          format (E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,I8)
             close(Step+1000)
         end if
+        
+        !  Output the position, velocity and force of all assemblies
+        write(FileNameB,'(I4)') Step+1000
+        FileNameB = '../Data/'//FileNameB
+        FileNameB = trim(FileNameB)//'B.csv'
+        open(Step+1000,FILE=FileNameB)
+        
+        write(Step+1000,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','Time',',','W:1',',','W:2',',','W:3',',','Q1',',','Q2',',','Q3',',','Q4'
+        do  J=1,bondN
+            write(Step+1000,23)bondX(1,J),',',bondX(2,J),',',bondX(3,J),',',bondXdot(1,J),',',bondXdot(2,J),',',bondXdot(3,J),',',Time,',',bondW(1,J),',',bondW(2,J),',',bondW(3,J),',',bondQ(1,J),',',bondQ(2,J),',',bondQ(3,J),',',bondQ(4,J)
+        end do
+23      format (E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6)
+        close(Step+1000)
 
 #ifdef historyOutput        
         !  Output the tangential contact history of all interactions

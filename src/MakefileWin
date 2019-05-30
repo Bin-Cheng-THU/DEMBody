@@ -3,10 +3,10 @@
 
 LatticeSearch
 ParticleLattice
-nConfined
+Confined
 openmp
-NMAX=300800
+NMAX=12000
 HertzMindlinResti
-PP=1524
+PP=1
 nhistoryOutput
 Windows

@@ -86,6 +86,7 @@
                 IDParticle => IDParticle%next
                 particleJ = IDParticle%No
 
+                if (bondTag(particleI) .NE. bondTag(particleJ)) then
                 !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
                 !    write(124,'(F15.5,2X,4I8,2X)',advance='no') Time,Linklist(I),ID,particleI,particleJ
                 !end if
@@ -473,6 +474,7 @@
                 !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
                 !    write(124,*)
                 !end if
+                end if
             end do      
         end do
     end do

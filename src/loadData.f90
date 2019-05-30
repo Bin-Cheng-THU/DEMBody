@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.0
+    !     DEMBody 6.0
     !     ***********
     !
     !     Parameter input.
@@ -11,7 +11,7 @@
     use global
     implicit none
     
-    integer :: I,K
+    integer :: I,J,K
 
     write(*,*) "< Input file loading..."
     
@@ -28,10 +28,9 @@
     read (2000,*)  m_mu_r,m_nita_r    !  Rolling friction; Rolling damping
 
     !  read initial conditions from input file.
-    do  I = 1,N
-        read (2000,*)  Body(I),Inertia(I),(X(K,I),K=1,3),(Xdot(K,I),K=1,3),(W(K,I),K=1,3),R(I)
+    do I = 1,N
+        read (2000,*)  Body(I),Inertia(I),(bondParticles(K,I),K=1,3),R(I)
     end do
-    X0 = X
     close(2000)
     
     !  initialize Quaternion array
@@ -43,6 +42,12 @@
             Quaternion(4,I) = 1.0D0
         end do
     end if
+    
+    !  read & print the main input parameters.
+    open (3000,FILE="../Input/input_assembly.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
+    read (3000,*)  bondN              !  the number of all assemblies
+    call initialAssembly
+    close(3000)
     
     !  change position and velocity according to PBC & Shear PBC
     if (isPeriodic) then

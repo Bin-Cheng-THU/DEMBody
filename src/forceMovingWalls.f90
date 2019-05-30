@@ -137,7 +137,11 @@
                     Ct = 0.5D0*Cs*(m_Beta*Rij)**2
 #elif HertzMindlinResti
                     !  calculate material constant
-                    Rij = R(I)
+                    if (bondNumN(bondTag(I)) .EQ. 1) then
+                        Rij = R(I)
+                    else
+                        Rij = R(I)*50
+                    end if
                     Mij = Body(I)
                     Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                     lnCOR = log(m_COR)

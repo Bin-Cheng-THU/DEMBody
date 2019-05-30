@@ -1,34 +1,37 @@
-DEMBody 5.1
+DEMBody 6.0
 *---Parallel params
 5.0	5.0	5.0
-28	28	61
-70.0	70.0	0.0
+100	100	140
+250.0	250.0	0.0
 0.4
 *---Console params
-1.00e-3 5.00e-2
-5.00e-2
-5.00e-5 
+1.00e-3 1.00e+1
+1.00e-1
+2.00e-5 
 *---System control
 False	# whether use Planet Gravity function
 False	# whether use Rotary System function 
-True	# whether intergrate Quaternion
+False	# whether intergrate Quaternion
 True	# whether use Contactable Walls
 False	# whether use Moving Walls
 False	# whether use Bonded Walls
 False	# whether use TriMesh Walls
 False	# whether use Bonded TriMesh Walls
 False	# whether use Funnel Walls
-True	# whether use Periodic function
+False	# whether use Periodic function
 False	# whether use Gravity Body
 False	# whether use Sphere Body
-False	# whether use BiDisperse particles
 False	# whether use Gravity TriMesh
 5e6		# maximun contact acceleration
 *---Gravity
-0.0	0.0	-980.0
+0.0	0.0	0.0
 *---Contactable walls
-1
-0.0	0.0	0.0	0.0	0.0	1.0
+5														// Num
+0.0	0.0	0.0	0.0	0.0	1.0									// point, vector
+-250.0	0.0	0.0	1.0	0.0	0.0								// point, vector
+250.0	0.0	0.0	-1.0	0.0	0.0							// point, vector
+0.0	-250.0	0.0	0.0	1.0	0.0								// point, vector
+0.0	250.0	0.0	0.0	-1.0	0.0							// point, vector
 *---Moving walls
 0
 *---Bonded walls
@@ -40,18 +43,10 @@ False	# whether use Gravity TriMesh
 *---Funnel walls
 0
 *---Periodic boundary conditions
-65.0	0.0	0.0	-1.0	0.0	0.0
--65.0	0.0	0.0	1.0	0.0	0.0
-0.0	65.0	0.0	0.0	-1.0	0.0
-0.0	-65.0	0.0	0.0	1.0	0.0
-130.0
-130.0
-0.0
+0
 *---Gravity Body
 0
 *---Sphere Body
-0
-*---BiDisperse particles
 0
 *---Planet System
 0

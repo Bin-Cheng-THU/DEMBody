@@ -1,4 +1,4 @@
-DEMBody 5.1
+DEMBody 6.0
 *---Parallel params
 5.0	5.0	5.0												// Meshgrid interval, 2.5Rmax
 120	120	61												// Meshgrid number

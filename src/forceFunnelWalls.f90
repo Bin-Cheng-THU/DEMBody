@@ -155,7 +155,7 @@
                     Ap = DistL
 #ifdef HertzMindlinVisco                    
                     !  calculate material constant
-                    Rij = R(I)
+                    Rij = R(I)*20
                     Mij = Body(I)
                     Kn = 2.0*m_E*sqrt(Rij*Dn)/(3.0*(1.0-m_nu*m_nu))
                     Cn = -Kn*m_A

@@ -30,7 +30,6 @@
     
     real(8) :: ostart,oend
     integer :: I,J,K
-    real(8) :: accMag
     character(30) :: FileNameHead
     character(30) :: FileNameForce
 
@@ -134,23 +133,9 @@
     
     !################         Part 11: Force to Acceleration          ###################
     !ostart = omp_get_wtime()
-    !$OMP PARALLEL DO PRIVATE(I,K,accMag)
-    do I = 1,N
-        do K = 1,3
-            F(K,I) = F(K,I)/Body(I) + G(K)
-            FM(K,I) = FM(K,I)/Inertia(I)
-        end do
-        accMag = sqrt(F(1,I)**2 + F(2,I)**2+F(3,I)**2)
-        if (accMag .GE. MAX_ACC) then
-            !write(*,*) 'exceed Max Acc',I,accMag
-            do K = 1,3
-                F(K,I) = F(K,I)/accMag*MAX_ACC
-            end do
-        end if
-    end do
-    !$OMP END PARALLEL DO
+    call forceACC
     !oend = omp_get_wtime()
-    !write(*,*) 'accelerate', (oend-ostart)    
+    !write(*,*) 'accelerate', (oend-ostart)
 
     !################         Part 12: Planet forces          ###################
     !ostart = omp_get_wtime()

@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.0
+    !     DEMBody 6.0
     !     ***********
     !
     !     Force for all Particles but using Parallel Lattice.
@@ -14,6 +14,8 @@
     !     @Using Hertz-Mindlin contact model similar to Wada
     !     @Using Cohesion model similar to Scheeres
     !     @Using damping model applicable for ice ball
+    !
+    !     @Checking index of bondAssembly to reduce calculated amount
     !
     !********************************************************************
     subroutine forceParticleLattice()
@@ -87,6 +89,7 @@
             IDInnerJ => IDInnerJ%next
             particleJ = IDInnerJ%No    
 
+            if (bondTag(particleI) .NE. bondTag(particleJ)) then
             !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
             !    write(123,'(F15.5,2X,A5,2X,2I8,2X)',advance='no') Time,'Inner',particleI,particleJ
             !end if
@@ -487,6 +490,7 @@
             !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
             !    write(123,*)
             !end if
+            end if
         end do     
 
         do JJ = 1,26
@@ -498,6 +502,7 @@
                     IDOuterJ => IDOuterJ%next
                     particleJ = IDOuterJ%No
 
+                    if (bondTag(particleI) .NE. bondTag(particleJ)) then
                     !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
                     !    write(123,'(F15.5,2X,A5,2X,2I8,2X)',advance='no') Time,'outer',particleI,particleJ
                     !end if
@@ -901,6 +906,7 @@
                     !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
                     !    write(123,*)
                     !end if
+                    end if
                 end do  
             end if
         end do     
