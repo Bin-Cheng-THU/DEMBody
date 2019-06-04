@@ -137,13 +137,13 @@
                     Ct = 0.5D0*Cs*(m_Beta*Rij)**2
 #elif HertzMindlinResti
                     !  calculate material constant
-                    if (bondNumN(bondTag(I)) .EQ. 1) then
-                        Rij = R(I)
-                    else
-                        Rij = R(I)*50
-                    end if
+                    Rij = R(I)
                     Mij = Body(I)
-                    Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
+                    if (bondNumN(bondTag(I)) .GT. 1) then
+                        Kn = 20*2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
+                    else
+                        Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
+                    end if
                     lnCOR = log(m_COR)
                     Cn = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
                           & *sqrt(Mij*m_E/(1.0D0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)

@@ -1,13 +1,13 @@
 DEMBody 6.0
 *---Parallel params
 5.0	5.0	5.0
-100	100	140
-250.0	250.0	0.0
-0.4
+140	140	50
+350.0	350.0	0.0
+0.38
 *---Console params
-1.00e-3 1.00e+1
-1.00e-1
-2.00e-5 
+1.00e+0 1.00e+3
+1.00e+1
+2.00e-2 
 *---System control
 False	# whether use Planet Gravity function
 False	# whether use Rotary System function 
@@ -22,16 +22,16 @@ False	# whether use Periodic function
 False	# whether use Gravity Body
 False	# whether use Sphere Body
 False	# whether use Gravity TriMesh
-5e6		# maximun contact acceleration
+5e1		# maximun contact acceleration
 *---Gravity
-0.0	0.0	0.0
+0.0	0.0	-0.01
 *---Contactable walls
 5														// Num
 0.0	0.0	0.0	0.0	0.0	1.0									// point, vector
--250.0	0.0	0.0	1.0	0.0	0.0								// point, vector
-250.0	0.0	0.0	-1.0	0.0	0.0							// point, vector
-0.0	-250.0	0.0	0.0	1.0	0.0								// point, vector
-0.0	250.0	0.0	0.0	-1.0	0.0							// point, vector
+-350.0	0.0	0.0	1.0	0.0	0.0								// point, vector
+350.0	0.0	0.0	-1.0	0.0	0.0							// point, vector
+0.0	-350.0	0.0	0.0	1.0	0.0								// point, vector
+0.0	350.0	0.0	0.0	-1.0	0.0							// point, vector
 *---Moving walls
 0
 *---Bonded walls
