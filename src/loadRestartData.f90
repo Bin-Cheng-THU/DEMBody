@@ -22,13 +22,13 @@
     IF (alive) then
         Open( 12 , File = '../input/RestartData.txt' )
         nRow = GetFileN( 12 )
-        write( * , * ) '< RestartData ',nRow-1,' rows!'
+        write( * , '(A15,I8,A6)' ) '< RestartData ',nRow-1,' rows!'
 
         !  refresh Time and Step
         read(12,*) Time,Tnext,Step,CheckPointTnext
         
         !  read contact history
-        Do I = 1 , nRow
+        Do I = 1 , nRow-1
             read( 12 , '(a2048)' ) cLine
             BACKSPACE(12)
             nCol = GetDataN( cLine )
