@@ -130,7 +130,7 @@
             if (Head(J)%No .GT. 0) then
                 Temp => Head(J)
                 do I = 1,Head(J)%No
-                    write(Step+1000,'(I8,2X,9(2XF18.8),2X,4L8)',advance='no') Temp%next%No,Temp%next%Hertz(1),Temp%next%Hertz(2),Temp%next%Hertz(3),Temp%next%Mrot(1),Temp%next%Mrot(2),Temp%next%Mrot(3),Temp%next%Mtwist(1),Temp%next%Mtwist(2),Temp%next%Mtwist(3),Temp%next%is_touching,Temp%next%is_slipping,Temp%next%is_rolling,Temp%next%is_twisting
+                    write(Step+1000,'(I8,2X,9(2XF18.8),2X,4I8)',advance='no') Temp%next%No,Temp%next%Hertz(1),Temp%next%Hertz(2),Temp%next%Hertz(3),Temp%next%Mrot(1),Temp%next%Mrot(2),Temp%next%Mrot(3),Temp%next%Mtwist(1),Temp%next%Mtwist(2),Temp%next%Mtwist(3),Temp%next%is_touching,Temp%next%is_slipping,Temp%next%is_rolling,Temp%next%is_twisting
                     Temp => Temp%next
                 end do
             end if
@@ -175,7 +175,7 @@
     minutes = int(((T2-T1)-days*3600*24-hours*3600)/60)
     seconds = int((T2-T1)-days*3600*24-hours*3600-minutes*60)
     
-    write(*,"(A11,I4,1X,A4,I4,1X,A4,I4,1X,A4,I4,1X,A4)") "time cost: ", days, "days", hours, "hours", minutes, "minutes", seconds, "seconds"        
+    write(*,"(A12,I4,1X,A4,I4,1X,A4,I4,1X,A4,I4,1X,A4)") " time cost: ", days, "days", hours, "hours", minutes, "minutes", seconds, "seconds"        
     write(*,*) "refresh frequency: ", dble(refreshNum)/(Tcrit/Dt+1)
 
     stop

@@ -1,12 +1,12 @@
-DEMBody 6.0
+DEMBody 6.2
 *---Parallel params
 5.0	5.0	5.0
 140	140	50
 350.0	350.0	0.0
 0.38
 *---Console params
-1.00e+0 1.00e+3
-1.00e+1
+1.00e+0 1.00e+1
+1.00e+0
 2.00e-2 
 *---System control
 False	# whether use Planet Gravity function

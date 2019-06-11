@@ -13,15 +13,24 @@
 
     use global
     use omp_lib
-    implicit none   
+    implicit none
+    integer :: thread_num
+    
+    write(*,*) '**************************************************'
+    write(*,*) 'Copyright (c) 2016-2019 by The School of Aerospace'
+    write(*,*) 'Enginnering, Tsinghua University'
+    write(*,*) 
+    write(*,*) 'DEMBody'
+    write(*,*)
+    write(*,*) 'Bin Cheng, chengb16@mails.tsinghua.edu.cn'
+    write(*,*) '**************************************************'
     
     !$OMP PARALLEL
-    write(*,*) "Parallel Succeed"
+    thread_num = OMP_get_num_threads()
     !$OMP END PARALLEL
-
-    write(*,*) "Remember to change the Makefile !!!"
-    write(*,*) "Remember to change input files  !!!"
-    write(*,*) "Remember to change system files !!!"
+    
+    write(*,*)
+    write(*,'(A14,I2,A6)') " < Execute on ",thread_num," CPUs..."
     
     !  Read input parameters and perform initial setup.
     call start
