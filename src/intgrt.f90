@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 6.0
+    !     DEMBody 7.0
     !     ***********
     !
     !     N-body integrator flow control.
@@ -48,9 +48,19 @@
     end do
     !$OMP END PARALLEL DO
     
+    !  refresh quaternion if needed
     if (isQuaternion) then
         call attitude
     end if
+
+    !$OMP PARALLEL DO PRIVATE(I,K)
+    do I = 1,N
+        !  refresh omega
+        do K = 1,3
+            W(K,I) = W(K,I) + FM(K,I) * Dt /2.0D0
+        end do
+    end do
+    !$OMP END PARALLEL DO
     
     if (isMovingWall) then
         Tmoving = Time - movingWallTstart
@@ -91,6 +101,10 @@
         call intgrtSphereBody
     end if
         
+    if (isBiDisperse) then
+        call intgrtBiDisperse
+    end if
+
 #ifdef LatticeSearch    
     if (refreshLattice) then    
         !ostart = omp_get_wtime()
@@ -109,6 +123,13 @@
         call latticeGenerate
         !oend = omp_get_wtime()
         !write(*,*) 'lattice', (oend-ostart)
+
+        !ostart = omp_get_wtime()
+        if (isBiDisperse) then
+            call latticeGenerateBiDisperse
+        end if    
+        !oend = omp_get_wtime()
+        !write(*,*) 'bidisperse lattice', (oend-ostart)
     end if
 #endif
     
@@ -154,6 +175,17 @@
                 sphereBodyW(K,I) = sphereBodyW(K,I) + sphereBodyFM(K,I) * Dt /2.0D0
             end do
         end do
+    end if
+
+    if (isBiDisperse) then
+        !$OMP PARALLEL DO PRIVATE(I,K)
+        do I = 1,biDisperseNum
+            do K = 1,3
+                biDisperseXdot(K,I) = biDisperseXdot(K,I) + biDisperseF(K,I) * Dt /2.0D0
+                biDisperseW(K,I) = biDisperseW(K,I) + biDisperseFM(K,I) * Dt /2.0D0
+            end do
+        end do
+        !$OMP END PARALLEL DO
     end if
     
     !o2 = omp_get_wtime()

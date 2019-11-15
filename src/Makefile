@@ -24,17 +24,17 @@ PARTICLE=-DPP=1
 
 OUTPUTOPTION=-DnhistoryOutput
 
-COMPILER=ifort -openmp -O2 -fpp $(PLATFORM) $(NUMBER) $(MODEL) $(SEARCH) $(REGION) $(PARALLEL) $(PARTICLE) $(OUTPUTOPTION)
+COMPILER=ifort -qopenmp -O2 -fpp $(PLATFORM) $(NUMBER) $(MODEL) $(SEARCH) $(REGION) $(PARALLEL) $(PARTICLE) $(OUTPUTOPTION)
 
 DEMBody: global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o initialTriMesh.o initialBondedTriMesh.o \
-	initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o \
+	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
 	force.o forceLattice.o forcePBC.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
-	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
+	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
 	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o
 	$(COMPILER)  -o DEMBody global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o initialTriMesh.o initialBondedTriMesh.o \
-	initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o \
+	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
 	force.o forceLattice.o forcePBC.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
-	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
+	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
 	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o
 
 global.mod: global.o global.f90
@@ -42,7 +42,7 @@ global.mod: global.o global.f90
 global.o: global.f90
 	$(COMPILER)  -c global.f90
 loadfile.mod: global.mod loadFile.o loadFile.f90
-	$(COMPILER)  -c loadFile.f90
+	$(COMPILER)  -c loadFile.f90																																																		
 loadFile.o: global.mod loadFile.f90
 	$(COMPILER)  -c loadFile.f90
 main.o: global.mod main.f90
@@ -57,6 +57,8 @@ initialTriMesh.o: global.mod initialTriMesh.f90
 	$(COMPILER)  -c initialTriMesh.f90
 initialBondedTriMesh.o: global.mod initialBondedTriMesh.f90
 	$(COMPILER)  -c initialBondedTriMesh.f90
+initialBiDisperse.o: global.mod initialBiDisperse.f90
+	$(COMPILER)  -c initialBiDisperse.f90
 initialLattice.o: global.mod initialLattice.f90
 	$(COMPILER)  -c initialLattice.f90
 latticeXY2ID.o: latticeXY2ID.f90
@@ -71,6 +73,8 @@ meshGenerate.o: global.mod meshGenerate.f90
 	$(COMPILER)  -c meshGenerate.f90
 latticeGenerate.o: global.mod latticeGenerate.f90
 	$(COMPILER)  -c latticeGenerate.f90
+latticeGenerateBiDisperse.o: global.mod latticeGenerateBiDisperse.f90
+	$(COMPILER)  -c latticeGenerateBiDisperse.f90
 force.o: global.mod force.f90
 	$(COMPILER)  -c force.f90
 forceLattice.o: global.mod forceLattice.f90
@@ -93,6 +97,8 @@ forceGravBody.o: global.mod forceGravBody.f90
 	$(COMPILER)  -c forceGravBody.f90
 forceSphereBody.o: global.mod forceSphereBody.f90
 	$(COMPILER)  -c forceSphereBody.f90
+forceBiDisperse.o: global.mod forceBiDisperse.f90
+	$(COMPILER)  -c forceBiDisperse.f90
 forcePlanet.o: global.mod forcePlanet.f90
 	$(COMPILER)  -c forcePlanet.f90
 forceRotSystem.o: global.mod forceRotSystem.f90
@@ -115,11 +121,13 @@ intgrtGravBody.o: global.mod intgrtGravBody.f90
 	$(COMPILER)  -c intgrtGravBody.f90
 intgrtSphereBody.o: global.mod intgrtSphereBody.f90
 	$(COMPILER)  -c intgrtSphereBody.f90
+intgrtBiDisperse.o: global.mod intgrtBiDisperse.f90
+	$(COMPILER)  -c intgrtBiDisperse.f90
 
 clean:
 	rm global.mod loadfile.mod global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o initialTriMesh.o initialBondedTriMesh.o \
-	initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o \
+	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
 	force.o forceLattice.o forcePBC.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
-	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
-	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o
+	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
+	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o intgrtBiDisperse.o
 # End of the makefile

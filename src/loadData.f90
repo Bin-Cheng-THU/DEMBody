@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.0
+    !     DEMBody 7.0
     !     ***********
     !
     !     Parameter input.
@@ -55,6 +55,14 @@
     
     !  generate DEM Parallel Latice based on partition of Particles
     call latticeGenerate
+
+    !  generate biDisperse DEM Parallel Latice for particle-biParticle contact
+    if (isBiDisperse) then
+        call latticeGenerateBiDisperse
+    end if
+
+    !  generate biDisperse DEM Parallel Latice for biParticle-biParticle contact
+    
 #endif
 
     !  initial the force in case exiting overlaps at the initial-time.

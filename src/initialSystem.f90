@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 6.0
+    !     DEMBody 7.0
     !     ***********
     !
     !     Initialization of global scalars.
@@ -65,10 +65,13 @@
     read (1000,*) isPeriodic           !  whether use Periodic function
     read (1000,*) isGravBody           !  whether use Gravity Body
     read (1000,*) isSphereBody         !  whether use Sphere Body
+    read (1000,*) isBiDisperse         !  whether use BiDisperse particles
     read (1000,*) isGravTriMesh        !  whether use Gravity TriMesh
     read (1000,*) MAX_ACC              !  maximum contact acceleration
     read (1000,*)                         
     read (1000,*) G(1),G(2),G(3)       !  the totle gravity    
+
+    verlet = verlet**2                 !  verlet = (0.2Rmin)^2
     
     wallFlag = 1
     
@@ -347,6 +350,42 @@
             sphereBodyQ(3,I) = 0.0D0
             sphereBodyQ(4,I) = 1.0D0
         end do
+    else
+        read (1000,*)
+        read (1000,*)
+    end if
+
+    !  initial the biDisperse body
+    if (isBiDisperse) then
+        write(*,*) '< is Bi-Disperse, loading...'
+        read (1000,*)
+        read (1000,*) biDisperseNum
+        read (1000,*) biDisperseScale  !  biDisperseR/LatDx == biDisperseR/Rmax/2.5
+        allocate (biDisperseTag(biDisperseNum))
+        allocate (biDisperseX(3,biDisperseNum))
+        allocate (biDisperseXdot(3,biDisperseNum))
+        allocate (biDisperseW(3,biDisperseNum))
+        allocate (biDisperseQ(4,biDisperseNum))
+        allocate (biDisperseBody(biDisperseNum))
+        allocate (biDisperseR(biDisperseNum))
+        allocate (biDisperseInertia(biDisperseNum))
+        allocate (biDisperseF(3,biDisperseNum))
+        allocate (biDisperseFM(3,biDisperseNum))
+        allocate (biDisperseXT(3,biDisperseNum))
+        !  load bi-disperse particles data
+        read (1000,*)
+        open (1500,File="../Input/largeParticles.bidisperse")
+        do I = 1,biDisperseNum
+            biDisperseTag(I) = NMAX + wallFlag
+            wallFlag = wallFlag + 1
+            read (1500,*) biDisperseBody(I),biDisperseInertia(I),(biDisperseX(K,I),K=1,3),(biDisperseXdot(K,I),K=1,3),(biDisperseW(K,I),K=1,3),biDisperseR(I)
+            biDisperseQ(1,I) = 0.0D0
+            biDisperseQ(2,I) = 0.0D0
+            biDisperseQ(3,I) = 0.0D0
+            biDisperseQ(4,I) = 1.0D0
+        end do
+        close(1500)
+        call initialBiDisperse
     else
         read (1000,*)
         read (1000,*)

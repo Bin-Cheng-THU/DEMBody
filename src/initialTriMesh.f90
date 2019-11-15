@@ -3,6 +3,7 @@
     !     ***********
     !
     !     Initialization of TriMesh.
+    !     Allocate trimesh into DEM lattice
     !     ---------------------------------
     !
     !********************************************************************
@@ -93,9 +94,10 @@
                     RV(3) = centerLattice(3) - trimeshWallPoint(3,I)
                     RVL = abs(RV(1)*trimeshWallVectorN(1,I) + RV(2)*trimeshWallVectorN(2,I) + RV(3)*trimeshWallVectorN(3,I))
                     !  check whether this lattice is near the trimesh
-                    if (RVL .LE. 2.0*LatDx) then
+                    if (RVL .LE. 2.0*LatDx) then  !  R + sqrt(2)/2*LatDx
                         index = (idRange(1,1)+J-1) + (idRange(1,2)+K-1-1)*LatNx + (idRange(1,3)+L-1-1)*LatNx*LatNy
                         trimeshDEM(index)%No = trimeshDEM(index)%No + 1
+                        !  search from the beginning，should be slow and replaced by tail method
                         Temp => trimeshDEM(index)
                         do while (associated(Temp%next))
                             Temp => Temp%next

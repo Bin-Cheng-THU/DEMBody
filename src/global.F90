@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 6.1
+    !     DEMBody 7.0
     !     ***********
     !
     !     Global parameters.
@@ -10,10 +10,27 @@
     module global
     implicit none
 
+    !DEM: 存储网格的相邻网格编号，采用数组形式存储，共LatNum个
+    !periodicDEM: 存储网格的“周期相邻”网格编号，采用链表形式存储，共LatNum个
+
+    !IDInner： 存储网格内的颗粒编号，共LatNum个
+    !trimeshDEM： 存储网格内的三角面元编号，共LatNum个
+    !bondedTriMeshDEM： 存储网格内的bonded三角面元编号，共LatNum个
+    !biDisperseDEM： 存储网格内的biDisperse颗粒编号，共LatNum个
+    ![initialXXX initial the DEM lattice;
+    !latticeGenerateXXX generate the lattice structure, which stores the ID of the bodies]
+
+    !Head： 存储颗粒接触编号及接触历史信息，共NMAX个
+    !HeadBiDisperse： 存储biDisperse颗粒接触编号及接触历史信息，共biDisperseNum个[颗粒与biDisperse的接触存储与Head中！！！]
+    ![注意虽然检索颗粒时存在团聚搜索的结构，即每个网格内保序，各个网格按照顺序，但网格之间的颗粒序号并不是保序的；但在存储接触历史时均按照保序操作，这样使得在颗粒穿过网格时查找接触历史的操作仍能够正常进行。同时注意，镜像颗粒与颗粒的接触存储是统一的，即均按照颗粒序号排序。]
+
+    !GravTriMeshGrid： 存储三角元对应网格的质心与网格点编号
+
+
     !  Parameters
     real(8),parameter :: GravConst = 6.674184D-11
     real(8),parameter :: PI = 3.141592653589793D0
-    character(10),parameter :: VERSION = '6.1'
+    character(10),parameter :: VERSION = '7.0'
 
     !  Define control parameters of Program
     character(10) :: vsDEMBody
@@ -29,6 +46,7 @@
     logical :: isPeriodic
     logical :: isGravBody
     logical :: isSphereBody
+    logical :: isBiDisperse
     logical :: isGravTriMesh
     real(8) :: Max_ACC
 
@@ -229,6 +247,34 @@
     real(8),allocatable :: sphereBodyQ(:,:)
     real(8),allocatable :: sphereBodyBody(:),sphereBodyR(:),sphereBodyInertia(:)
     real(8),allocatable :: sphereBodyF(:,:),sphereBodyFM(:,:)
+
+    !******************************************** v7.0 ***********************************************
+    !  Define parameters of BiDisperse
+    integer :: biDisperseNum
+    integer,allocatable :: biDisperseTag(:)  !  Unique tag for biDisperse particles, numbered with walls and particles
+    real(8),allocatable :: biDisperseX(:,:),biDisperseXdot(:,:),biDisperseW(:,:)
+    real(8),allocatable :: biDisperseQ(:,:)
+    real(8),allocatable :: biDisperseBody(:),biDisperseR(:),biDisperseInertia(:)
+    real(8),allocatable :: biDisperseF(:,:),biDisperseFM(:,:)
+    real(8),allocatable :: biDisperseXT(:,:)
+
+    !  Nodelink of BiDisperse
+    type(Nodelink),pointer :: HeadBiDisperse(:) 
+
+    !  Define structure for particle-biParticle contact
+    integer :: biDisperseScale
+    !  Define bidisperse in lattice
+    type :: biDisperseLattice
+        integer :: No
+        type(biDisperseLattice),pointer :: next
+    end type biDisperseLattice
+    type(biDisperseLattice),pointer :: biDisperseDEM(:)
+    type(biDisperseLattice),pointer :: biDisperseDEMtail(:)
+    
+    !  Define structure for biParticle-biParticle contact
+
+
+    !******************************************** v7.0 ***********************************************
         
     !  Define parameters of Saturn and Pan
     real(8) :: muS
