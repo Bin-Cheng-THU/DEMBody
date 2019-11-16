@@ -46,12 +46,19 @@
     
     !o1 = omp_get_wtime()
     do I = 1,biDisperseNum
+        !  Note that for phobos simulations, large particles are only in inner region, so lots of calculation are useless. We could add a condition for this part (only outer particles enter this part) to reduce time consuming.
+        
+        !  should we move this part to parallel region and use variables to store them?
         !  find id range
-        TagCenter = floor((biDisperseX(1,I)+LatMx)/LatDx) + 1 + floor((biDisperseX(2,I)+LatMy)/LatDy)*LatNx + floor((biDisperseX(3,I)+LatMz)/LatDz)*(LatNx*LatNy)
+        !TagCenter = floor((biDisperseX(1,I)+LatMx)/LatDx) + 1 + floor((biDisperseX(2,I)+LatMy)/LatDy)*LatNx + floor((biDisperseX(3,I)+LatMz)/LatDz)*(LatNx*LatNy)
         !  Tag to id
-        idCenter(3) = int((TagCenter-1)/(LatNx*LatNy))+1
-        idCenter(2) = int((TagCenter-(idCenter(3)-1)*(LatNx*LatNy)-1)/LatNx)+1
-        idCenter(1) = TagCenter-(idCenter(3)-1)*(LatNx*LatNy)-(idCenter(2)-1)*LatNx
+        !idCenter(3) = int((TagCenter-1)/(LatNx*LatNy))+1
+        !idCenter(2) = int((TagCenter-(idCenter(3)-1)*(LatNx*LatNy)-1)/LatNx)+1
+        !idCenter(1) = TagCenter-(idCenter(3)-1)*(LatNx*LatNy)-(idCenter(2)-1)*LatNx
+        !  Point2ID
+        idCenter(3) = floor((biDisperseX(3,I)+LatMz)/LatDz) + 1
+        idCenter(2) = floor((biDisperseX(2,I)+LatMy)/LatDy) + 1
+        idCenter(1) = floor((biDisperseX(2,I)+LatMx)/LatDx) + 1
         !  id range
         !  biDisperseScale = Rmax/LatDx[region = (Rmax+rMax)/LatDx = Rmax/LatDx + 0.4; 进行了保守计算，为网格更新留出余量]
         idRange(1,1) = max(idCenter(1)-biDisperseScale-1,1)

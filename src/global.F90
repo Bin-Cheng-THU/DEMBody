@@ -12,13 +12,15 @@
 
     !DEM: 存储网格的相邻网格编号，采用数组形式存储，共LatNum个
     !periodicDEM: 存储网格的“周期相邻”网格编号，采用链表形式存储，共LatNum个
+    !mixDEM：存储网格的相邻网格编号，采用数组形式存储，本网格为适用于大颗粒的粗网格
 
     !IDInner： 存储网格内的颗粒编号，共LatNum个
     !trimeshDEM： 存储网格内的三角面元编号，共LatNum个
     !bondedTriMeshDEM： 存储网格内的bonded三角面元编号，共LatNum个
     !biDisperseDEM： 存储网格内的biDisperse颗粒编号，共LatNum个
-    ![initialXXX initial the DEM lattice;
-    !latticeGenerateXXX generate the lattice structure, which stores the ID of the bodies]
+    !MixIDInner 存储网格内的比Disperse颗粒编号，注意此网格为用于biParticle的粗网格
+    ![initialXXX: initial the DEM lattice; only in the initial step;
+    !latticeGenerateXXX: generate the lattice structure, which stores the ID of the bodies; every time step]
 
     !Head： 存储颗粒接触编号及接触历史信息，共NMAX个
     !HeadBiDisperse： 存储biDisperse颗粒接触编号及接触历史信息，共biDisperseNum个[颗粒与biDisperse的接触存储与Head中！！！]
@@ -138,8 +140,6 @@
     real(8) :: Heat(3,NMAX)
     real(8) :: X0(3,NMAX)
     real(8) :: XT(3,NMAX)
-    
-    !  Define quaternion of Particle
     real(8) :: Quaternion(4,NMAX)
     
     !  Define material parameters
@@ -262,7 +262,7 @@
     type(Nodelink),pointer :: HeadBiDisperse(:) 
 
     !  Define structure for particle-biParticle contact
-    integer :: biDisperseScale
+    integer :: biDisperseScale  !  biDisperseR/LatDx == biDisperseR/Rmax/2.5
     !  Define bidisperse in lattice
     type :: biDisperseLattice
         integer :: No
@@ -271,8 +271,23 @@
     type(biDisperseLattice),pointer :: biDisperseDEM(:)
     type(biDisperseLattice),pointer :: biDisperseDEMtail(:)
     
+    !  Define MixMesh structure
+    real(8) :: MixLatDx,MixLatDy,MixLatDz
+    integer :: MixLatNx,MixLatNy,MixLatNz
+    real(8) :: MixLatMx,MixLatMy,MixLatMz
+    integer :: MixLatNum
+    integer,allocatable :: MixLinklist(:)
+    !  Conduct Lattice
+    type :: MixLattice
+        !integer :: ID(3)
+        integer :: NeighborID
+        type(MixLattice),pointer :: next
+    end type MixLattice
+    !  mixDEM Lattice
+    type(MixLattice),pointer :: mixDEM(:)
     !  Define structure for biParticle-biParticle contact
-
+    type(biDisperseLattice),pointer :: MixIDInner(:)
+    type(biDisperseLattice),pointer :: MixtailInner(:) 
 
     !******************************************** v7.0 ***********************************************
         

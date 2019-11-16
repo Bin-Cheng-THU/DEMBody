@@ -361,6 +361,12 @@
         read (1000,*)
         read (1000,*) biDisperseNum
         read (1000,*) biDisperseScale  !  biDisperseR/LatDx == biDisperseR/Rmax/2.5
+        read (1000,*) MixLatDx,MixLatDy,MixLatDz    !  Parallel Lattice grid interval
+        read (1000,*) MixLatNx,MixLatNy,MixLatNz    !  Parallel Lattice grid number
+        read (1000,*) MixLatMx,MixLatMy,MixLatMz    !  Parallel Lattice grid origin
+        MixLatNum = MixLatNx*MixLatNy*MixLatNz
+        allocate (MixLinklist(MixLatNum))
+        
         allocate (biDisperseTag(biDisperseNum))
         allocate (biDisperseX(3,biDisperseNum))
         allocate (biDisperseXdot(3,biDisperseNum))

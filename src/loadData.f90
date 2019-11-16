@@ -56,8 +56,12 @@
     !  generate DEM Parallel Latice based on partition of Particles
     call latticeGenerate
 
-    !  generate biDisperse DEM Parallel Latice for particle-biParticle contact
+    !  generate biDisperse DEM Parallel Latice for biDisperse mode
     if (isBiDisperse) then
+        !  biParticle-biParticle contact structure
+        call latticeGenerateBiDisperseMix
+
+        !  particle-biParticle contact structure
         call latticeGenerateBiDisperse
     end if
 
