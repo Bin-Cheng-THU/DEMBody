@@ -49,7 +49,7 @@
     character(30) :: FileNameForce
     
     !write(FileNameHead,'(F10.5)') Time
-    !FileNameHead = trim(FileNameHead)//'HeadPBC.txt'
+    !FileNameHead = trim(FileNameHead)//'HeadMixMesh.txt'
     !open(124,FILE=FileNameHead)
     
     !ostart = omp_get_wtime()

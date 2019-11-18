@@ -58,11 +58,11 @@
 
     !  generate biDisperse DEM Parallel Latice for biDisperse mode
     if (isBiDisperse) then
-        !  biParticle-biParticle contact structure
-        call latticeGenerateBiDisperseMix
-
         !  particle-biParticle contact structure
         call latticeGenerateBiDisperse
+
+        !  biParticle-biParticle contact structure
+        call latticeGenerateBiDisperseMix
     end if
 
     !  generate biDisperse DEM Parallel Latice for biParticle-biParticle contact

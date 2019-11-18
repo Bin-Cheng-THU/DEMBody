@@ -307,8 +307,8 @@
                     !            rolling_moment(K) = 0.0D0  !  Particle J
                     !        end do
                     !        rolling = .false.
-                    !    end if
-                    !else
+                    !    end ifelse
+                    !
                         if (rolling_momentL .GT. 2.1D0*0.25D0*m_Beta*Rij*normal_forceL) then  !  Rolling
                             rolling = .true.
                             if (DthetaRL .GT. 1.0e-14) then

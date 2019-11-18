@@ -158,13 +158,23 @@
             FileNameBiDisperse = '..\Data\BiDisperse\'//FileNameBiDisperse
             FileNameBiDisperse = trim(FileNameBiDisperse)//'B.csv'   
 #endif
-            open(Step+1000,FILE=FileNameBiDisperse)
-            write(Step+1000,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','F:1',',','F:2',',','F:3',',','R',',','Time',',','W:1',',','W:2',',','W:3',',','Q1',',','Q2',',','Q3',',','Q4'
-            do  J=1,biDisperseNum
-                write(Step+1000,23)biDisperseX(1,J),',',biDisperseX(2,J),',',biDisperseX(3,J),',',biDisperseXdot(1,J),',',biDisperseXdot(2,J),',',biDisperseXdot(3,J),',',biDisperseF(1,J),',',biDisperseF(2,J),',',biDisperseF(3,J),',',biDisperseR(J),',',Time,',',biDisperseW(1,J),',',biDisperseW(2,J),',',biDisperseW(3,J),',',biDisperseQ(1,J),',',biDisperseQ(2,J),',',biDisperseQ(3,J),',',biDisperseQ(4,J)
-            end do
-23          format (E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6)      
-            close(Step+1000)
+            if (isQuaternion) then
+                open(Step+1000,FILE=FileNameBiDisperse)
+                write(Step+1000,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','R',',','Time',',','W:1',',','W:2',',','W:3',',','Q1',',','Q2',',','Q3',',','Q4'
+                do  J=1,biDisperseNum
+                    write(Step+1000,23)biDisperseX(1,J),',',biDisperseX(2,J),',',biDisperseX(3,J),',',biDisperseXdot(1,J),',',biDisperseXdot(2,J),',',biDisperseXdot(3,J),',',biDisperseR(J),',',Time,',',biDisperseW(1,J),',',biDisperseW(2,J),',',biDisperseW(3,J),',',biDisperseQ(1,J),',',biDisperseQ(2,J),',',biDisperseQ(3,J),',',biDisperseQ(4,J)
+                end do
+23              format (E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6)      
+                close(Step+1000)
+            else
+                open(Step+1000,FILE=FileNameBiDisperse)
+                write(Step+1000,*) 'X',',','Y',',','Z',',','U',',','V',',','W',',','R',',','Time',',','W:1',',','W:2',',','W:3'
+                do  J=1,biDisperseNum
+                    write(Step+1000,23)biDisperseX(1,J),',',biDisperseX(2,J),',',biDisperseX(3,J),',',biDisperseXdot(1,J),',',biDisperseXdot(2,J),',',biDisperseXdot(3,J),',',biDisperseR(J),',',Time,',',biDisperseW(1,J),',',biDisperseW(2,J),',',biDisperseW(3,J)
+                end do
+24              format (E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6,A2,E15.6)      
+                close(Step+1000)
+            end if
         end if
         
         Step = Step + 1          

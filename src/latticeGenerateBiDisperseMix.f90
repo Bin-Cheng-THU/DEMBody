@@ -34,7 +34,6 @@
     real(8) :: o1,o2   
     type(biDisperseLattice),pointer :: Temp
     type(biDisperseLattice),pointer :: TempH  
-    type(biDisperseLattice),pointer :: tail
 
     !o1 = omp_get_wtime()
     !$OMP PARALLEL DO PRIVATE(I)
@@ -66,7 +65,7 @@
     !write(*,*) "Lattice Empty",(o2-o1)
       
     !o1 = omp_get_wtime()
-    ! $OMP PARALLEL DO PRIVATE(I,J,K,Tag,Flag,positionD,positionU) SCHEDULE(GUIDED)
+    ! $OMP PARALLEL DO PRIVATE(I,J,K,Tag,Flag) SCHEDULE(GUIDED)
     do I = 1,biDisperseNum
         
         !################         Part 1          ###################        
