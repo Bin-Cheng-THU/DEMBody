@@ -54,7 +54,7 @@
     biDisperseFM = 0.0D0
     
     !write(FileNameHead,'(F10.5)') Time
-    !FileNameHead = trim(FileNameHead)//'BiDisperse.txt'
+    !FileNameHead = trim(FileNameHead)//'HeadBiDisperse.txt'
     !open(123,FILE=FileNameHead)
     
     !  Loop over all bodies through the NodeTree.
@@ -262,10 +262,6 @@
                     biDisperseFM(1,IDBiDisperse) = - An*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + biDisperseFM(1,IDBiDisperse)
                     biDisperseFM(2,IDBiDisperse) = - An*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + biDisperseFM(2,IDBiDisperse)
                     biDisperseFM(3,IDBiDisperse) = - An*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + biDisperseFM(3,IDBiDisperse)
-
-                    !if (I.EQ.PP) then
-                    !    write(124,'(2F15.5,2X)',advance='no') normal_forceL,tangential_forceL
-                    !end if
                     
                     !  rolling
                     do K = 1,3
@@ -371,7 +367,11 @@
                     do K = 1,3
                         FM(K,I) = rolling_moment(K) + twisting_moment(K) + FM(K,I)
                         biDisperseFM(K,IDBiDisperse) = - rolling_moment(K) - twisting_moment(K) + biDisperseFM(K,IDBiDisperse)
-                    end do                                          
+                    end do    
+
+                    !if (I.EQ.PP) then
+                    !    write(123,'(A5,2X,3F30.17,A5,3F30.17,A5,3F30.17,2X,9F30.17)',advance='no') "FN:",(normal_force(K),K=1,3),"FT:",(tangential_force(K),K=1,3),"DistU:",(DistU(K),K=1,3),(Vtot(K),K=1,3),(Vnor(K),K=1,3),(Vtan(K),K=1,3)
+                    !end if                                      
                     
                     !  cohesive force
                     do K = 1,3
@@ -434,23 +434,14 @@
                     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 end if
             end if
+            !if (I.EQ.PP) then
+            !    write(123,*)
+            !end if
         end do
     end do
     !$OMP END PARALLEL DO
     !oend = omp_get_wtime()
     !write(*,*) "forceBiDisperse",(oend-ostart)
-    
-    !write(FileNameForce,'(F10.5)') Time
-    !FileNameForce = trim(FileNameForce)//'Force.txt'
-    !open(10000,FILE=FileNameForce)
-    !do I = 1,biDisperseNum
-    !    write(10000,'(3F30.15)') (biDisperseF(K,I),K=1,3)
-    !end do
-    !close(10000)
-    !close(123)
-    !pause
-    !
-    !stop
     
     !  calculate forces between biDisperse particles using MixMesh
     call forceBiDisperseMixMesh
@@ -474,6 +465,18 @@
         end do
     end do
     !$OMP END PARALLEL DO
+
+    !write(FileNameForce,'(F10.5)') Time
+    !FileNameForce = trim(FileNameForce)//'ForceBiDisperse.txt'
+    !open(10000,FILE=FileNameForce)
+    !do I = 1,biDisperseNum
+    !    write(10000,'(3F30.15)') (biDisperseF(K,I),K=1,3)
+    !end do
+    !close(10000)
+    !close(123)
+    !pause
+    !
+    !stop
 
     return
     end

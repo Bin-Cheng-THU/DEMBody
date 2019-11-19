@@ -32,8 +32,8 @@
     real(8) :: ostart,oend
     integer :: I,J,K
     real(8) :: accMag
-    !character(30) :: FileNameHead
-    !character(30) :: FileNameForce
+    character(30) :: FileNameHead
+    character(30) :: FileNameForce
 
     !################         Part 1: Particle forces          ###################
     !ostart = omp_get_wtime()
@@ -196,7 +196,6 @@
     !    write(10000,'(3F30.15)') (F(K,I),K=1,3)
     !end do
     !close(10000)
-    !close(123)
     !pause
     !
     !stop

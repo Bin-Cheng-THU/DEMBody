@@ -93,115 +93,115 @@
             tail%next => Temp
         end if
         !  Left Upper lattice
-        if (idx.NE.1 .AND. idy.NE.LatNy) then
+        if (idx.NE.1 .AND. idy.NE.MixLatNy) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I - 1 + LatNx
+            idLattice = I - 1 + MixLatNx
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Upper lattice
-        if (idy .NE. LatNy) then
+        if (idy .NE. MixLatNy) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I + LatNx
+            idLattice = I + MixLatNx
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Right Upper lattice
-        if (idx.NE.LatNx .AND. idy.NE.LatNy) then
+        if (idx.NE.MixLatNx .AND. idy.NE.MixLatNy) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I + 1 + LatNx
+            idLattice = I + 1 + MixLatNx
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Center Covered lattice
-        if (idz .NE. LatNz) then
+        if (idz .NE. MixLatNz) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I + LatNx*LatNy
+            idLattice = I + MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Left Covered lattice
-        if (idx.NE.1 .AND. idz.NE.LatNz) then
+        if (idx.NE.1 .AND. idz.NE.MixLatNz) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I -1 + LatNx*LatNy
+            idLattice = I -1 + MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Left Upper Covered lattice
-        if (idx.NE.1 .AND. idy.NE.LatNy .AND. idz.NE.LatNz) then
+        if (idx.NE.1 .AND. idy.NE.MixLatNy .AND. idz.NE.MixLatNz) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I - 1 + LatNx + LatNx*LatNy
+            idLattice = I - 1 + MixLatNx + MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Upper Covered lattice
-        if (idy.NE.LatNy .AND. idz.NE.LatNz) then
+        if (idy.NE.MixLatNy .AND. idz.NE.MixLatNz) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I + LatNx + LatNx*LatNy
+            idLattice = I + MixLatNx + MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Right Upper Covered lattice
-        if (idx.NE.LatNx .AND. idy.NE.LatNy .AND. idz.NE.LatNz) then
+        if (idx.NE.MixLatNx .AND. idy.NE.MixLatNy .AND. idz.NE.MixLatNz) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I + 1 + LatNx + LatNx*LatNy
+            idLattice = I + 1 + MixLatNx + MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Right Covered lattice
-        if (idx.NE.LatNx .AND. idz.NE.LatNz) then
+        if (idx.NE.MixLatNx .AND. idz.NE.MixLatNz) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I + 1 + LatNx*LatNy
+            idLattice = I + 1 + MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Right Below Covered lattice
-        if (idx.NE.LatNx .AND. idy.NE.1 .AND. idz.NE.LatNz) then
+        if (idx.NE.MixLatNx .AND. idy.NE.1 .AND. idz.NE.MixLatNz) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I + 1 - LatNx + LatNx*LatNy
+            idLattice = I + 1 - MixLatNx + MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Below Covered lattice
-        if (idy.NE.1 .AND. idz.NE.LatNz) then
+        if (idy.NE.1 .AND. idz.NE.MixLatNz) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I - LatNx + LatNx*LatNy
+            idLattice = I - MixLatNx + MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Left Below Covered lattice
-        if (idx.NE.1 .AND. idy.NE.1 .AND. idz.NE.LatNz) then
+        if (idx.NE.1 .AND. idy.NE.1 .AND. idz.NE.MixLatNz) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I - 1 - LatNx + LatNx*LatNy
+            idLattice = I - 1 - MixLatNx + MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Right lattice
-        if (idx .NE. LatNx) then
+        if (idx .NE. MixLatNx) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
             idLattice = I + 1
             allocate(Temp)
@@ -210,9 +210,9 @@
             tail%next => Temp
         end if
         !  Right Below lattice
-        if (idx.NE.LatNx .AND. idy.NE.1) then
+        if (idx.NE.MixLatNx .AND. idy.NE.1) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I + 1 - LatNx
+            idLattice = I + 1 - MixLatNx
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
@@ -221,7 +221,7 @@
         !  Below lattice
         if (idy .NE. 1) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I - LatNx
+            idLattice = I - MixLatNx
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
@@ -230,7 +230,7 @@
         !  Left Below lattice
         if (idx.NE.1 .AND. idy.NE.1) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I - 1 - LatNx
+            idLattice = I - 1 - MixLatNx
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
@@ -239,25 +239,25 @@
         !  Center Under lattice
         if (idz .NE. 1) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I - LatNx*LatNy
+            idLattice = I - MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Right Under lattice
-        if (idx.NE.LatNx .AND. idz.NE.1) then
+        if (idx.NE.MixLatNx .AND. idz.NE.1) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I + 1 - LatNx*LatNy
+            idLattice = I + 1 - MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Right Below Under lattice
-        if (idx.NE.LatNx .AND. idy.NE.1 .AND. idz.NE.1) then
+        if (idx.NE.MixLatNx .AND. idy.NE.1 .AND. idz.NE.1) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I + 1 - LatNx - LatNx*LatNy
+            idLattice = I + 1 - MixLatNx - MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
@@ -266,7 +266,7 @@
         !  Below Under lattice
         if (idy.NE.1 .AND. idz.NE.1) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I - LatNx - LatNx*LatNy
+            idLattice = I - MixLatNx - MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
@@ -275,7 +275,7 @@
         !  Left Below Under lattice
         if (idx.NE.1 .AND. idy.NE.1 .AND. idz.NE.1) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I - 1 - LatNx - LatNx*LatNy
+            idLattice = I - 1 - MixLatNx - MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
@@ -284,34 +284,34 @@
         !  Left Under lattice
         if (idx.NE.1 .AND. idz.NE.1) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I - 1 - LatNx*LatNy
+            idLattice = I - 1 - MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Left Upper Under lattice
-        if (idx.NE.1 .AND. idy.NE.LatNy .AND. idz.NE.1) then
+        if (idx.NE.1 .AND. idy.NE.MixLatNy .AND. idz.NE.1) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I - 1 + LatNx - LatNx*LatNy
+            idLattice = I - 1 + MixLatNx - MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Upper Under lattice
-        if (idy.NE.LatNy .AND. idz.NE.1) then
+        if (idy.NE.MixLatNy .AND. idz.NE.1) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I + LatNx - LatNx*LatNy
+            idLattice = I + MixLatNx - MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp
             tail%next => Temp
         end if
         !  Right Upper Under lattice
-        if (idx.NE.LatNx .AND. idy.NE.LatNy .AND. idz.NE.1) then
+        if (idx.NE.MixLatNx .AND. idy.NE.MixLatNy .AND. idz.NE.1) then
             mixDEM(I)%NeighborID = mixDEM(I)%NeighborID + 1
-            idLattice = I + 1 + LatNx - LatNx*LatNy
+            idLattice = I + 1 + MixLatNx - MixLatNx*MixLatNy
             allocate(Temp)
             Temp = MixLattice(idLattice,NULL())
             tail%next%next => Temp

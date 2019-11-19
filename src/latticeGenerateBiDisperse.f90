@@ -58,7 +58,7 @@
         !  Point2ID
         idCenter(3) = floor((biDisperseX(3,I)+LatMz)/LatDz) + 1
         idCenter(2) = floor((biDisperseX(2,I)+LatMy)/LatDy) + 1
-        idCenter(1) = floor((biDisperseX(2,I)+LatMx)/LatDx) + 1
+        idCenter(1) = floor((biDisperseX(1,I)+LatMx)/LatDx) + 1
         !  id range
         !  biDisperseScale = Rmax/LatDx[region = (Rmax+rMax)/LatDx = Rmax/LatDx + 0.4; 进行了保守计算，为网格更新留出余量]
         idRange(1,1) = max(idCenter(1)-biDisperseScale-1,1)

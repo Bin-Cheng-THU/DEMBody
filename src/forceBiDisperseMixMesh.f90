@@ -122,7 +122,7 @@
                         end if
                     end do      
                     !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
-                    !    write(124,'(F15.5,2X,6F15.5)',advance='no') Dn,(X(K,particleI),K=1,3),(X(K,particleJ),K=1,3),xFlag,yFlag
+                    !    write(124,'(F15.5)',advance='no') Dn
                     !end if
                     !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hooke's law
                     if (Dn .GT. 0.0D0) then
@@ -357,8 +357,7 @@
                         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
                         !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
-                            !write(124,'(2I5,2X,15F30.17)',advance='no') particleI,particleJ,(Vtot(K),K=1,3),DistS,DistL,ERR,(DistU(K),K=1,3),(Vnor(K),K=1,3),(Vtan(K),K=1,3)
-                            !write(124,'(18F30.17)') (rolling_moment(K),K=1,3),(DthetaR(K),K=1,3),(Mr(K),K=1,3),(twisting_moment(K),K=1,3),(DthetaT(K),K=1,3),(Mt(K),K=1,3)
+                        !    write(123,'(A5,2X,3F30.17,A5,3F30.17,A5,3F30.17,2X,9F30.17)',advance='no') "FN:",(normal_force(K),K=1,3),"FT:",(tangential_force(K),K=1,3),"DistU:",(DistU(K),K=1,3),(Vtot(K),K=1,3),(Vnor(K),K=1,3),(Vtan(K),K=1,3)
                         !end if
 
                         !  cohesive force

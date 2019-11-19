@@ -91,10 +91,6 @@
             !    write(123,'(F15.5,2X,A5,2X,2I8,2X)',advance='no') Time,'Inner',particleI,particleJ
             !end if
 
-            !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
-            !    write(123,'(A6,2X,I5,2X)',advance='no') 'check:',check
-            !end if
-
             if (particleI .NE. particleJ) then
                 !  Initialize state params
                 do K = 1,3
@@ -307,8 +303,8 @@
                     !            rolling_moment(K) = 0.0D0  !  Particle J
                     !        end do
                     !        rolling = .false.
-                    !    end ifelse
-                    !
+                    !    end if
+                    !else
                         if (rolling_momentL .GT. 2.1D0*0.25D0*m_Beta*Rij*normal_forceL) then  !  Rolling
                             rolling = .true.
                             if (DthetaRL .GT. 1.0e-14) then
@@ -386,8 +382,7 @@
                     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
                     !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
-                        !write(123,'(2I5,2X,15F30.17)',advance='no') particleI,particleJ,(Vtot(K),K=1,3),DistS,DistL,ERR,(DistU(K),K=1,3),(Vnor(K),K=1,3),(Vtan(K),K=1,3)
-                        !write(123,'(18F30.17)') (rolling_moment(K),K=1,3),(DthetaR(K),K=1,3),(Mr(K),K=1,3),(twisting_moment(K),K=1,3),(DthetaT(K),K=1,3),(Mt(K),K=1,3)
+                        !write(123,'(A5,2X,3F30.17,A5,3F30.17,A5,3F30.17,2X,9F30.17)',advance='no') "FN:",(normal_force(K),K=1,3),"FT:",(tangential_force(K),K=1,3),"DistU:",(DistU(K),K=1,3),(Vtot(K),K=1,3),(Vnor(K),K=1,3),(Vtan(K),K=1,3)
                     !end if
 
                     !  cohesive force
@@ -500,10 +495,6 @@
 
                     !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
                     !    write(123,'(F15.5,2X,A5,2X,2I8,2X)',advance='no') Time,'outer',particleI,particleJ
-                    !end if
-
-                    !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
-                    !    write(123,'(A6,2X,I5,2X)',advance='no') 'check:',check
                     !end if
 
                     if (.true.) then   !  .OR. J.EQ.N
@@ -635,10 +626,6 @@
                                 tangential_force(K) = - Ks*Ds(K) + Cs*Vtan(K) + H(K)
                             end do
                             tangential_forceL = sqrt(tangential_force(1)*tangential_force(1) + tangential_force(2)*tangential_force(2) + tangential_force(3)*tangential_force(3))
-
-                            !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
-                            !    write(123,'(14F15.5,2X)',advance='no') normal_forceL,tangential_forceL,(H(K),K=1,3),(Vtan(K),K=1,3),(Ds(K),K=1,3),(tangential_force(K),K=1,3)
-                            !end if
 
                             !if (slipping) then  !  Have slipped
                             !    if (DsL .GT. 1.0e-14) then  !  Still slipping
@@ -801,8 +788,7 @@
                             !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
                             !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
-                            !    write(123,'(2I5,2X,15F30.17)',advance='no') particleI,particleJ,(Vtot(K),K=1,3),DistS,DistL,ERR,(DistU(K),K=1,3),(Vnor(K),K=1,3),(Vtan(K),K=1,3)
-                            !    write(123,'(18F30.17)') (rolling_moment(K),K=1,3),(DthetaR(K),K=1,3),(Mr(K),K=1,3),(twisting_moment(K),K=1,3),(DthetaT(K),K=1,3),(Mt(K),K=1,3)
+                            !    write(123,'(A5,2X,3F30.17,A5,3F30.17,A5,3F30.17,2X,9F30.17)',advance='no') "FN:",(normal_force(K),K=1,3),"FT:",(tangential_force(K),K=1,3),"DistU:",(DistU(K),K=1,3),(Vtot(K),K=1,3),(Vnor(K),K=1,3),(Vtan(K),K=1,3)
                             !end if
 
                             !  cohesive force
