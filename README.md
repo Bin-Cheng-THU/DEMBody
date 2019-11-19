@@ -1,4 +1,4 @@
-# DEMBody
+<img src="https://github.com/Bin-Cheng-THU/DEMBody/blob/e50be977f80da8fa6486f6605ddac86f372a909d/DEMBodyLogo.jpg?raw=true" width="400" hegiht="300"/>
 
 DEMBody is Open Source software for Granular Dynamics in Astronomy. The software focus on investigation of geological features, surface evolution and in-situ exploration on celestrial bodies, e.g., size sorting/segregation on asteroid, mass creep/wasting during geological processes and locomotion dynamics of asteroid lander on granular layer.
 

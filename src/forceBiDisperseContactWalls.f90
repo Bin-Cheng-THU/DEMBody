@@ -2,142 +2,120 @@
     !     DEMBody 7.0
     !     ***********
     !
-    !     Force for biDisperse particles.
+    !     Force for biDisperse particles with contactable walls.
     !     --------------------------
-    !     @Using particle list coupled with Lattice Method
-    !     @to speed to the calculation
-    !     @similar to forceParticleLattice
-    !     @Calculate the force and moment of biDisperse particles
-    !     @Note that the Tag of biDisperse particles is stored in Hertz List
-    !
+    !      
     !     @Using rolling friction similar to LIGGGHTS
     !     @Using Hertz-Mindlin contact model similar to Wada
     !     @No Cohesion model in walls
-    !     @No Rolling model in bonded walls
     !     @Using damping model applicable for ice ball
     !
     !********************************************************************
-    subroutine forceBiDisperse()
+    subroutine forceBiDisperseContactWalls()
 
     use global
     use omp_lib
     implicit none
 
-    real(8) ::  Dist(3),DistS,DistL,DistR,DistU(3)
-    real(8) ::  Vrel(3),Vrot(3),Vtot(3),ERR,Vnor(3),Vtan(3)
-    real(8) ::  normal_force(3),normal_forceL
-    real(8) ::  tangential_force(3),tangential_forceL,tangential_history(3)
-    real(8) ::  rolling_moment(3),rolling_momentL,rolling_history(3)
-    real(8) ::  twisting_moment(3),twisting_momentL,twisting_history(3)
-    real(8) ::  cohesive_force(3)
-    real(8) ::  Ap,An
-    real(8) ::  Rij,Mij,Iij
-    real(8) ::  Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR
-    real(8) ::  Dn,Ds(3),DsL,Dtheta(3),DthetaL,DthetaR(3),DthetaRL,DthetaT(3),DthetaTL
-    real(8) ::  H(3),Mr(3),Mt(3)
-    real(8) ::  RV(3)
-    logical ::  slipping,rolling,twisting               !  State of friction of T
-    logical ::  touching                                !  State of touch of T
-    integer ::  I,J,K,L,LenNode                         !  Linklist
-    type(Nodelink),pointer :: Temp                      !  Temporary pointer
-    type(Nodelink),pointer :: TempH                     !  Contact pointer
-    type(Nodelink),pointer :: Tail                      !  Tail pointer
-                                               
-    type(biDisperseLattice),pointer :: NodeBiDisperse   !  List of biDisperse particle ID
-    integer ::  IDBiDisperse                            !  ID of bonded trimesh
-    integer ::  index                                   !  Index of the lattice containing the particle (Note that using history ID)
-    
-    character(40) :: FileNameHead
-    character(40) :: FileNameForce
-    
-    biDisperseF = 0.0D0
-    biDisperseFM = 0.0D0
-    
-    !write(FileNameHead,'(F10.5)') Time
-    !FileNameHead = trim(FileNameHead)//'BiDisperse.txt'
-    !open(123,FILE=FileNameHead)
-    
-    !  Loop over all bodies through the NodeTree.
-    !$OMP PARALLEL DO &
-    !$OMP& REDUCTION(+:biDisperseF) REDUCTION(+:biDisperseFM) &
-    !$OMP& PRIVATE(LenNode,Temp,TempH,Tail,&
-    !$OMP& I,J,K,L,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
-    !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,tangential_history,&
-    !$OMP& rolling_moment,rolling_momentL,rolling_history,twisting_moment,twisting_momentL,twisting_history,cohesive_force,Ap,An,Rij,Mij,Iij,&
-    !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
-    !$OMP& slipping,rolling,twisting,touching,&
-    !$OMP& NodeBiDisperse,IDBiDisperse,index) SCHEDULE(GUIDED)
-    ! Loop over all lattices
-    do I = 1,N
-        
-        Tail => Head(I)
-        index = Linklist(I)
-        
-        !  Loop over biDisperseLattice
-        NodeBiDisperse => biDisperseDEM(index)
-        do while (associated(NodeBiDisperse%next))
-            NodeBiDisperse => NodeBiDisperse%next
-            IDBiDisperse = NodeBiDisperse%No    
+    real(kind=8)  Dist(3),DistS,DistL,DistR,DistU(3)
+    real(kind=8)  Vrel(3),Vrot(3),Vtot(3),ERR,Vnor(3),Vtan(3)
+    real(kind=8)  normal_force(3),normal_forceL
+    real(kind=8)  tangential_force(3),tangential_forceL,tangential_history(3)
+    real(kind=8)  rolling_moment(3),rolling_momentL,rolling_history(3)
+    real(kind=8)  twisting_moment(3),twisting_momentL,twisting_history(3)
+    real(kind=8)  cohesive_force(3)
+    real(kind=8)  Ap,An
+    real(kind=8)  Rij,Mij,Iij
+    real(kind=8)  Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR
+    real(kind=8)  Dn,Ds(3),DsL,Dtheta(3),DthetaL,DthetaR(3),DthetaRL,DthetaT(3),DthetaTL
+    real(kind=8)  H(3),Mr(3),Mt(3)
+    real(kind=8)  RV(3)
+    logical :: slipping,rolling,twisting                           !  State of friction of T
+    logical :: touching                                            !  State of touch of T
+    integer :: I,J,K,L,II,LenNode                                  !  Iterator
+    type(Nodelink),pointer :: Temp                                 !  Temporary pointer
+    type(Nodelink),pointer :: TempH                                !  Contact pointer
+    integer :: OMP_contactWallTag                                  !  Tag for walls in OMP
+    real(kind=8) OMP_contactWallPoint(3),OMP_contactWallVector(3)  !  Point and Vector for walls in OMP
 
-            !if (I.EQ.PP) then
-            !    write(124,'(F15.5,2X,3I5,2X)',advance='no') Time,I,biDisperseTag(IDBiDisperse),IDBiDisperse
-            !end if
-            
+    real(8) :: ostart,oend
+    
+    do II = 1,contactWallNum
+        !  Allocate to variables in OMP (stack memory)
+        OMP_contactWallTag = contactWallTag(II) + biDisperseNum
+        do K = 1,3
+            OMP_contactWallPoint(K) = contactWallPoint(K,II)
+            OMP_contactWallVector(K) = contactWallVector(K,II)
+        end do
+        
+        !  Loop over all bodies.
+        !$OMP PARALLEL DO &
+        !$OMP& firstprivate(OMP_contactWallTag,OMP_contactWallPoint,OMP_contactWallVector)&
+        !$OMP& PRIVATE(Temp,TempH,LenNode,&
+        !$OMP& I,J,K,L,II,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
+        !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,tangential_history,&
+        !$OMP& rolling_moment,rolling_momentL,rolling_history,twisting_moment,twisting_momentL,twisting_history,cohesive_force,Ap,An,Rij,Mij,Iij,&
+        !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
+        !$OMP& slipping,rolling,twisting,touching) SCHEDULE(GUIDED)
+        do I = 1,biDisperseNum
             do K = 1,3
-                Dist(K) = X(K,I) - biDisperseX(K,IDBiDisperse)
-                H(K) = 0.0D0
-                Mr(K) = 0.0D0
-                Mt(K) = 0.0D0
+                RV(K) = biDisperseX(K,I) - OMP_contactWallPoint(K)
             end do
-            !  Distance vector
-            DistS = Dist(1)*Dist(1) + Dist(2)*Dist(2) + Dist(3)*Dist(3)
-            DistL = sqrt(DistS)
-            
-            ERR = DistL - R(I) - biDisperseR(IDBiDisperse)  !  This step seems to be useless, but very important for PBC!!!
-            if (ERR .LE. LatDx) then
+            ERR = RV(1)*OMP_contactWallVector(1) + RV(2)*OMP_contactWallVector(2) + RV(3)*OMP_contactWallVector(3)
+            if (ERR .LE. 2.0D0*biDisperseScale*LatDx) then      
+                !  normal vector
+                do K = 1,3
+                    Dist(K) = ERR*OMP_contactWallVector(K)
+                    H(K) = 0.0D0
+                    Mr(K) = 0.0D0
+                    Mt(K) = 0.0D0
+                end do
                 touching = .false.
                 slipping = .false.
                 rolling = .false.
                 twisting = .false.
-                
-                Dn = R(I) + biDisperseR(IDBiDisperse) - DistL
-                !  lookup this contact(or not) in the Hertz list I
-                LenNode = Head(I)%No
-                Temp => Tail
-                do while(associated(Temp%next))
-                    Temp => Temp%next
-                    if (Temp%No .EQ. biDisperseTag(IDBiDisperse)) then
-                        do K = 1,3
-                            H(K) = Temp%Hertz(K)
-                            Mr(K) = Temp%Mrot(K)
-                            Mt(K) = Temp%Mtwist(K)
-                        end do
-                        touching = Temp%is_touching
-                        slipping = Temp%is_slipping
-                        rolling = Temp%is_rolling
-                        twisting = Temp%is_twisting
-                        exit
-                    else if (Temp%No .GT. biDisperseTag(IDBiDisperse)) then
-                        Temp => Temp%prev
-                        exit
-                    end if
-                end do      
-                !if (I.EQ.PP) then
-                !    write(124,'(F15.5,2X)',advance='no') Dn
-                !end if
-                !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hooke's law
-                if (Dn .GT. 0.0D0) then
+                !  Distance vector
+                DistS = Dist(1)*Dist(1) + Dist(2)*Dist(2) + Dist(3)*Dist(3)
+                DistL = sqrt(DistS)
+                Dn = biDisperseR(I) - DistL
+                !  lookup this contact(or not) in the Hertz list
+                LenNode = HeadBiDisperse(I)%No
+                Temp => HeadBiDisperse(I)
+                if (LenNode .NE. 0) then
+                    Temp => HeadBiDisperse(I)%next
+                    do L = 1,LenNode
+                        if (Temp%No .EQ. OMP_contactWallTag) then
+                            do K = 1,3
+                                H(K) = Temp%Hertz(K)
+                                Mr(K) = Temp%Mrot(K)
+                                Mt(K) = Temp%Mtwist(K)
+                            end do
+                            touching = Temp%is_touching
+                            slipping = Temp%is_slipping
+                            rolling = Temp%is_rolling
+                            twisting = Temp%is_twisting
+                            exit
+                        else if (Temp%No.LT.OMP_contactWallTag .AND. associated(Temp%next)) then
+                            Temp => Temp%next
+                        else if (Temp%No .GT. OMP_contactWallTag) then
+                            Temp => Temp%prev
+                            exit
+                        end if
+                    end do
+                end if
+                !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hertzian law
+                if (Dn .GT. 0.0D0) then 
+
                     DistR = 1.0D0/DistL
                     !  calculate the normal vector
                     do K=1,3
                         DistU(K) = Dist(K)*DistR
                     end do
-                    Ap = (R(I)*R(I)-biDisperseR(IDBiDisperse)*biDisperseR(IDBiDisperse)+DistS)/2.0D0*DistR
-                    An = DistL-Ap
-#ifdef HertzMindlinVisco    
+                    Ap = DistL
+#ifdef HertzMindlinVisco                    
                     !  calculate material constant
-                    Rij = R(I)*biDisperseR(IDBiDisperse)/(R(I)+biDisperseR(IDBiDisperse))
-                    Mij = Body(I)*biDisperseBody(IDBiDisperse)/(Body(I)+biDisperseBody(IDBiDisperse))
+                    Rij = biDisperseR(I)
+                    Mij = biDisperseBody(I)
                     Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                     Cn = -Kn*m_A
                     Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
@@ -157,15 +135,15 @@
                     Ct = 0.5D0*Cs*(m_Beta*Rij)**2
 #elif HertzMindlinResti
                     !  calculate material constant
-                    Rij = R(I)*biDisperseR(IDBiDisperse)/(R(I)+biDisperseR(IDBiDisperse))
-                    Mij = Body(I)*biDisperseBody(IDBiDisperse)/(Body(I)+biDisperseBody(IDBiDisperse))
+                    Rij = biDisperseR(I)
+                    Mij = biDisperseBody(I)
                     Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                     lnCOR = log(m_COR)
                     Cn = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
-                    & *sqrt(Mij*m_E/(1.0D0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
+                          & *sqrt(Mij*m_E/(1.0D0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
                     Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
                     Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
-                    & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                         & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
                     Kr = 0.25D0*Kn*(m_Beta*Rij)**2
                     Cr = 0.25D0*Cn*(m_Beta*Rij)**2
                     Kt = 0.5D0*Ks*(m_Beta*Rij)**2
@@ -173,12 +151,12 @@
 #endif
                     !  translate relative velocity
                     do K = 1,3
-                        Vrel(K) = Xdot(K,I) - biDisperseXdot(K,IDBiDisperse)
+                        Vrel(K) = biDisperseXdot(K,I)
                     end do
                     !  rotate relative velocity
-                    Vrot(1) = (DistU(2)*W(3,I) - DistU(3)*W(2,I))*Ap + (DistU(2)*biDisperseW(3,IDBiDisperse) - DistU(3)*biDisperseW(2,IDBiDisperse))*An 
-                    Vrot(2) = (DistU(3)*W(1,I) - DistU(1)*W(3,I))*Ap + (DistU(3)*biDisperseW(1,IDBiDisperse) - DistU(1)*biDisperseW(3,IDBiDisperse))*An 
-                    Vrot(3) = (DistU(1)*W(2,I) - DistU(2)*W(1,I))*Ap + (DistU(1)*biDisperseW(2,IDBiDisperse) - DistU(2)*biDisperseW(1,IDBiDisperse))*An 
+                    Vrot(1) = (DistU(2)*biDisperseW(3,I) - DistU(3)*biDisperseW(2,I))*Ap
+                    Vrot(2) = (DistU(3)*biDisperseW(1,I) - DistU(1)*biDisperseW(3,I))*Ap
+                    Vrot(3) = (DistU(1)*biDisperseW(2,I) - DistU(2)*biDisperseW(1,I))*Ap
                     !  totle relative velocity
                     do K = 1,3
                         Vtot(K) = Vrel(K) + Vrot(K)
@@ -198,10 +176,7 @@
                         normal_force(K) = Kn*Dn*DistU(K) + Cn*Vnor(K)
                     end do
                     normal_forceL = sqrt(normal_force(1)*normal_force(1) + normal_force(2)*normal_force(2) + normal_force(3)*normal_force(3))
-
-                    !  Add energy
-                    Energy(I) = Energy(I) + 0.2D0*Kn*(Dn**2)
-
+                    
                     !  tangential deform
                     do K = 1,3
                         Ds(K) = Vtan(K)*Dt
@@ -233,8 +208,6 @@
                                     tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL
                                     tangential_history(K) = tangential_force(K)
                                 end do
-                                !  Add frictional heat
-                                Heat(1,I) = Heat(1,I) + 0.5D0*m_mu_d*normal_forceL*DsL
                             else
                                 do K = 1,3
                                     tangential_force(K) = 0.0D0
@@ -248,29 +221,21 @@
                             end do
                         end if
                     !end if
-                    
+
                     touching = .true.
                     !  Apply force
                     do K = 1,3
-                        F(K,I) = normal_force(K) + tangential_force(K) + F(K,I)
-                        biDisperseF(K,IDBiDisperse) = - normal_force(K) - tangential_force(K) + biDisperseF(K,IDBiDisperse)
+                        biDisperseF(K,I) = normal_force(K) + tangential_force(K) + biDisperseF(K,I)
                     end do
-                    !  Apply moment                    
-                    FM(1,I) = - Ap*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + FM(1,I) 
-                    FM(2,I) = - Ap*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + FM(2,I) 
-                    FM(3,I) = - Ap*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + FM(3,I) 
-                    biDisperseFM(1,IDBiDisperse) = - An*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + biDisperseFM(1,IDBiDisperse)
-                    biDisperseFM(2,IDBiDisperse) = - An*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + biDisperseFM(2,IDBiDisperse)
-                    biDisperseFM(3,IDBiDisperse) = - An*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + biDisperseFM(3,IDBiDisperse)
+                    !  Apply moment                  
+                    biDisperseFM(1,I) = - Ap*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + biDisperseFM(1,I) 
+                    biDisperseFM(2,I) = - Ap*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + biDisperseFM(2,I) 
+                    biDisperseFM(3,I) = - Ap*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + biDisperseFM(3,I) 
 
-                    !if (I.EQ.PP) then
-                    !    write(124,'(2F15.5,2X)',advance='no') normal_forceL,tangential_forceL
-                    !end if
-                    
                     !  rolling
                     do K = 1,3
-                        Dtheta(K) = (W(K,I)-biDisperseW(K,IDBiDisperse))*Dt
-                    end do                            
+                        Dtheta(K) = (biDisperseW(K,I))*Dt
+                    end do
                     DthetaL = Dtheta(1)*DistU(1) + Dtheta(2)*DistU(2) + Dtheta(3)*DistU(3)
                     !  twisting deform
                     do K = 1,3
@@ -308,8 +273,6 @@
                                     rolling_moment(K) = -2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL
                                     rolling_history(K) = rolling_moment(K)
                                 end do
-                                !  Add frictional heat
-                                Heat(2,I) = Heat(2,I) + 0.5D0*2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaRL
                             else
                                 do K = 1,3
                                     rolling_moment(K) = 0.0D0
@@ -317,13 +280,13 @@
                                 end do
                             end if
                         else
-                            rolling = .false.  !  Sticking
+                            rolling = .false. !  Sticking
                             do K = 1,3
                                 rolling_history(K) = rolling_moment(K)
                                 rolling_moment(K) = rolling_moment(K) + Cr*DthetaR(K)/Dt
                             end do
                         end if
-                    !end if  
+                    !end if                 
 
                     !  twisting moment of Particle I
                     do K = 1,3
@@ -350,8 +313,6 @@
                                     twisting_moment(K) = -0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL
                                     twisting_history(K) = twisting_moment(K)
                                 end do
-                                !  Add frictional heat
-                                Heat(3,I) = Heat(3,I) + 0.5D0*0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaTL
                             else
                                 do K = 1,3
                                     twisting_moment(K) = 0.0D0
@@ -359,33 +320,33 @@
                                 end do
                             end if
                         else
-                            twisting = .false.  !  Sticking
+                            twisting = .false. !  Sticking
                             do K = 1,3
                                 twisting_history(K) = twisting_moment(K)
                                 twisting_moment(K) = twisting_moment(K) + Ct*DthetaT(K)/Dt
                             end do
                         end if
-                    !end if  
-       
+                    !end if 
+                    
+                    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     !  Apply moment
                     do K = 1,3
-                        FM(K,I) = rolling_moment(K) + twisting_moment(K) + FM(K,I)
-                        biDisperseFM(K,IDBiDisperse) = - rolling_moment(K) - twisting_moment(K) + biDisperseFM(K,IDBiDisperse)
-                    end do                                          
-                    
-                    !  cohesive force
-                    do K = 1,3
-                        cohesive_force(K) = - m_c*(m_Beta*Rij)**2*DistU(K)
+                        biDisperseFM(K,I) = rolling_moment(K) + twisting_moment(K) + biDisperseFM(K,I)
                     end do
-                    do K = 1,3
-                        F(K,I) = cohesive_force(K) + F(K,I)
-                        biDisperseF(K,IDBiDisperse) = - cohesive_force(K) + biDisperseF(K,IDBiDisperse)
-                    end do
+                    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+                    !!  cohesive force
+                    !do K = 1,3
+                    !    cohesive_force(K) = - m_c*(m_Beta*Rij)**2*DistU(K)
+                    !end do
+                    !do K = 1,3
+                    !    biDisperseF(K,I) = biDisperseF(K,I) + cohesive_force(K)
+                    !end do
                     
                     !  memory the contact in the Hertz linklist.
                     if (associated(Temp%prev)) then
                         !  Temp is in center of linklist!!!
-                        if (Temp%No .EQ. biDisperseTag(IDBiDisperse)) then
+                        if (Temp%No .EQ. OMP_contactWallTag) then
                             !  Have contacted.
                             do K = 1,3
                                 Temp%Hertz(K) = tangential_history(K)
@@ -397,83 +358,39 @@
                             Temp%is_rolling = rolling
                             Temp%is_twisting = twisting
                             !Temp%recordTime = Time + Dt
-                            Tail => Temp
                         else
                             !  First contacted.
                             allocate(TempH)
-                            TempH = Nodelink(biDisperseTag(IDBiDisperse),tangential_history,rolling_history,twisting_history,&
+                            TempH = Nodelink(OMP_contactWallTag,tangential_history,rolling_history,twisting_history,&
                             & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
-                            Head(I)%No = LenNode + 1
-                            Tail => TempH
+                            HeadBiDisperse(I)%No = LenNode + 1
                         end if
                     else
                         !  Temp is Head of linklist!!!
                         allocate(TempH)
-                        TempH = Nodelink(biDisperseTag(IDBiDisperse),tangential_history,rolling_history,twisting_history,&
+                        TempH = Nodelink(OMP_contactWallTag,tangential_history,rolling_history,twisting_history,&
                         & touching,slipping,rolling,twisting,Temp,Temp%next)
                         if (associated(Temp%next)) Temp%next%prev => TempH
                         Temp%next => TempH
-                        Head(I)%No = LenNode + 1
-                        Tail => TempH
+                        HeadBiDisperse(I)%No = LenNode + 1
                     end if
                 else
                     !  memory the separation in the Hertz linklist.
-                    if (associated(Temp%prev) .AND. Temp%No.EQ.biDisperseTag(IDBiDisperse)) then
+                    if (associated(Temp%prev) .AND. Temp%No.EQ.OMP_contactWallTag) then
                         !  Temp is center of linklist!!!
                         Temp%prev%next => Temp%next
                         if(associated(Temp%next)) Temp%next%prev => Temp%prev
-                        Head(I)%No = LenNode - 1
-                        Tail => Temp%prev
+                        HeadBiDisperse(I)%No = LenNode - 1
                         deallocate(Temp)
                         !  When else Temp is Head of linklist!!!
-                    else
-                        Tail => Temp
                     end if
-                    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 end if
             end if
         end do
+        !$OMP END PARALLEL DO
     end do
-    !$OMP END PARALLEL DO
-    !oend = omp_get_wtime()
-    !write(*,*) "forceBiDisperse",(oend-ostart)
-    
-    !write(FileNameForce,'(F10.5)') Time
-    !FileNameForce = trim(FileNameForce)//'Force.txt'
-    !open(10000,FILE=FileNameForce)
-    !do I = 1,biDisperseNum
-    !    write(10000,'(3F30.15)') (biDisperseF(K,I),K=1,3)
-    !end do
-    !close(10000)
-    !close(123)
-    !pause
-    !
-    !stop
-    
-    !  calculate forces between biDisperse particles using MixMesh
-    call forceBiDisperseMixMesh
-
-    !  calculate forces generated by Contactable walls
-    if (isContactWall) then
-        call forceBiDisperseContactWalls
-    end if
-    
-    !  calculate forces generated by Moving walls
-    if (isMovingWall) then
-        call forceBiDisperseMovingWalls
-    end if
-    
-    !################         Force to Acceleration          ###################
-    !$OMP PARALLEL DO PRIVATE(J,K)
-    do J = 1,biDisperseNum
-        do K = 1,3
-            biDisperseF(K,J) = biDisperseF(K,J)/biDisperseBody(J) + G(K)
-            biDisperseFM(K,J) = biDisperseFM(K,J)/biDisperseInertia(J)
-        end do
-    end do
-    !$OMP END PARALLEL DO
 
     return
     end

@@ -83,8 +83,8 @@
         !end do
         allocate(Temp)
         Temp = biDisperseLattice(I,NULL())
-        MixtailInner%next%next => Temp
-        MixtailInner%next => Temp                
+        MixtailInner(Tag)%next%next => Temp
+        MixtailInner(Tag)%next => Temp                
     end do
     ! $OMP END PARALLEL DO
     !o2 = omp_get_wtime()

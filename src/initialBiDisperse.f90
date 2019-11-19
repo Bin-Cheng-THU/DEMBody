@@ -32,7 +32,7 @@
     !  initialize  MixMesh
     MixLatNum = MixLatNx*MixLatNy*MixLatNz
     allocate(MixIDInner(MixLatNum))
-    allocate(MixtailIDInner(MixLatNum))
+    allocate(MixtailInner(MixLatNum))
     do I = 1,MixLatNum
         MixIDInner(I)%No = 0                 !  Array of MixMeshLattice's inner particles
         nullify(MixIDInner(I)%next)
