@@ -3,6 +3,7 @@
     !     ***********
     !
     !     Initialization of TriMesh.
+    !     Allocate trimesh into DEM lattice
     !     ---------------------------------
     !
     !********************************************************************
@@ -96,6 +97,7 @@
                     if (RVL .LE. 2.0*LatDx) then
                         index = (idRange(1,1)+J-1) + (idRange(1,2)+K-1-1)*LatNx + (idRange(1,3)+L-1-1)*LatNx*LatNy
                         trimeshDEM(index)%No = trimeshDEM(index)%No + 1
+                        !  search from the beginning，should be slow and replaced by tail method
                         Temp => trimeshDEM(index)
                         do while (associated(Temp%next))
                             Temp => Temp%next

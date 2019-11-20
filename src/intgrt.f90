@@ -48,9 +48,19 @@
     end do
     !$OMP END PARALLEL DO
     
+    !  refresh quaternion if needed
     if (isQuaternion) then
         call attitude
     end if
+
+    !$OMP PARALLEL DO PRIVATE(I,K)
+    do I = 1,N
+        !  refresh omega
+        do K = 1,3
+            W(K,I) = W(K,I) + FM(K,I) * Dt /2.0D0
+        end do
+    end do
+    !$OMP END PARALLEL DO
     
     if (isMovingWall) then
         Tmoving = Time - movingWallTstart

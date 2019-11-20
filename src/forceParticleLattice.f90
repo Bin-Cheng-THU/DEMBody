@@ -91,10 +91,6 @@
             !    write(123,'(F15.5,2X,A5,2X,2I8,2X)',advance='no') Time,'Inner',particleI,particleJ
             !end if
 
-            !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
-            !    write(123,'(A6,2X,I5,2X)',advance='no') 'check:',check
-            !end if
-
             if (particleI .NE. particleJ) then
                 !  Initialize state params
                 do K = 1,3
@@ -386,8 +382,7 @@
                     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
                     !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
-                        !write(123,'(2I5,2X,15F30.17)',advance='no') particleI,particleJ,(Vtot(K),K=1,3),DistS,DistL,ERR,(DistU(K),K=1,3),(Vnor(K),K=1,3),(Vtan(K),K=1,3)
-                        !write(123,'(18F30.17)') (rolling_moment(K),K=1,3),(DthetaR(K),K=1,3),(Mr(K),K=1,3),(twisting_moment(K),K=1,3),(DthetaT(K),K=1,3),(Mt(K),K=1,3)
+                        !write(123,'(A5,2X,3F30.17,A5,3F30.17,A5,3F30.17,2X,9F30.17)',advance='no') "FN:",(normal_force(K),K=1,3),"FT:",(tangential_force(K),K=1,3),"DistU:",(DistU(K),K=1,3),(Vtot(K),K=1,3),(Vnor(K),K=1,3),(Vtan(K),K=1,3)
                     !end if
 
                     !  cohesive force
@@ -500,10 +495,6 @@
 
                     !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
                     !    write(123,'(F15.5,2X,A5,2X,2I8,2X)',advance='no') Time,'outer',particleI,particleJ
-                    !end if
-
-                    !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
-                    !    write(123,'(A6,2X,I5,2X)',advance='no') 'check:',check
                     !end if
 
                     if (.true.) then   !  .OR. J.EQ.N
@@ -801,8 +792,7 @@
                             !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
                             !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
-                            !    write(123,'(2I5,2X,15F30.17)',advance='no') particleI,particleJ,(Vtot(K),K=1,3),DistS,DistL,ERR,(DistU(K),K=1,3),(Vnor(K),K=1,3),(Vtan(K),K=1,3)
-                            !    write(123,'(18F30.17)') (rolling_moment(K),K=1,3),(DthetaR(K),K=1,3),(Mr(K),K=1,3),(twisting_moment(K),K=1,3),(DthetaT(K),K=1,3),(Mt(K),K=1,3)
+                            !    write(123,'(A5,2X,3F30.17,A5,3F30.17,A5,3F30.17,2X,9F30.17)',advance='no') "FN:",(normal_force(K),K=1,3),"FT:",(tangential_force(K),K=1,3),"DistU:",(DistU(K),K=1,3),(Vtot(K),K=1,3),(Vnor(K),K=1,3),(Vtan(K),K=1,3)
                             !end if
 
                             !  cohesive force

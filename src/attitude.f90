@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.0
+    !     DEMBody 6.2
     !     ***********
     !
     !     N-body integrator of Quaternion.
@@ -55,11 +55,6 @@
         norm = sqrt(Quaternion(1,I)**2 + Quaternion(2,I)**2 + Quaternion(3,I)**2 + Quaternion(4,I)**2)
         do K = 1,4
             Quaternion(K,I) = Quaternion(K,I)/norm
-        end do
-        
-        !  refresh omega
-        do K = 1,3
-            W(K,I) = W(K,I) + FM(K,I) * Dt /2.0D0
         end do
     end do
     !$OMP END PARALLEL DO

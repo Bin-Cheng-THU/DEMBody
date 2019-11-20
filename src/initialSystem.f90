@@ -69,6 +69,8 @@
     read (1000,*) MAX_ACC              !  maximum contact acceleration
     read (1000,*)                         
     read (1000,*) G(1),G(2),G(3)       !  the totle gravity    
+
+    verlet = verlet**2                 !  verlet = (0.2Rmin)^2
     
     wallFlag = 1
     

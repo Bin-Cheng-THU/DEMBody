@@ -186,7 +186,6 @@
     !    write(10000,'(3F30.15)') (F(K,I),K=1,3)
     !end do
     !close(10000)
-    !close(123)
     !pause
     !
     !stop
