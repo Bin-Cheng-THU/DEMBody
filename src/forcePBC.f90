@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 5.2
+    !     DEMBody 7.0
     !     ***********
     !
     !     Force for mirrored particles using Periodic Parallel Lattice.
@@ -183,6 +183,10 @@
                     do K = 1,3
                         Vrel(K) = Xdot(K,particleJ) - Xdot(K,particleI)
                     end do
+                    !********************************
+                    Vrel(1) = Vrel(1) + xFlag*2.0D0*stretchVelX
+                    Vrel(2) = Vrel(2) + yFlag*2.0D0*stretchVelY
+                    !********************************
                     !  negative rotate relative velocity
                     Vrot(1) = (DistU(2)*W(3,particleJ) - DistU(3)*W(2,particleJ))*An + (DistU(2)*W(3,particleI) - DistU(3)*W(2,particleI))*Ap
                     Vrot(2) = (DistU(3)*W(1,particleJ) - DistU(1)*W(3,particleJ))*An + (DistU(3)*W(1,particleI) - DistU(1)*W(3,particleI))*Ap

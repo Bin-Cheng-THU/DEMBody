@@ -63,6 +63,7 @@
     read (1000,*) isBondedTriMeshWall  !  whether use Bonded TriMesh Walls
     read (1000,*) isFunnelWall         !  whether use Funnel Walls
     read (1000,*) isPeriodic           !  whether use Periodic function
+    read (1000,*) isStretch            !  whether use stretch Periodic function
     read (1000,*) isGravBody           !  whether use Gravity Body
     read (1000,*) isSphereBody         !  whether use Sphere Body
     read (1000,*) isGravTriMesh        !  whether use Gravity TriMesh
@@ -304,6 +305,15 @@
         read (1000,*) gamma
         LenBoxX = abs(PlaSx1p(1) - PlaSx2p(1))
         LenBoxY = abs(PlaSy1p(2) - PlaSy2p(2))
+        if (isStretch) then
+            read (1000,*) stretchTstart,stretchTend
+            read (1000,*) strecthVelXInit,strecthVelYInit
+            read (1000,*) (contactWallStretchPoint(K),K=1,3),(contactWallStretchVector(K),K=1,3)
+            contactWallStretchTag = NMAX + wallFlag
+            wallFlag = wallFlag + 1
+        end if
+        strecthVelX = 0.0D0
+        strecthVelY = 0.0D0
     else
         read (1000,*)
         read (1000,*)

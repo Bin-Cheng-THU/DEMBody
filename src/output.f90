@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 6.0
+    !     DEMBody 7.0
     !     ***********
     !
     !     Output and data save.
@@ -17,6 +17,7 @@
     character(20) :: FileNameX
     character(20) :: FileNameF
     character(25) :: FileNameW
+    character(25) :: FileNamePBC
     integer(4) :: result
     integer,external :: systemqq
     real(8) :: temp_bondedWallMeshPoint(3)
@@ -144,6 +145,21 @@
                 end do
                 write(Step+1000,'(3F10.4)') (temp_bondedWallMeshPoint(K),K=1,3)
             end do  
+            close(Step+1000)
+        end if
+
+        !  Output the stretch PBC
+        if (isStretch) then
+            write(FileNamePBC,'(I4)') Step+1000
+
+            FileNamePBC = '../Data/PBC/'//FileNamePBC
+            FileNamePBC = trim(FileNamePBC)//'PBC.txt'            
+            open(Step+1000,FILE=FileNamePBC)
+            write(Step+1000,*) 'X',',','Y',',','Z'
+            write(Step+1000,'(F10.4,A2,F10.4,A2,F10.4)') PlaSx1p(1),',',PlaSy1p(2),',',PlaSx1p(3)
+            write(Step+1000,'(F10.4,A2,F10.4,A2,F10.4)') PlaSx2p(1),',',PlaSy2p(2),',',PlaSx2p(3)
+            write(Step+1000,'(F10.4,A2,F10.4,A2,F10.4)') PlaSx1p(1),',',PlaSy2p(2),',',PlaSy1p(3)
+            write(Step+1000,'(F10.4,A2,F10.4,A2,F10.4)') PlaSx2p(1),',',PlaSy1p(2),',',PlaSy2p(3)
             close(Step+1000)
         end if
         

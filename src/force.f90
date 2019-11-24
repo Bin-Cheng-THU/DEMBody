@@ -7,7 +7,7 @@
     !      
     !     @Using forceParticleLattice or forceLattice when enable Lattice
     !     @Using forceTraverse when enable Traverse
-    !     @Using forceMirror when enable Periodic
+    !     @Using forcePBC/forceContactWallStretch when enable Periodic and Stretch
     !     @Using forceContactWalls when enable ContactWall
     !     @Using forceMovingWalls when enable MovingWall
     !     @Using forceBondedWalls when enable BondedWall
@@ -55,6 +55,10 @@
     !  calculate mirrored force if using PBC & Shear PBC
     if (isPeriodic) then
         call forcePBC
+
+        if (isStretch) then
+            call forceContactWallStretch
+        end if
     end if
     !oend = omp_get_wtime()
     !write(*,*) "PBC force",(oend-ostart)

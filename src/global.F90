@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 6.1
+    !     DEMBody 7.0
     !     ***********
     !
     !     Global parameters.
@@ -45,6 +45,7 @@
     logical :: isBondedTriMeshWall
     logical :: isFunnelWall
     logical :: isPeriodic
+    logical :: isStretch
     logical :: isGravBody
     logical :: isSphereBody
     logical :: isGravTriMesh
@@ -232,6 +233,16 @@
     real(8) :: LenBoxX
     real(8) :: LenBoxY
     real(8) :: gamma
+    !************************modification for stretch PBC****************************
+    real(8) :: strecthVelXInit,strecthVelX
+    real(8) :: strecthVelYInit,strecthVelY
+    real(8) :: stretchTstart
+    real(8) :: stretchTend
+    !  Define parameters of Stretch Contactable Wall
+    integer,allocatable :: contactWallStretchTag
+    real(8),allocatable :: contactWallStretchPoint(3)
+    real(8),allocatable :: contactWallStretchVector(3)
+    !******************************************************************************** 
     
     !  Define parameters of GravBody
     integer :: gravBodyTag

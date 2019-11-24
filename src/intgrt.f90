@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 6.0
+    !     DEMBody 7.0
     !     ***********
     !
     !     N-body integrator flow control.
@@ -100,7 +100,29 @@
     if (isSphereBody) then
         call intgrtSphereBody
     end if
-        
+
+    if (isStretch) then
+        Tmoving = Time - stretchTstart
+        strecthVelX = 0.0D0
+        strecthVelY = 0.0D0
+        if (Tmoving.GE.0.0D0 .AND. Tmoving.LT.(stretchTend-stretchTstart)) then
+            !  refresh peirodic boundary
+            PlaSx1p(1) = PlaSx1p(1) + strecthVelX*Dt
+            PlaSx2p(1) = PlaSx2p(1) - strecthVelX*Dt
+            PlaSy1p(2) = PlaSy1p(2) + strecthVelY*Dt
+            PlaSy2p(2) = PlaSy2p(2) - strecthVelY*Dt
+            LenBoxX = abs(PlaSx1p(1) - PlaSx2p(1))
+            LenBoxY = abs(PlaSy1p(2) - PlaSy2p(2))
+            strecthVelX = strecthVelXInit
+            strecthVelY = strecthVelYInit
+            !  refresh Lattice mesh
+            LatMx = LatMx + strecthVelX*Dt
+            LatMy = LatMy + strecthVelY*Dt
+            LatDx = LenBoxX/LatNx
+            LatDy = LenBoxY/LatNy
+        end if
+    end if
+
 #ifdef LatticeSearch    
     if (refreshLattice) then    
         !ostart = omp_get_wtime()
