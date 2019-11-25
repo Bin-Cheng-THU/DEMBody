@@ -307,13 +307,13 @@
         LenBoxY = abs(PlaSy1p(2) - PlaSy2p(2))
         if (isStretch) then
             read (1000,*) stretchTstart,stretchTend
-            read (1000,*) strecthVelXInit,strecthVelYInit
+            read (1000,*) stretchVelXInit,stretchVelYInit
             read (1000,*) (contactWallStretchPoint(K),K=1,3),(contactWallStretchVector(K),K=1,3)
             contactWallStretchTag = NMAX + wallFlag
             wallFlag = wallFlag + 1
         end if
-        strecthVelX = 0.0D0
-        strecthVelY = 0.0D0
+        stretchVelX = 0.0D0
+        stretchVelY = 0.0D0
     else
         read (1000,*)
         read (1000,*)

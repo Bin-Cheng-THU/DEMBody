@@ -31,7 +31,7 @@
     !  Parameters
     real(8),parameter :: GravConst = 6.674184D-11
     real(8),parameter :: PI = 3.141592653589793D0
-    character(10),parameter :: VERSION = '6.2'
+    character(10),parameter :: VERSION = '7.0'
 
     !  Define control parameters of Program
     character(10) :: vsDEMBody
@@ -234,14 +234,14 @@
     real(8) :: LenBoxY
     real(8) :: gamma
     !************************modification for stretch PBC****************************
-    real(8) :: strecthVelXInit,strecthVelX
-    real(8) :: strecthVelYInit,strecthVelY
+    real(8) :: stretchVelXInit,stretchVelX
+    real(8) :: stretchVelYInit,stretchVelY
     real(8) :: stretchTstart
     real(8) :: stretchTend
     !  Define parameters of Stretch Contactable Wall
-    integer,allocatable :: contactWallStretchTag
-    real(8),allocatable :: contactWallStretchPoint(3)
-    real(8),allocatable :: contactWallStretchVector(3)
+    integer :: contactWallStretchTag
+    real(8) :: contactWallStretchPoint(3)
+    real(8) :: contactWallStretchVector(3)
     !******************************************************************************** 
     
     !  Define parameters of GravBody

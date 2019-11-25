@@ -35,8 +35,8 @@
     integer :: I,J,K,L,II,LenNode                                  !  Iterator
     type(Nodelink),pointer :: Temp                                 !  Temporary pointer
     type(Nodelink),pointer :: TempH                                !  Contact pointer
-    integer :: OMP_contactWallStretchTag                                  !  Tag for walls in OMP
-    real(kind=8) OMP_contactWallStretchPoint(3),OMP_contactWallStretchVector(3)  !  Point and Vector for walls in OMP
+    integer :: OMP_contactWallTag                                  !  Tag for walls in OMP
+    real(kind=8) OMP_contactWallPoint(3),OMP_contactWallVector(3)  !  Point and Vector for walls in OMP
 
     real(8) :: ostart,oend
 
@@ -51,7 +51,7 @@
     
     !  Loop over all bodies.
     !$OMP PARALLEL DO &
-    !$OMP& firstprivate(OMP_contactWallStretchTag,OMP_contactWallStretchPoint,OMP_contactWallStretchVector)&
+    !$OMP& firstprivate(OMP_contactWallTag,OMP_contactWallPoint,OMP_contactWallVector)&
     !$OMP& PRIVATE(Temp,TempH,LenNode,&
     !$OMP& I,J,K,L,II,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
     !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,tangential_history,&
@@ -155,8 +155,8 @@
                     Vrel(K) = Xdot(K,I)
                 end do
                 !************************************
-                Vx = X(1,I)/PlaSx1p(1)*strecthVelX
-                Vy = X(2,I)/PlaSy1p(2)*strecthVelY
+                Vx = X(1,I)/PlaSx1p(1)*stretchVelX
+                Vy = X(2,I)/PlaSy1p(2)*stretchVelY
                 Vrel(1) = Vrel(1) - Vx
                 Vrel(2) = Vrel(2) - Vy
                 !************************************
