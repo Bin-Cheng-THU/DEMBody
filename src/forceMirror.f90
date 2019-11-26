@@ -88,7 +88,7 @@
                         innerFlag = 1
                     end if
 
-                    if (innerFlga .EQ. 1) then
+                    if (innerFlag .EQ. 1) then
                         !  Initialize state params
                         do K = 1,3
                             Dist(K) = X(K,particleJ) -  X(K,particleI)

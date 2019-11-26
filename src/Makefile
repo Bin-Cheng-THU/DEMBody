@@ -27,13 +27,13 @@ OUTPUTOPTION=-DnhistoryOutput
 COMPILER=ifort -qopenmp -O2 -fpp $(PLATFORM) $(NUMBER) $(MODEL) $(SEARCH) $(REGION) $(PARALLEL) $(PARTICLE) $(OUTPUTOPTION)
 
 DEMBody: global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o initialTriMesh.o initialBondedTriMesh.o \
-	initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o \
-	force.o forceLattice.o forcePBC.o forceContactWallStretch.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
+	initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o mirror.o meshGenerate.o latticeGenerate.o \
+	force.o forceLattice.o forcePBC.o forceMirror.o forceContactWallStretch.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
 	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
 	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o
 	$(COMPILER)  -o DEMBody global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o initialTriMesh.o initialBondedTriMesh.o \
-	initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o \
-	force.o forceLattice.o forcePBC.o forceContactWallStretch.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
+	initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o mirror.o meshGenerate.o latticeGenerate.o \
+	force.o forceLattice.o forcePBC.o forceMirror.o forceContactWallStretch.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
 	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
 	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o
 
@@ -67,6 +67,8 @@ loadData.o: global.mod loadData.f90
 	$(COMPILER)  -c loadData.f90
 periodic.o: global.mod periodic.f90
 	$(COMPILER)  -c periodic.f90
+mirror.o: global.mod mirror.f90
+	$(COMPILER)  -c mirror.f90
 meshGenerate.o: global.mod meshGenerate.f90
 	$(COMPILER)  -c meshGenerate.f90
 latticeGenerate.o: global.mod latticeGenerate.f90
@@ -77,6 +79,8 @@ forceLattice.o: global.mod forceLattice.f90
 	$(COMPILER)  -c forceLattice.f90
 forcePBC.o: global.mod forcePBC.f90
 	$(COMPILER)  -c forcePBC.f90
+forceMirror.o: global.mod forceMirror.f90
+	$(COMPILER)  -c forceMirror.f90
 forceContactWallStretch.o: global.mod forceContactWallStretch.f90
 	$(COMPILER)  -c forceContactWallStretch.f90
 forceContactWalls.o: global.mod forceContactWalls.f90
@@ -120,8 +124,8 @@ intgrtSphereBody.o: global.mod intgrtSphereBody.f90
 
 clean:
 	rm global.mod loadfile.mod global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o initialTriMesh.o initialBondedTriMesh.o \
-	initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o \
-	force.o forceLattice.o forcePBC.o forceContactWallStretch.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
+	initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o mirror.o meshGenerate.o latticeGenerate.o \
+	force.o forceLattice.o forcePBC.o forceMirror.o forceContactWallStretch.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
 	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
 	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o
 # End of the makefile

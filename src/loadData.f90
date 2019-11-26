@@ -52,7 +52,7 @@
     !  change position and velocity according to PBC & Shear PBC
     if (isMirror) then
         allocate(TagMirror(3,N))
-        call 
+        call mirror
     end if
 
 #ifdef LatticeSearch

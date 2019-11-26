@@ -115,11 +115,13 @@
             PlaSy2p(2) = PlaSy2p(2) - stretchVelY*Dt
             LenBoxX = abs(PlaSx1p(1) - PlaSx2p(1))
             LenBoxY = abs(PlaSy1p(2) - PlaSy2p(2))
-            !  refresh Lattice mesh
-            LatMx = LatMx + stretchVelX*Dt
-            LatMy = LatMy + stretchVelY*Dt
-            LatDx = LenBoxX/LatNx
-            LatDy = LenBoxY/LatNy
+            if (isPeriodic) then 
+                !  refresh Lattice mesh
+                LatMx = LatMx + stretchVelX*Dt
+                LatMy = LatMy + stretchVelY*Dt
+                LatDx = LenBoxX/LatNx
+                LatDy = LenBoxY/LatNy
+            end if
         end if
     end if
 
