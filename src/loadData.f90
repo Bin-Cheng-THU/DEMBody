@@ -49,6 +49,12 @@
         call periodic
     end if
 
+    !  change position and velocity according to PBC & Shear PBC
+    if (isMirror) then
+        allocate(TagMirror(3,N))
+        call 
+    end if
+
 #ifdef LatticeSearch
     !  generate mesh based on partition of Particles
     call meshGenerate

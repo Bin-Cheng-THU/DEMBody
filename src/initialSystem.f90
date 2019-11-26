@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 6.0
+    !     DEMBody 7.1
     !     ***********
     !
     !     Initialization of global scalars.
@@ -63,6 +63,7 @@
     read (1000,*) isBondedTriMeshWall  !  whether use Bonded TriMesh Walls
     read (1000,*) isFunnelWall         !  whether use Funnel Walls
     read (1000,*) isPeriodic           !  whether use Periodic function
+    read (1000,*) isMirror           !  whether use Mirror function
     read (1000,*) isStretch            !  whether use stretch Periodic function
     read (1000,*) isGravBody           !  whether use Gravity Body
     read (1000,*) isSphereBody         !  whether use Sphere Body
@@ -295,6 +296,33 @@
     !  initial the geometry boundary of the Particle Box
     if (isPeriodic) then
         write(*,*) '< is Periodic boundary, loading...'
+        read (1000,*)
+        read (1000,*) (PlaSx1p(K),K=1,3),(PlaSx1v(K),K=1,3)
+        read (1000,*) (PlaSx2p(K),K=1,3),(PlaSx2v(K),K=1,3)
+        read (1000,*) (PlaSy1p(K),K=1,3),(PlaSy1v(K),K=1,3)
+        read (1000,*) (PlaSy2p(K),K=1,3),(PlaSy2v(K),K=1,3)
+        read (1000,*) LenBoxX
+        read (1000,*) LenBoxY
+        read (1000,*) gamma
+        LenBoxX = abs(PlaSx1p(1) - PlaSx2p(1))
+        LenBoxY = abs(PlaSy1p(2) - PlaSy2p(2))
+        if (isStretch) then
+            read (1000,*) stretchTstart,stretchTend
+            read (1000,*) stretchVelXInit,stretchVelYInit
+            read (1000,*) (contactWallStretchPoint(K),K=1,3),(contactWallStretchVector(K),K=1,3)
+            contactWallStretchTag = NMAX + wallFlag
+            wallFlag = wallFlag + 1
+        end if
+        stretchVelX = 0.0D0
+        stretchVelY = 0.0D0
+    else
+        read (1000,*)
+        read (1000,*)
+    end if
+
+    !  initial the geometry boundary of the Particle Box
+    if (isMirror) then
+        write(*,*) '< is Mirror boundary, loading...'
         read (1000,*)
         read (1000,*) (PlaSx1p(K),K=1,3),(PlaSx1v(K),K=1,3)
         read (1000,*) (PlaSx2p(K),K=1,3),(PlaSx2v(K),K=1,3)

@@ -31,7 +31,7 @@
     !  Parameters
     real(8),parameter :: GravConst = 6.674184D-11
     real(8),parameter :: PI = 3.141592653589793D0
-    character(10),parameter :: VERSION = '7.0'
+    character(10),parameter :: VERSION = '7.1'
 
     !  Define control parameters of Program
     character(10) :: vsDEMBody
@@ -45,6 +45,7 @@
     logical :: isBondedTriMeshWall
     logical :: isFunnelWall
     logical :: isPeriodic
+    logical :: isMirror
     logical :: isStretch
     logical :: isGravBody
     logical :: isSphereBody
@@ -233,6 +234,8 @@
     real(8) :: LenBoxX
     real(8) :: LenBoxY
     real(8) :: gamma
+    !************************modification for stretch Mirror****************************
+    integer,allocatable :: TagMirror(:,:)  !  3*NMAX, Tag + idX + idY 
     !************************modification for stretch PBC****************************
     real(8) :: stretchVelXInit,stretchVelX
     real(8) :: stretchVelYInit,stretchVelY

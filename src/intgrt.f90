@@ -131,6 +131,13 @@
         end if
         !oend = omp_get_wtime()
         !write(*,*) 'periodic', (oend-ostart)
+
+        !ostart = omp_get_wtime()
+        if (isMirror) then
+            call mirror
+        end if
+        !oend = omp_get_wtime()
+        !write(*,*) 'mirror', (oend-ostart)
     
         !ostart = omp_get_wtime()
         call meshGenerate

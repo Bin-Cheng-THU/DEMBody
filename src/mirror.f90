@@ -1,0 +1,67 @@
+    !********************************************************************
+    !     DEMBody 7.1
+    !     ***********
+    !
+    !     Change position and velocity when crossing boundary.
+    !     --------------------------
+    !
+    !     @Periodic boundary
+    !     @Shear periodic boundary
+    !     @Can not solve shear periodic boundary in current version (v6.0)
+    !
+    !********************************************************************
+    subroutine mirror()
+
+    use global
+    implicit none
+
+    integer :: I
+    
+    !$OMP PARALLEL DO PRIVATE(I)
+    do I = 1,N
+        !Wallx1
+        if (X(1,I).GT.(PlaSx1p(1))) then
+            X(1,I) = X(1,I) - LenBoxX
+        end if
+        !Wallx2
+        if (X(1,I).LT.(PlaSx2p(1))) then
+            X(1,I) = X(1,I) + LenBoxX
+        end if
+        !Wally1
+        if (X(2,I).GT.(PlaSy1p(2))) then
+            X(2,I) = X(2,I) - LenBoxY
+        end if
+        !Wally2
+        if (X(2,I).LT.(PlaSy2p(2))) then
+            X(2,I) = X(2,I) + LenBoxY
+        end if
+
+        !TagMirror
+        TagMirror(1,I) = 0  !  whether in Mirror Region
+        TagMirror(2,I) = 0  !  idX
+        TagMirror(3,I) = 0  !  idY
+
+        if ((PlaSx1p(1)-X(1,I)-LatDx).LE.0.0D0) then
+            TagMirror(2,I) = 1
+            TagMirror(1,I) = 1
+        end if
+
+        if ((X(1,I)-PlaSx2p(1)-LatDx).LE.0.0D0) then
+            TagMirror(2,I) = -1
+            TagMirror(1,I) = 1
+        end if
+
+        if ((PlaSy1p(2)-X(2,I)-LatDy).LE.0.0D0) then
+            TagMirror(3,I) = 1
+            TagMirror(1,I) = 1
+        end if
+
+        if ((X(2,I)-PlaSy2p(2)-LatDy).LE.0.0D0) then
+            TagMirror(3,I) = -1
+            TagMirror(1,I) = 1
+        end if
+
+    end do
+    !$OMP END PARALLEL DO
+
+    end
