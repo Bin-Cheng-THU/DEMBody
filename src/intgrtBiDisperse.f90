@@ -35,8 +35,8 @@
         end do
 #ifdef LatticeSearch
         distL = biDisperseXT(1,I)*biDisperseXT(1,I) + biDisperseXT(2,I)*biDisperseXT(2,I) + biDisperseXT(3,I)*biDisperseXT(3,I)
-        if (distL .GE. verlet) then
-            refreshLattice = .true.
+        if (distL .GE. verletBiDisperse) then
+            refreshBiDisperseLattice = .true.
         end if
 #endif LatticeSearch
     end do

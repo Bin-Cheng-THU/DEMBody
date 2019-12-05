@@ -18,7 +18,9 @@
     type(MixLattice),pointer :: Temp
     type(MixLattice),pointer :: Tail
     real(8) :: ostart,oend
-    
+
+    refreshBiDisperseLattice = .true.
+    refreshBiDisperseNum = 0    
 
     !  initialize biDisperse
     LatNum = LatNx*LatNy*LatNz 

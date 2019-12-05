@@ -364,6 +364,8 @@
         read (1000,*) MixLatDx,MixLatDy,MixLatDz    !  Parallel Lattice grid interval
         read (1000,*) MixLatNx,MixLatNy,MixLatNz    !  Parallel Lattice grid number
         read (1000,*) MixLatMx,MixLatMy,MixLatMz    !  Parallel Lattice grid origin
+        read (1000,*) verletBiDisperse
+        verletBiDisperse = verletBiDisperse**2
         MixLatNum = MixLatNx*MixLatNy*MixLatNz
         allocate (MixLinklist(MixLatNum))
         
@@ -378,6 +380,8 @@
         allocate (biDisperseF(3,biDisperseNum))
         allocate (biDisperseFM(3,biDisperseNum))
         allocate (biDisperseXT(3,biDisperseNum))
+        allocate (biDisperseEnergy(biDisperseNum))
+        allocate (biDisperseHeat(biDisperseNum))
         !  load bi-disperse particles data
         read (1000,*)
         open (1500,File="../Input/largeParticles.bidisperse")

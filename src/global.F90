@@ -144,6 +144,7 @@
     
     !  Define material parameters
     real(8) :: m_E,m_nu,m_mu_d,m_mu_s,m_COR
+    real(8) :: m_Ei
     real(8) :: m_Beta
     real(8) :: m_c,m_r_cut
     real(8) :: m_A
@@ -257,6 +258,8 @@
     real(8),allocatable :: biDisperseBody(:),biDisperseR(:),biDisperseInertia(:)
     real(8),allocatable :: biDisperseF(:,:),biDisperseFM(:,:)
     real(8),allocatable :: biDisperseXT(:,:)
+    real(8),allocatable :: biDisperseEnergy(:)
+    real(8),allocatable :: biDisperseHeat(:)  !  Only slip energy
 
     !  Nodelink of BiDisperse
     type(Nodelink),pointer :: HeadBiDisperse(:) 
@@ -277,6 +280,9 @@
     real(8) :: MixLatMx,MixLatMy,MixLatMz
     integer :: MixLatNum
     integer,allocatable :: MixLinklist(:)
+    logical :: refreshBiDisperseLattice
+    integer :: refreshBiDisperseNum
+    real(8) :: verletBiDisperse
     !  Conduct Lattice
     type :: MixLattice
         !integer :: ID(3)

@@ -97,4 +97,8 @@
     end do
     !$OMP END PARALLEL DO    
 
+    !  reset Lattice flag
+    refreshBiDisperseNum = refreshBiDisperseNum + 1
+    refreshBiDisperseLattice = .false.
+
     end

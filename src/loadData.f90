@@ -20,6 +20,7 @@
 
     read (2000,*)  N                  !  the number of all particles
     read (2000,*)  m_E,m_nu           !  Youngs module; Poisson ratio
+    read (2000,*)  m_Ei               !  Youngs module of BiDisperse particles
     read (2000,*)  m_mu_d,m_mu_s      !  Friciton coefficient danamic/static
     read (2000,*)  m_COR              !  Coefficient of restitution
     read (2000,*)  m_Beta             !  Irregular shape

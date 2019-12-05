@@ -118,16 +118,16 @@
                     !  calculate material constant
                     Rij = biDisperseR(I)
                     Mij = biDisperseBody(I)
-                    Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
+                    Kn = 2.0D0*m_Ei*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                     Cn = -Kn*m_A
-                    Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                    Ks = 2.0D0*m_Ei/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
                     !  select tangential damping mode
                     if (m_COR > 1.0D0) then
-                        Cs = -2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Dn)*m_A
+                        Cs = -2.0D0*m_Ei/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Dn)*m_A
                     elseif (m_COR >= 0.0D0) then
                         lnCOR=log(m_COR)
                         Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
-                        & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                        & *sqrt(2.0D0*Mij*m_Ei/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
                     else
                         Cs = 0.0D0
                     end if
@@ -139,13 +139,13 @@
                     !  calculate material constant
                     Rij = biDisperseR(I)
                     Mij = biDisperseBody(I)
-                    Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
+                    Kn = 2.0D0*m_Ei*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                     lnCOR = log(m_COR)
                     Cn = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
-                          & *sqrt(Mij*m_E/(1.0D0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
-                    Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                          & *sqrt(Mij*m_Ei/(1.0D0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
+                    Ks = 2.0D0*m_Ei/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
                     Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
-                         & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                         & *sqrt(2.0D0*Mij*m_Ei/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
                     Kr = 0.25D0*Kn*(m_Beta*Rij)**2
                     Cr = 0.25D0*Cn*(m_Beta*Rij)**2
                     Kt = 0.5D0*Ks*(m_Beta*Rij)**2
@@ -178,6 +178,9 @@
                         normal_force(K) = Kn*Dn*DistU(K) + Cn*Vnor(K)
                     end do
                     normal_forceL = sqrt(normal_force(1)*normal_force(1) + normal_force(2)*normal_force(2) + normal_force(3)*normal_force(3))
+
+                    !  Add energy
+                    biDisperseEnergy(I) = biDisperseEnergy(I) + 0.2D0*Kn*(Dn**2)
                     
                     !  tangential deform
                     do K = 1,3
@@ -210,6 +213,8 @@
                                     tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL
                                     tangential_history(K) = tangential_force(K)
                                 end do
+                                !  Add frictional heat
+                                biDisperseEnergy(I) = biDisperseEnergy(I) + 0.5D0*m_mu_d*normal_forceL*DsL
                             else
                                 do K = 1,3
                                     tangential_force(K) = 0.0D0

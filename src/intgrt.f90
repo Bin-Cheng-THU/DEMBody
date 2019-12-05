@@ -123,9 +123,11 @@
         call latticeGenerate
         !oend = omp_get_wtime()
         !write(*,*) 'lattice', (oend-ostart)
+    end if
 
+    if (isBiDisperse) then
         !ostart = omp_get_wtime()
-        if (isBiDisperse) then
+        if (refreshBiDisperseLattice) then
             call latticeGenerateBiDisperse
 
             call latticeGenerateBiDisperseMix

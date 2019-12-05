@@ -482,3 +482,21 @@ DEMBody-MixBiMesh   7.1    11/20/2019上线
 
 更正makefile中存在的错误！！！
 
+*********************************************************************
+DEMBody-MixBiMesh   7.2    11/20/2019上线
+
+考虑到Phobos整体仿真的需要，需加入BiDisperseParticles与GravBody作用的模块。
+    注意在forceBiDisperseGravBody和forceGravBody中都有GravBody受力的初始化过程！！！在Phobos仿真中应该不需要forceGravBody。
+    需要加入RotSystem模块。
+加入BiDisperseParticle的En输出。
+
+考虑到计算量几乎没有改变，因此额外设置两种颗粒为不同刚度，m_E为小颗粒，m_Ei为大颗粒。采用约化刚度形式处理接触参数的计算。
+    除了forceBiDisperse之外所有涉及BiDisperse接触计算的均修改为m_Ei计算。
+
+测试：
+    200万颗粒，2D仿真，单步计算最大误差为1e-13，计算100步，误差1e-9，在接受范围之内。
+思考：
+    发现BiDisperse的Lattice生成耗时非常严重，因此如何降低这一部分的更新频率、提高运行速度是关键！
+    设置两个更新阈值！particle移动用0.2Rmax，BiDisperse particle移动用0.75Rmax。
+    测试通过！！！降低网格更新频率至将近十分之一！
+    

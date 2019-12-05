@@ -196,6 +196,14 @@
     !    write(10000,'(3F30.15)') (F(K,I),K=1,3)
     !end do
     !close(10000)
+
+    !write(FileNameForce,'(F10.5)') Time
+    !FileNameForce = trim(FileNameForce)//'ForceBiDisperse.txt'
+    !open(10000,FILE=FileNameForce)
+    !do I = 1,biDisperseNum
+    !    write(10000,'(3F30.15)') (biDisperseF(K,I),K=1,3)
+    !end do
+    !close(10000)
     !pause
     !
     !stop
