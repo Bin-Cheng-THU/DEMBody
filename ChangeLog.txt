@@ -499,4 +499,9 @@ DEMBody-MixBiMesh   7.2    11/20/2019上线
     发现BiDisperse的Lattice生成耗时非常严重，因此如何降低这一部分的更新频率、提高运行速度是关键！
     设置两个更新阈值！particle移动用0.2Rmax，BiDisperse particle移动用0.75Rmax。
     测试通过！！！降低网格更新频率至将近十分之一！
-    
+
+
+*********************************************************************
+DEMBody-MixBiMesh   7.3    11/20/2019上线    
+
+修改部分小错误：output中加入BiDisperse particles的En输出；forceGravBody凝聚力错误使用biDisperseFM，更正为biDisperseF

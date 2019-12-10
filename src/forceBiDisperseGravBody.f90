@@ -354,7 +354,7 @@
                 end do
                 do K = 1,3
                     gravBodyF(K) = gravBodyF(K) + cohesive_force(K)
-                    biDisperseFM(K,I) = biDisperseFM(K,I) - cohesive_force(K)
+                    biDisperseF(K,I) = biDisperseF(K,I) - cohesive_force(K)
                 end do
 
                 !  memory the contact in the Hertz linklist.
