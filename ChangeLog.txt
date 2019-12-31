@@ -505,3 +505,9 @@ DEMBody-MixBiMesh   7.2    11/20/2019上线
 DEMBody-MixBiMesh   7.3    11/20/2019上线    
 
 修改部分小错误：output中加入BiDisperse particles的En输出；forceGravBody凝聚力错误使用biDisperseFM，更正为biDisperseF
+
+*********************************************************************
+DEMBody-MixBiMesh   7.4    12/31/2019上线
+
+修复forceRotSystem中dist变量未设置private的bug
+修复BiDisperseEnergy与BiDisperseHeat混淆的bug

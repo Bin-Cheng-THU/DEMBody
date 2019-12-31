@@ -238,7 +238,7 @@
                                 end do
                                 !  Add frictional heat
                                 Heat(1,I) = Heat(1,I) + 0.5D0*m_mu_d*normal_forceL*DsL
-                                biDisperseEnergy(IDBiDisperse) = biDisperseEnergy(IDBiDisperse) + 0.5D0*m_mu_d*normal_forceL*DsL
+                                biDisperseHeat(IDBiDisperse) = biDisperseHeat(IDBiDisperse) + 0.5D0*m_mu_d*normal_forceL*DsL
                             else
                                 do K = 1,3
                                     tangential_force(K) = 0.0D0
