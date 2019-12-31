@@ -451,3 +451,10 @@ DEMBody   6.2    20/11/2019上线
     修改force模块中的Debug语句：forceParticleLattice
     在global.f90中加入模块说明文件
 
+*********************************************************************
+DEMBody   6.3    12/31/2019上线
+
+系统：
+    将材料参数读取移至initialSystem
+    修复forceRotSystem中忘记设置dist变量为private的bug
+
