@@ -1,26 +1,21 @@
     !********************************************************************
-    !     DEMBody 7.0
+    !     DEMBody 8.0
     !     ***********
     !
-    !     Force for biDisperse particles.
-    !     --------------------------
-    !     @Using particle list coupled with Lattice Method
-    !     @to speed to the calculation
-    !     @similar to forceParticleLattice
-    !     @Calculate the force and moment of biDisperse particles
-    !     @Note that the Tag of biDisperse particles is stored in Hertz List
+    !     Force for biParticles using Traverse method.
+    !     Half circulation with parallel reduction.
+    !
+    !     -------------------------------
     !
     !     @Using rolling friction similar to LIGGGHTS
     !     @Using Hertz-Mindlin contact model similar to Wada
-    !     @No Cohesion model in walls
-    !     @No Rolling model in bonded walls
+    !     @Using Cohesion model similar to Scheeres
     !     @Using damping model applicable for ice ball
     !
     !********************************************************************
-    subroutine forceBiDisperse()
+    subroutine forceBiDisperseTraverse()
 
     use global
-    use omp_lib
     implicit none
 
     real(8) ::  Dist(3),DistS,DistL,DistR,DistU(3)
@@ -36,79 +31,88 @@
     real(8) ::  Dn,Ds(3),DsL,Dtheta(3),DthetaL,DthetaR(3),DthetaRL,DthetaT(3),DthetaTL
     real(8) ::  H(3),Mr(3),Mt(3)
     real(8) ::  RV(3)
-    logical ::  slipping,rolling,twisting               !  State of friction of T
-    logical ::  touching                                !  State of touch of T
-    integer ::  I,J,K,L,LenNode                         !  Linklist
-    type(Nodelink),pointer :: Temp                      !  Temporary pointer
-    type(Nodelink),pointer :: TempH                     !  Contact pointer
-    type(Nodelink),pointer :: Tail                      !  Tail pointer
-                                               
-    type(biDisperseLattice),pointer :: NodeBiDisperse   !  List of biDisperse particle ID
-    integer ::  IDBiDisperse                            !  ID of bonded trimesh
-    integer ::  index                                   !  Index of the lattice containing the particle (Note that using history ID)
+    logical ::  slipping,rolling,twisting       !  State of friction of T
+    logical ::  touching                        !  State of touch of T
     
-    character(40) :: FileNameHead
-    character(40) :: FileNameForce
+    integer ::  I,J,K,L,LenNode                 !  Linklist
+    type(Nodelink),pointer :: Temp              !  Temporary pointer
+    type(Nodelink),pointer :: TempH             !  Contact pointer
+    type(Nodelink),pointer :: Tail              !  Tail pointer
+                                                
+    integer :: particleI,particleJ              !  ID of two interacting particle
     
-    biDisperseF = 0.0D0
-    biDisperseFM = 0.0D0
-    biDisperseEnergy = 0.0D0
-    biDisperseHeat = 0.0D0
+    real(8) :: gravity_force
+    
+    real(8) :: ostart,oend
+
+    character(30) :: FileNameHead
+    character(30) :: FileNameForce
     
     !write(FileNameHead,'(F10.5)') Time
-    !FileNameHead = trim(FileNameHead)//'HeadBiDisperse.txt'
-    !open(123,FILE=FileNameHead)
+    !FileNameHead = trim(FileNameHead)//'HeadTraverse.txt'
+    !open(124,FILE=FileNameHead)
     
-    !  Loop over all bodies through the NodeTree.
+    !ostart = omp_get_wtime()
+    !  Loop over all bodies.
     !$OMP PARALLEL DO &
-    !$OMP& REDUCTION(+:biDisperseF) REDUCTION(+:biDisperseFM) REDUCTION(+:biDisperseEnergy) REDUCTION(+:biDisperseHeat)&
+    !$OMP& REDUCTION(+:biDisperseF) REDUCTION(+:biDisperseFM) REDUCTION(+:biDisperseEnergy) REDUCTION(+:biDisperseHeat) &
     !$OMP& PRIVATE(LenNode,Temp,TempH,Tail,&
     !$OMP& I,J,K,L,Dist,DistS,DistL,DistR,DistU,Vrel,Vrot,Vtot,ERR,Vnor,Vtan,&
     !$OMP& normal_force,normal_forceL,tangential_force,tangential_forceL,tangential_history,&
     !$OMP& rolling_moment,rolling_momentL,rolling_history,twisting_moment,twisting_momentL,twisting_history,cohesive_force,Ap,An,Rij,Mij,Iij,&
     !$OMP& Kn,Cn,Ks,Cs,Kr,Cr,Kt,Ct,lnCOR,Dn,Ds,DsL,Dtheta,DthetaL,DthetaR,DthetaRL,DthetaT,DthetaTL,H,Mr,Mt,RV,&
     !$OMP& slipping,rolling,twisting,touching,&
-    !$OMP& NodeBiDisperse,IDBiDisperse,index) SCHEDULE(GUIDED)
+    !$OMP& particleI,particleJ,gravity_force) SCHEDULE(GUIDED)
     ! Loop over all lattices
-    do I = 1,N
+    do I = 1,biDisperseNum-1
         
-        Tail => Head(I)
-        index = Linklist(I)
-        
-        !  Loop over biDisperseLattice
-        NodeBiDisperse => biDisperseDEM(index)
-        do while (associated(NodeBiDisperse%next))
-            NodeBiDisperse => NodeBiDisperse%next
-            IDBiDisperse = NodeBiDisperse%No    
+        particleI = I
+        Tail => HeadBiDisperse(particleI)
 
-            !if (I.EQ.PP) then
-            !    write(124,'(F15.5,2X,3I5,2X)',advance='no') Time,I,biDisperseTag(IDBiDisperse),IDBiDisperse
+        do J = I+1,biDisperseNum
+
+            particleJ = J
+
+            !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
+            !    write(124,'(F15.5,2X,2I8,2X)',advance='no') Time,particleI,particleJ
             !end if
-            
+
+            !  Initialize state params
             do K = 1,3
-                Dist(K) = X(K,I) - biDisperseX(K,IDBiDisperse)
-                H(K) = 0.0D0
-                Mr(K) = 0.0D0
-                Mt(K) = 0.0D0
+                Dist(K) = biDisperseX(K,particleJ) -  biDisperseX(K,particleI)
             end do
             !  Distance vector
             DistS = Dist(1)*Dist(1) + Dist(2)*Dist(2) + Dist(3)*Dist(3)
             DistL = sqrt(DistS)
-            
-            ERR = DistL - R(I) - biDisperseR(IDBiDisperse)  !  This step seems to be useless, but very important for PBC!!!
-            if (ERR .LE. LatDx) then
+            DistR = 1.0D0/DistL
+
+            gravity_force = GravConst*biDisperseBody(particleI)*biDisperseBody(particleJ)*DistR*DistR*DistR
+            do K = 1,3
+                biDisperseF(K,particleI) = biDisperseF(K,particleI) + gravity_force*Dist(K)
+                biDisperseF(K,particleJ) = biDisperseF(K,particleJ) - gravity_force*Dist(K)
+            end do
+
+            Dn = biDisperseR(particleI) + biDisperseR(particleJ) - DistL
+
+            if (Dn .GT. -2.5D0*biDisperseScale*LatDx) then
+
+                !  Initialize state params
+                do K = 1,3
+                    H(K) = 0.0D0
+                    Mr(K) = 0.0D0
+                    Mt(K) = 0.0D0
+                end do
                 touching = .false.
                 slipping = .false.
                 rolling = .false.
                 twisting = .false.
-                
-                Dn = R(I) + biDisperseR(IDBiDisperse) - DistL
+
                 !  lookup this contact(or not) in the Hertz list I
-                LenNode = Head(I)%No
+                LenNode = HeadBiDisperse(particleI)%No
                 Temp => Tail
                 do while(associated(Temp%next))
                     Temp => Temp%next
-                    if (Temp%No .EQ. biDisperseTag(IDBiDisperse)) then
+                    if (Temp%No .EQ. particleJ) then
                         do K = 1,3
                             H(K) = Temp%Hertz(K)
                             Mr(K) = Temp%Mrot(K)
@@ -119,37 +123,37 @@
                         rolling = Temp%is_rolling
                         twisting = Temp%is_twisting
                         exit
-                    else if (Temp%No .GT. biDisperseTag(IDBiDisperse)) then
+                    else if (Temp%No .GT. particleJ) then
                         Temp => Temp%prev
                         exit
                     end if
                 end do      
-                !if (I.EQ.PP) then
-                !    write(124,'(F15.5,2X)',advance='no') Dn
+                !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
+                !    write(124,'(F15.5)',advance='no') Dn
                 !end if
                 !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hooke's law
                 if (Dn .GT. 0.0D0) then
-                    DistR = 1.0D0/DistL
+                    
                     !  calculate the normal vector
                     do K=1,3
                         DistU(K) = Dist(K)*DistR
                     end do
-                    Ap = (R(I)*R(I)-biDisperseR(IDBiDisperse)*biDisperseR(IDBiDisperse)+DistS)/2.0D0*DistR
+                    Ap = (biDisperseR(particleI)*biDisperseR(particleI)-biDisperseR(particleJ)*biDisperseR(particleJ)+DistS)/2.0D0*DistR
                     An = DistL-Ap
 #ifdef HertzMindlinVisco    
                     !  calculate material constant
-                    Rij = R(I)*biDisperseR(IDBiDisperse)/(R(I)+biDisperseR(IDBiDisperse))
-                    Mij = Body(I)*biDisperseBody(IDBiDisperse)/(Body(I)+biDisperseBody(IDBiDisperse))
-                    Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
+                    Rij = biDisperseR(particleI)*biDisperseR(particleJ)/(biDisperseR(particleI)+biDisperseR(particleJ))
+                    Mij = biDisperseBody(particleI)*biDisperseBody(particleJ)/(biDisperseBody(particleI)+biDisperseBody(particleJ))
+                    Kn = 2.0D0*m_Ei*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                     Cn = -Kn*m_A
-                    Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                    Ks = 2.0D0*m_Ei/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
                     !  select tangential damping mode
                     if (m_COR > 1.0D0) then
-                        Cs = -2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Dn)*m_A
+                        Cs = -2.0D0*m_Ei/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Dn)*m_A
                     elseif (m_COR >= 0.0D0) then
                         lnCOR=log(m_COR)
                         Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
-                        & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                        & *sqrt(2.0D0*Mij*m_Ei/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
                     else
                         Cs = 0.0D0
                     end if
@@ -159,15 +163,15 @@
                     Ct = 0.5D0*Cs*(m_Beta*Rij)**2
 #elif HertzMindlinResti
                     !  calculate material constant
-                    Rij = R(I)*biDisperseR(IDBiDisperse)/(R(I)+biDisperseR(IDBiDisperse))
-                    Mij = Body(I)*biDisperseBody(IDBiDisperse)/(Body(I)+biDisperseBody(IDBiDisperse))
-                    Kn = 2.0D0*m_E*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
+                    Rij = biDisperseR(particleI)*biDisperseR(particleJ)/(biDisperseR(particleI)+biDisperseR(particleJ))
+                    Mij = biDisperseBody(particleI)*biDisperseBody(particleJ)/(biDisperseBody(particleI)+biDisperseBody(particleJ))
+                    Kn = 2.0D0*m_Ei*sqrt(Rij*Dn)/(3.0D0*(1.0D0-m_nu*m_nu))
                     lnCOR = log(m_COR)
                     Cn = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
-                    & *sqrt(Mij*m_E/(1.0D0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
-                    Ks = 2.0D0*m_E/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
+                    & *sqrt(Mij*m_Ei/(1.0D0-m_nu*m_nu))*(Rij**0.25)*(Dn**0.25)
+                    Ks = 2.0D0*m_Ei/(1.0D0+m_nu)/(2.0D0-m_nu)*sqrt(Rij)*sqrt(Dn)
                     Cs = 2.0D0*sqrt(5.0D0/6.0D0)*lnCOR/sqrt(lnCOR**2+3.1415926D0**2) &
-                    & *sqrt(2.0D0*Mij*m_E/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
+                    & *sqrt(2.0D0*Mij*m_Ei/(1.0D0+m_nu)/(2.0D0-m_nu))*(Rij**0.25)*(Dn**0.25)
                     Kr = 0.25D0*Kn*(m_Beta*Rij)**2
                     Cr = 0.25D0*Cn*(m_Beta*Rij)**2
                     Kt = 0.5D0*Ks*(m_Beta*Rij)**2
@@ -175,12 +179,12 @@
 #endif
                     !  translate relative velocity
                     do K = 1,3
-                        Vrel(K) = Xdot(K,I) - biDisperseXdot(K,IDBiDisperse)
+                        Vrel(K) = biDisperseXdot(K,particleJ) - biDisperseXdot(K,particleI)
                     end do
-                    !  rotate relative velocity
-                    Vrot(1) = (DistU(2)*W(3,I) - DistU(3)*W(2,I))*Ap + (DistU(2)*biDisperseW(3,IDBiDisperse) - DistU(3)*biDisperseW(2,IDBiDisperse))*An 
-                    Vrot(2) = (DistU(3)*W(1,I) - DistU(1)*W(3,I))*Ap + (DistU(3)*biDisperseW(1,IDBiDisperse) - DistU(1)*biDisperseW(3,IDBiDisperse))*An 
-                    Vrot(3) = (DistU(1)*W(2,I) - DistU(2)*W(1,I))*Ap + (DistU(1)*biDisperseW(2,IDBiDisperse) - DistU(2)*biDisperseW(1,IDBiDisperse))*An 
+                    !  negative rotate relative velocity
+                    Vrot(1) = (DistU(2)*biDisperseW(3,particleJ) - DistU(3)*biDisperseW(2,particleJ))*An + (DistU(2)*biDisperseW(3,particleI) - DistU(3)*biDisperseW(2,particleI))*Ap
+                    Vrot(2) = (DistU(3)*biDisperseW(1,particleJ) - DistU(1)*biDisperseW(3,particleJ))*An + (DistU(3)*biDisperseW(1,particleI) - DistU(1)*biDisperseW(3,particleI))*Ap
+                    Vrot(3) = (DistU(1)*biDisperseW(2,particleJ) - DistU(2)*biDisperseW(1,particleJ))*An + (DistU(1)*biDisperseW(2,particleI) - DistU(2)*biDisperseW(1,particleI))*Ap
                     !  totle relative velocity
                     do K = 1,3
                         Vtot(K) = Vrel(K) + Vrot(K)
@@ -195,15 +199,15 @@
                         Vtan(K) = Vtot(K) - Vnor(K)
                     end do
 
-                    !  normal force of Particle I
+                    !  normal force of Particle J
                     do K = 1,3
                         normal_force(K) = Kn*Dn*DistU(K) + Cn*Vnor(K)
                     end do
                     normal_forceL = sqrt(normal_force(1)*normal_force(1) + normal_force(2)*normal_force(2) + normal_force(3)*normal_force(3))
 
                     !  Add energy
-                    Energy(I) = Energy(I) + 0.2D0*Kn*(Dn**2)
-                    biDisperseEnergy(IDBiDisperse) = biDisperseEnergy(IDBiDisperse) + 0.2D0*Kn*(Dn**2)
+                    biDisperseEnergy(particleI) = biDisperseEnergy(particleI) + 0.2D0*Kn*(Dn**2)
+                    biDisperseEnergy(particleJ) = biDisperseEnergy(particleJ) + 0.2D0*Kn*(Dn**2)
 
                     !  tangential deform
                     do K = 1,3
@@ -211,7 +215,7 @@
                     end do
                     DsL = sqrt(Ds(1)*Ds(1) + Ds(2)*Ds(2) + Ds(3)*Ds(3))
 
-                    !  tangential force of Particle I
+                    !  tangential force of Particle J
                     do K = 1,3
                         tangential_force(K) = - Ks*Ds(K) + Cs*Vtan(K) + H(K)
                     end do
@@ -220,11 +224,11 @@
                     !if (slipping) then  !  Have slipped
                     !    if (DsL .GT. 1.0e-14) then  !  Still slipping
                     !        do K = 1,3
-                    !            tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle I
+                    !            tangential_force(K) = -m_mu_d*normal_forceL*Ds(K)/DsL  !  Particle J
                     !        end do
                     !    else  !  Approach sticking
                     !        do K = 1,3
-                    !            tangential_force(K) = 0.0D0  !  Particle I
+                    !            tangential_force(K) = 0.0D0  !  Particle J
                     !        end do
                     !        slipping = .false.
                     !    end if
@@ -237,8 +241,8 @@
                                     tangential_history(K) = tangential_force(K)
                                 end do
                                 !  Add frictional heat
-                                Heat(1,I) = Heat(1,I) + 0.5D0*m_mu_d*normal_forceL*DsL
-                                biDisperseHeat(IDBiDisperse) = biDisperseHeat(IDBiDisperse) + 0.5D0*m_mu_d*normal_forceL*DsL
+                                biDisperseHeat(particleI) = biDisperseHeat(particleI) + 0.5D0*m_mu_d*normal_forceL*DsL
+                                biDisperseHeat(particleJ) = biDisperseHeat(particleJ) + 0.5D0*m_mu_d*normal_forceL*DsL
                             else
                                 do K = 1,3
                                     tangential_force(K) = 0.0D0
@@ -252,24 +256,24 @@
                             end do
                         end if
                     !end if
-                    
+
                     touching = .true.
                     !  Apply force
                     do K = 1,3
-                        F(K,I) = normal_force(K) + tangential_force(K) + F(K,I)
-                        biDisperseF(K,IDBiDisperse) = - normal_force(K) - tangential_force(K) + biDisperseF(K,IDBiDisperse)
+                        biDisperseF(K,particleI) = - normal_force(K) - tangential_force(K) + biDisperseF(K,particleI)
+                        biDisperseF(K,particleJ) = + normal_force(K) + tangential_force(K) + biDisperseF(K,particleJ)
                     end do
-                    !  Apply moment                    
-                    FM(1,I) = - Ap*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + FM(1,I) 
-                    FM(2,I) = - Ap*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + FM(2,I) 
-                    FM(3,I) = - Ap*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + FM(3,I) 
-                    biDisperseFM(1,IDBiDisperse) = - An*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + biDisperseFM(1,IDBiDisperse)
-                    biDisperseFM(2,IDBiDisperse) = - An*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + biDisperseFM(2,IDBiDisperse)
-                    biDisperseFM(3,IDBiDisperse) = - An*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + biDisperseFM(3,IDBiDisperse)
-                    
+                    !  Apply moment                  
+                    biDisperseFM(1,particleI) = - Ap*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + biDisperseFM(1,particleI) 
+                    biDisperseFM(2,particleI) = - Ap*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + biDisperseFM(2,particleI) 
+                    biDisperseFM(3,particleI) = - Ap*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + biDisperseFM(3,particleI)
+                    biDisperseFM(1,particleJ) = - An*(DistU(2)*tangential_force(3)-DistU(3)*tangential_force(2)) + biDisperseFM(1,particleJ) 
+                    biDisperseFM(2,particleJ) = - An*(DistU(3)*tangential_force(1)-DistU(1)*tangential_force(3)) + biDisperseFM(2,particleJ) 
+                    biDisperseFM(3,particleJ) = - An*(DistU(1)*tangential_force(2)-DistU(2)*tangential_force(1)) + biDisperseFM(3,particleJ)
+
                     !  rolling
                     do K = 1,3
-                        Dtheta(K) = (W(K,I)-biDisperseW(K,IDBiDisperse))*Dt
+                        Dtheta(K) = (biDisperseW(K,particleI)-biDisperseW(K,particleJ))*Dt
                     end do                            
                     DthetaL = Dtheta(1)*DistU(1) + Dtheta(2)*DistU(2) + Dtheta(3)*DistU(3)
                     !  twisting deform
@@ -283,20 +287,20 @@
                     end do
                     DthetaRL = sqrt(DthetaR(1)*DthetaR(1) + DthetaR(2)*DthetaR(2) + DthetaR(3)*DthetaR(3))
 
-                    !  rolling moment of Particle I
+                    !  rolling moment of Particle J
                     do K = 1,3
-                        rolling_moment(K) = - Kr*DthetaR(K) + Mr(K)
+                        rolling_moment(K) = Kr*DthetaR(K) + Mr(K)
                     end do
                     rolling_momentL = sqrt(rolling_moment(1)*rolling_moment(1) + rolling_moment(2)*rolling_moment(2) + rolling_moment(3)*rolling_moment(3))                
 
                     !if (rolling) then  !  Have rolled
                     !    if (DthetaRL .GT. 1.0e-14) then  !  Still slipping
                     !        do K = 1,3
-                    !            rolling_moment(K) = -2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle I
+                    !            rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL  !  Particle J
                     !        end do
                     !    else  !  Approach sticking
                     !        do K = 1,3
-                    !            rolling_moment(K) = 0.0D0  !  Particle I
+                    !            rolling_moment(K) = 0.0D0  !  Particle J
                     !        end do
                     !        rolling = .false.
                     !    end if
@@ -305,11 +309,9 @@
                             rolling = .true.
                             if (DthetaRL .GT. 1.0e-14) then
                                 do K = 1,3
-                                    rolling_moment(K) = -2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL
+                                    rolling_moment(K) = 2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaR(K)/DthetaRL
                                     rolling_history(K) = rolling_moment(K)
                                 end do
-                                !  Add frictional heat
-                                Heat(2,I) = Heat(2,I) + 0.5D0*2.1D0*0.25D0*m_Beta*Rij*normal_forceL*DthetaRL
                             else
                                 do K = 1,3
                                     rolling_moment(K) = 0.0D0
@@ -320,25 +322,25 @@
                             rolling = .false.  !  Sticking
                             do K = 1,3
                                 rolling_history(K) = rolling_moment(K)
-                                rolling_moment(K) = rolling_moment(K) + Cr*DthetaR(K)/Dt
+                                rolling_moment(K) = rolling_moment(K) - Cr*DthetaR(K)/Dt
                             end do
                         end if
                     !end if  
 
-                    !  twisting moment of Particle I
+                    !  twisting moment of Particle J
                     do K = 1,3
-                        twisting_moment(K) = - Kt*DthetaT(K) + Mt(K)
+                        twisting_moment(K) = Kt*DthetaT(K) + Mt(K)
                     end do
                     twisting_momentL = sqrt(twisting_moment(1)*twisting_moment(1) + twisting_moment(2)*twisting_moment(2) + twisting_moment(3)*twisting_moment(3))                
 
                     !if (twisting) then  !  Have twisted
                     !    if (DthetaTL .GT. 1.0e-14) then  !  Still slipping
                     !        do K = 1,3
-                    !            twisting_moment(K) = -0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle I
+                    !            twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL  !  Particle J
                     !        end do
                     !    else  !  Approach sticking
                     !        do K = 1,3
-                    !            twisting_moment(K) = 0.0D0  !  Particle I
+                    !            twisting_moment(K) = 0.0D0  !  Particle J
                     !        end do
                     !        twisting = .false.
                     !    end if
@@ -347,11 +349,9 @@
                             twisting = .true.
                             if (DthetaTL .GT. 1.0e-14) then
                                 do K = 1,3
-                                    twisting_moment(K) = -0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL
+                                    twisting_moment(K) = 0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaT(K)/DthetaTL
                                     twisting_history(K) = twisting_moment(K)
                                 end do
-                                !  Add frictional heat
-                                Heat(3,I) = Heat(3,I) + 0.5D0*0.65D0*m_mu_d*m_Beta*Rij*normal_forceL*DthetaTL
                             else
                                 do K = 1,3
                                     twisting_moment(K) = 0.0D0
@@ -362,34 +362,35 @@
                             twisting = .false.  !  Sticking
                             do K = 1,3
                                 twisting_history(K) = twisting_moment(K)
-                                twisting_moment(K) = twisting_moment(K) + Ct*DthetaT(K)/Dt
+                                twisting_moment(K) = twisting_moment(K) - Ct*DthetaT(K)/Dt
                             end do
                         end if
                     !end if  
-       
+
+                    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
                     !  Apply moment
                     do K = 1,3
-                        FM(K,I) = rolling_moment(K) + twisting_moment(K) + FM(K,I)
-                        biDisperseFM(K,IDBiDisperse) = - rolling_moment(K) - twisting_moment(K) + biDisperseFM(K,IDBiDisperse)
-                    end do    
+                        biDisperseFM(K,particleI) = - rolling_moment(K) - twisting_moment(K) + biDisperseFM(K,particleI)
+                        biDisperseFM(K,particleJ) = + rolling_moment(K) + twisting_moment(K) + biDisperseFM(K,particleJ)  
+                    end do                                          
+                    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
-                    !if (I.EQ.PP) then
+                    !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
                     !    write(123,'(A5,2X,3F30.17,A5,3F30.17,A5,3F30.17,2X,9F30.17)',advance='no') "FN:",(normal_force(K),K=1,3),"FT:",(tangential_force(K),K=1,3),"DistU:",(DistU(K),K=1,3),(Vtot(K),K=1,3),(Vnor(K),K=1,3),(Vtan(K),K=1,3)
-                    !end if                                      
-                    
+                    !end if
+
                     !  cohesive force
                     do K = 1,3
                         cohesive_force(K) = - m_c*(m_Beta*Rij)**2*DistU(K)
                     end do
                     do K = 1,3
-                        F(K,I) = cohesive_force(K) + F(K,I)
-                        biDisperseF(K,IDBiDisperse) = - cohesive_force(K) + biDisperseF(K,IDBiDisperse)
+                        biDisperseF(K,particleI) = biDisperseF(K,particleI) - cohesive_force(K)
+                        biDisperseF(K,particleJ) = biDisperseF(K,particleJ) + cohesive_force(K)
                     end do
-                    
                     !  memory the contact in the Hertz linklist.
                     if (associated(Temp%prev)) then
                         !  Temp is in center of linklist!!!
-                        if (Temp%No .EQ. biDisperseTag(IDBiDisperse)) then
+                        if (Temp%No .EQ. particleJ) then
                             !  Have contacted.
                             do K = 1,3
                                 Temp%Hertz(K) = tangential_history(K)
@@ -405,76 +406,82 @@
                         else
                             !  First contacted.
                             allocate(TempH)
-                            TempH = Nodelink(biDisperseTag(IDBiDisperse),tangential_history,rolling_history,twisting_history,&
+                            TempH = Nodelink(particleJ,tangential_history,rolling_history,twisting_history,&
                             & touching,slipping,rolling,twisting,Temp,Temp%next)
                             if (associated(Temp%next)) Temp%next%prev => TempH
                             Temp%next => TempH
-                            Head(I)%No = LenNode + 1
+                            HeadBiDisperse(particleI)%No = LenNode + 1
                             Tail => TempH
                         end if
                     else
                         !  Temp is Head of linklist!!!
                         allocate(TempH)
-                        TempH = Nodelink(biDisperseTag(IDBiDisperse),tangential_history,rolling_history,twisting_history,&
+                        TempH = Nodelink(particleJ,tangential_history,rolling_history,twisting_history,&
                         & touching,slipping,rolling,twisting,Temp,Temp%next)
                         if (associated(Temp%next)) Temp%next%prev => TempH
                         Temp%next => TempH
-                        Head(I)%No = LenNode + 1
+                        HeadBiDisperse(particleI)%No = LenNode + 1
                         Tail => TempH
                     end if
                 else
                     !  memory the separation in the Hertz linklist.
-                    if (associated(Temp%prev) .AND. Temp%No.EQ.biDisperseTag(IDBiDisperse)) then
+                    if (associated(Temp%prev) .AND. Temp%No.EQ.particleJ) then
                         !  Temp is center of linklist!!!
                         Temp%prev%next => Temp%next
                         if(associated(Temp%next)) Temp%next%prev => Temp%prev
-                        Head(I)%No = LenNode - 1
+                        HeadBiDisperse(particleI)%No = LenNode - 1
                         Tail => Temp%prev
                         deallocate(Temp)
                         !  When else Temp is Head of linklist!!!
                     else
                         Tail => Temp
                     end if
+                    Rij = biDisperseR(particleI)*biDisperseR(particleJ)/(biDisperseR(particleI)+biDisperseR(particleJ))
+                    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                              
+                    !  no contact but in region 1
+                    if (Dn > -Rij*(m_r_cut-1.0D0)*0.5D0) then
+                        DistR = 1.0D0/DistL
+                        !  calculate the normal vector
+                        do K=1,3
+                            DistU(K) = Dist(K)*DistR
+                        end do
+                        !  cohesive force
+                        do K = 1,3
+                            cohesive_force(K) = - m_c*(m_Beta*Rij)**2*DistU(K)
+                        end do
+                        !  apply force
+                        do K = 1,3
+                            biDisperseF(K,particleI) = biDisperseF(K,particleI) - cohesive_force(K)
+                            biDisperseF(K,particleJ) = biDisperseF(K,particleJ) + cohesive_force(K)
+                        end do
+                    else if (Dn > -Rij*(m_r_cut-1.0D0)) then
+                        DistR = 1.0D0/DistL
+                        !  calculate the normal vector
+                        do K=1,3
+                            DistU(K) = Dist(K)*DistR
+                        end do
+                        !  cohesive force
+                        do K = 1,3
+                            cohesive_force(K) = - m_c*(m_Beta)**2*Rij &
+                            &*2.0D0*(Dn/(m_r_cut-1.0D0) + Rij)*DistU(K)
+                        end do
+                        do K = 1,3
+                            biDisperseF(K,particleI) = biDisperseF(K,particleI) - cohesive_force(K)
+                            biDisperseF(K,particleJ) = biDisperseF(K,particleJ) + cohesive_force(K)
+                        end do 
+                    end if
                     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 end if
             end if
-            !if (I.EQ.PP) then
-            !    write(123,*)
-            !end if
+            !if (particleI.EQ.PP .OR. particleJ.EQ.PP) then
+            !    write(124,*)
+            !end if    
         end do
     end do
     !$OMP END PARALLEL DO
     !oend = omp_get_wtime()
-    !write(*,*) "forceBiDisperse",(oend-ostart)
+    !write(*,*) "forceBiDisperseTraverse",(oend-ostart)
     
-    !  calculate forces (including self-gravity) between biDisperse particles using Traverse.
-    call forceBiDisperseTraverse
-
-    !  calculate forces generated by Contactable walls
-    if (isContactWall) then
-        call forceBiDisperseContactWalls
-    end if
-    
-    !  calculate forces generated by Moving walls
-    if (isMovingWall) then
-        call forceBiDisperseMovingWalls
-    end if
-
-    !  calculate forces generated by Grav bodies
-    if (isGravBody) then
-        call forceBiDisperseGravBody
-    end if
-    
-    !################         Force to Acceleration          ###################
-    !$OMP PARALLEL DO PRIVATE(J,K)
-    do J = 1,biDisperseNum
-        do K = 1,3
-            biDisperseF(K,J) = biDisperseF(K,J)/biDisperseBody(J) + G(K)
-            biDisperseFM(K,J) = biDisperseFM(K,J)/biDisperseInertia(J)
-        end do
-    end do
-    !$OMP END PARALLEL DO
-
     !write(FileNameForce,'(F10.5)') Time
     !FileNameForce = trim(FileNameForce)//'ForceBiDisperse.txt'
     !open(10000,FILE=FileNameForce)

@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 7.0
+    !     DEMBody 8.0
     !     ***********
     !
     !     Parameter input.
@@ -17,16 +17,6 @@
     
     !  read & print the main input parameters.
     open (2000,FILE="../Input/input_points.txt",STATUS='OLD',BLANK='NULL',POSITION='REWIND')
-
-    read (2000,*)  N                  !  the number of all particles
-    read (2000,*)  m_E,m_nu           !  Youngs module; Poisson ratio
-    read (2000,*)  m_Ei               !  Youngs module of BiDisperse particles
-    read (2000,*)  m_mu_d,m_mu_s      !  Friciton coefficient danamic/static
-    read (2000,*)  m_COR              !  Coefficient of restitution
-    read (2000,*)  m_Beta             !  Irregular shape
-    read (2000,*)  m_c,m_r_cut        !  Cohesion strength; Cohesion region
-    read (2000,*)  m_A                !  Damping coefficient in normal direction
-    read (2000,*)  m_mu_r,m_nita_r    !  Rolling friction; Rolling damping
 
     !  read initial conditions from input file.
     do  I = 1,N
@@ -61,13 +51,7 @@
     if (isBiDisperse) then
         !  particle-biParticle contact structure
         call latticeGenerateBiDisperse
-
-        !  biParticle-biParticle contact structure
-        call latticeGenerateBiDisperseMix
-    end if
-
-    !  generate biDisperse DEM Parallel Latice for biParticle-biParticle contact
-    
+    end if    
 #endif
 
     !  initial the force in case exiting overlaps at the initial-time.

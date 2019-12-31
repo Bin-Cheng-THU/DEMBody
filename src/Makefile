@@ -27,14 +27,14 @@ OUTPUTOPTION=-DnhistoryOutput
 COMPILER=ifort -qopenmp -O2 -fpp $(PLATFORM) $(NUMBER) $(MODEL) $(SEARCH) $(REGION) $(PARALLEL) $(PARTICLE) $(OUTPUTOPTION)
 
 DEMBody: global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o initialTriMesh.o initialBondedTriMesh.o \
-	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o latticeGenerateBiDisperseMix.o \
+	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
 	force.o forceLattice.o forcePBC.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
-	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseMixMesh.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forceBiDisperseGravBody.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
+	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseTraverse.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forceBiDisperseGravBody.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
 	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o intgrtBiDisperse.o
 	$(COMPILER)  -o DEMBody global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o initialTriMesh.o initialBondedTriMesh.o \
-	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o latticeGenerateBiDisperseMix.o \
+	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
 	force.o forceLattice.o forcePBC.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
-	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseMixMesh.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forceBiDisperseGravBody.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
+	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseTraverse.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forceBiDisperseGravBody.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
 	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o intgrtBiDisperse.o
 
 global.mod: global.o global.f90
@@ -75,8 +75,6 @@ latticeGenerate.o: global.mod latticeGenerate.f90
 	$(COMPILER)  -c latticeGenerate.f90
 latticeGenerateBiDisperse.o: global.mod latticeGenerateBiDisperse.f90
 	$(COMPILER)  -c latticeGenerateBiDisperse.f90
-latticeGenerateBiDisperseMix.o: global.mod latticeGenerateBiDisperseMix.f90
-	$(COMPILER)  -c latticeGenerateBiDisperseMix.f90
 force.o: global.mod force.f90
 	$(COMPILER)  -c force.f90
 forceLattice.o: global.mod forceLattice.f90
@@ -101,8 +99,8 @@ forceSphereBody.o: global.mod forceSphereBody.f90
 	$(COMPILER)  -c forceSphereBody.f90
 forceBiDisperse.o: global.mod forceBiDisperse.f90
 	$(COMPILER)  -c forceBiDisperse.f90
-forceBiDisperseMixMesh.o: global.mod forceBiDisperseMixMesh.f90
-	$(COMPILER)  -c forceBiDisperseMixMesh.f90
+forceBiDisperseTraverse.o: global.mod forceBiDisperseTraverse.f90
+	$(COMPILER)  -c forceBiDisperseTraverse.f90
 forceBiDisperseContactWalls.o: global.mod forceBiDisperseContactWalls.f90
 	$(COMPILER)  -c forceBiDisperseContactWalls.f90
 forceBiDisperseMovingWalls.o: global.mod forceBiDisperseMovingWalls.f90
@@ -136,8 +134,8 @@ intgrtBiDisperse.o: global.mod intgrtBiDisperse.f90
 
 clean:
 	rm global.mod loadfile.mod global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o initialTriMesh.o initialBondedTriMesh.o \
-	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o latticeGenerateBiDisperseMix.o \
+	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
 	force.o forceLattice.o forcePBC.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
-	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseMixMesh.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forceBiDisperseGravBody.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
+	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseTraverse.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forceBiDisperseGravBody.o forcePlanet.o forceRotSystem.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
 	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o intgrtBiDisperse.o
 # End of the makefile

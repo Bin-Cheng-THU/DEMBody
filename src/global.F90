@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 7.0
+    !     DEMBody 8.0
     !     ***********
     !
     !     Global parameters.
@@ -12,13 +12,13 @@
 
     !DEM: 存储网格的相邻网格编号，采用数组形式存储，共LatNum个
     !periodicDEM: 存储网格的“周期相邻”网格编号，采用链表形式存储，共LatNum个
-    !mixDEM：存储网格的相邻网格编号，采用链表形式存储所有网格（包括自身网格），本网格为适用于大颗粒的粗网格
+    !!!!!mixDEM：存储网格的相邻网格编号，采用链表形式存储所有网格（包括自身网格），本网格为适用于大颗粒的粗网格
 
     !IDInner： 存储网格内的颗粒编号，共LatNum个
     !trimeshDEM： 存储网格内的三角面元编号，共LatNum个
     !bondedTriMeshDEM： 存储网格内的bonded三角面元编号，共LatNum个
     !biDisperseDEM： 存储网格内的biDisperse颗粒编号，共LatNum个
-    !MixIDInner 存储网格内的比Disperse颗粒编号，注意此网格为用于biParticle的粗网格
+    !!!!!MixIDInner 存储网格内的BiDisperse颗粒编号，注意此网格为用于biParticle的粗网格
     ![initialXXX: initial the DEM lattice; only in the initial step;
     !latticeGenerateXXX: generate the lattice structure, which stores the ID of the bodies; every time step]
 
@@ -32,7 +32,7 @@
     !  Parameters
     real(8),parameter :: GravConst = 6.674184D-11
     real(8),parameter :: PI = 3.141592653589793D0
-    character(10),parameter :: VERSION = '7.3'
+    character(10),parameter :: VERSION = '8.0'
 
     !  Define control parameters of Program
     character(10) :: vsDEMBody
@@ -144,7 +144,6 @@
     
     !  Define material parameters
     real(8) :: m_E,m_nu,m_mu_d,m_mu_s,m_COR
-    real(8) :: m_Ei
     real(8) :: m_Beta
     real(8) :: m_c,m_r_cut
     real(8) :: m_A
@@ -249,10 +248,13 @@
     real(8),allocatable :: sphereBodyBody(:),sphereBodyR(:),sphereBodyInertia(:)
     real(8),allocatable :: sphereBodyF(:,:),sphereBodyFM(:,:)
 
-    !******************************************** v7.0 ***********************************************
+    !******************************************** v8.0 ***********************************************
+    !  Define material properties for BiDisperse [maybe we could add other properties]
+    real(8) :: m_Ei
+
     !  Define parameters of BiDisperse
     integer :: biDisperseNum
-    integer,allocatable :: biDisperseTag(:)  !  Unique tag for biDisperse particles, numbered with walls and particles
+    integer,allocatable :: biDisperseTag(:)  !  Unique tag for biDisperse particles, numbered with walls and particles. For particle/BiDisperse particle contact
     real(8),allocatable :: biDisperseX(:,:),biDisperseXdot(:,:),biDisperseW(:,:)
     real(8),allocatable :: biDisperseQ(:,:)
     real(8),allocatable :: biDisperseBody(:),biDisperseR(:),biDisperseInertia(:)
@@ -262,7 +264,7 @@
     real(8),allocatable :: biDisperseHeat(:)  !  Only slip energy
 
     !  Nodelink of BiDisperse
-    type(Nodelink),pointer :: HeadBiDisperse(:) 
+    type(Nodelink),pointer :: HeadBiDisperse(:)  !  For contact between BiDisperse particles
 
     !  Define structure for particle-biParticle contact
     integer :: biDisperseScale  !  biDisperseR/LatDx == biDisperseR/Rmax/2.5
@@ -273,29 +275,13 @@
     end type biDisperseLattice
     type(biDisperseLattice),pointer :: biDisperseDEM(:)
     type(biDisperseLattice),pointer :: biDisperseDEMtail(:)
-    
-    !  Define MixMesh structure
-    real(8) :: MixLatDx,MixLatDy,MixLatDz
-    integer :: MixLatNx,MixLatNy,MixLatNz
-    real(8) :: MixLatMx,MixLatMy,MixLatMz
-    integer :: MixLatNum
-    integer,allocatable :: MixLinklist(:)
+
+    !  Define refresh structure, inheriting from MixBiMesh
     logical :: refreshBiDisperseLattice
     integer :: refreshBiDisperseNum
     real(8) :: verletBiDisperse
-    !  Conduct Lattice
-    type :: MixLattice
-        !integer :: ID(3)
-        integer :: NeighborID
-        type(MixLattice),pointer :: next
-    end type MixLattice
-    !  mixDEM Lattice
-    type(MixLattice),pointer :: mixDEM(:)
-    !  Define structure for biParticle-biParticle contact
-    type(biDisperseLattice),pointer :: MixIDInner(:)
-    type(biDisperseLattice),pointer :: MixtailInner(:) 
-
-    !******************************************** v7.0 ***********************************************
+    
+    !******************************************** v8.0 ***********************************************
         
     !  Define parameters of Saturn and Pan
     real(8) :: muS

@@ -215,7 +215,7 @@
                                 tangential_history(K) = tangential_force(K)
                             end do
                             !  Add frictional heat
-                            biDisperseEnergy(I) = biDisperseEnergy(I) + 0.5D0*m_mu_d*normal_forceL*DsL
+                            biDisperseHeat(I) = biDisperseHeat(I) + 0.5D0*m_mu_d*normal_forceL*DsL
                         else
                             do K = 1,3
                                 tangential_force(K) = 0.0D0
@@ -441,8 +441,8 @@
     
     !*********modification for Phobos
     do K = 1,3
-        gravBodyF(K) = 0.0!gravBodyF(K)/gravBodyBody
-        gravBodyFM(K) = 0.0!gravBodyFM(K)/gravBodyInertia
+        gravBodyF(K) = gravBodyF(K)/gravBodyBody
+        gravBodyFM(K) = gravBodyFM(K)/gravBodyInertia
     end do
         
     return

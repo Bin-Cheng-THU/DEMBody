@@ -72,6 +72,17 @@
     read (1000,*) G(1),G(2),G(3)       !  the totle gravity    
 
     verlet = verlet**2                 !  verlet = (0.2Rmin)^2
+
+    read (1000,*)
+    read (1000,*)  N                  !  the number of all particles
+    read (1000,*)  m_E,m_nu           !  Youngs module; Poisson ratio
+    read (1000,*)  m_Ei               !  Youngs module of BiDisperse particles
+    read (1000,*)  m_mu_d,m_mu_s      !  Friciton coefficient danamic/static
+    read (1000,*)  m_COR              !  Coefficient of restitution
+    read (1000,*)  m_Beta             !  Irregular shape
+    read (1000,*)  m_c,m_r_cut        !  Cohesion strength; Cohesion region
+    read (1000,*)  m_A                !  Damping coefficient in normal direction
+    read (1000,*)  m_mu_r,m_nita_r    !  Rolling friction; Rolling damping
     
     wallFlag = 1
     
@@ -361,14 +372,10 @@
         read (1000,*)
         read (1000,*) biDisperseNum
         read (1000,*) biDisperseScale  !  biDisperseR/LatDx == biDisperseR/Rmax/2.5
-        read (1000,*) MixLatDx,MixLatDy,MixLatDz    !  Parallel Lattice grid interval
-        read (1000,*) MixLatNx,MixLatNy,MixLatNz    !  Parallel Lattice grid number
-        read (1000,*) MixLatMx,MixLatMy,MixLatMz    !  Parallel Lattice grid origin
-        read (1000,*) verletBiDisperse
+
+        read (1000,*) verletBiDisperse  !  0.75Rmax
         verletBiDisperse = verletBiDisperse**2
-        MixLatNum = MixLatNx*MixLatNy*MixLatNz
-        allocate (MixLinklist(MixLatNum))
-        
+       
         allocate (biDisperseTag(biDisperseNum))
         allocate (biDisperseX(3,biDisperseNum))
         allocate (biDisperseXdot(3,biDisperseNum))

@@ -505,3 +505,18 @@ DEMBody-MixBiMesh   7.2    11/20/2019上线
 DEMBody-MixBiMesh   7.3    11/20/2019上线    
 
 修改部分小错误：output中加入BiDisperse particles的En输出；forceGravBody凝聚力错误使用biDisperseFM，更正为biDisperseF
+
+*********************************************************************
+DEMBody-MixTraverse   8.0    12/31/2019上线 
+
+基于MixBiMeshji进行修改，其中大颗粒使用traverse算法计算接触力与自引力，适用于小行星耦合结构演化过程。
+--保留了MixBiMesh中两种刚度的功能
+--保留了MixBiMesh中对BiDisperse颗粒更新设置独立阈值的功能
+--保留了MixBiMesh中加入的ContactWalls、GravBody、MovingWalls功能
+
+注意由于Traverse保序，所以不存在接触计算顺序改变导致接触历史丢失的问题。但是直接Traverse的话每次都会将所有未接触的颗粒对进行清空历史操作，因此人为设置临近域限定操作范围(2.5D0*biDisperseScale*LatDx)。
+
+注意，BiDisperse与Particle的接触存储在Particle的Head中，记录的序号是BiDispersetag；BiDisperse与BiDisperse的接触存储在BiDisperse的HeadBiDisperse中，记录的序号是ID；BiDisperse与Walls的接触存储在BiDisperse的HeadBiDisperse中，记录的序号是WallTag+BiDisperseNum。
+系统：
+    将材料参数的读取移植initialSystem
+    修改BiDisperseHeat与BiDisperseEnergy混淆的bug
