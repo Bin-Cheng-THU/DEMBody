@@ -464,3 +464,11 @@ RestartData:
 
 系统：
     采用全新的命令界面
+
+*********************************************************************
+DEMBody-bond   6.3    12/31/2019上线
+
+系统：
+    修复forceRotSystem中dist未设置private的bug
+    修复verlet距离应为verlet平方的bug
+    将材料参数的读取移至initialSystem 

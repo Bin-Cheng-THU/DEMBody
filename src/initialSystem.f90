@@ -70,6 +70,18 @@
     read (1000,*)                         
     read (1000,*) G(1),G(2),G(3)       !  the totle gravity    
     
+    verlet  = verlet**2
+    
+    read (1000,*)
+    read (1000,*)  N                  !  the number of all particles
+    read (1000,*)  m_E,m_nu           !  Youngs module; Poisson ratio
+    read (1000,*)  m_mu_d,m_mu_s      !  Friciton coefficient danamic/static
+    read (1000,*)  m_COR              !  Coefficient of restitution
+    read (1000,*)  m_Beta             !  Irregular shape
+    read (1000,*)  m_c,m_r_cut        !  Cohesion strength; Cohesion region
+    read (1000,*)  m_A                !  Damping coefficient in normal direction
+    read (1000,*)  m_mu_r,m_nita_r    !  Rolling friction; Rolling damping
+
     wallFlag = 1
     
     !  initial the contactable walls
