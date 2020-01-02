@@ -520,3 +520,11 @@ DEMBody-MixTraverse   8.0    12/31/2019上线
 系统：
     将材料参数的读取移植initialSystem
     修改BiDisperseHeat与BiDisperseEnergy混淆的bug
+
+*********************************************************************
+DEMBody-MixTraverse   8.1    1/1/2019上线 
+
+测试MixTraverse算法的计算效率与准确性：
+    3179颗粒，Mesh单步长为3e-4s，Traverse单步长为2.5e-3s。
+    单步长计算误差为1.5e-10，10步长计算误差为1.9e-9，1000步长计算误差为2e-3。Traverse计算两次分析计算误差，1000步长计算误差也为2e-3。但Mesh计算两次1000步长计算误差为0.
+    将Traverse修改为双循环无reduction，单步长计算时间4.5e-3s，1000步长计算误差为2e-3，但计算两次的计算误差为0。
