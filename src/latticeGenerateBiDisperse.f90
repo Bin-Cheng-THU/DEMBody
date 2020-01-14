@@ -26,6 +26,8 @@
     type(biDisperseLattice),pointer :: Temp
     type(biDisperseLattice),pointer :: TempH
 
+    integer :: biDisperseScale
+
     !o1 = omp_get_wtime()
     !  initialized Parallel Lattice
     !$OMP PARALLEL DO PRIVATE(I,Temp) SCHEDULE(GUIDED)
@@ -48,6 +50,9 @@
     do I = 1,biDisperseNum
         !  Note that for phobos simulations, large particles are only in inner region, so lots of calculation are useless. We could add a condition for this part (only outer particles enter this part) to reduce time consuming.
         
+        !  calculate biDisperseScale
+        biDisperseScale = round(biDisperseR(I)/LatDx)
+
         !  should we move this part to parallel region and use variables to store them?
         !  find id range
         !TagCenter = floor((biDisperseX(1,I)+LatMx)/LatDx) + 1 + floor((biDisperseX(2,I)+LatMy)/LatDy)*LatNx + floor((biDisperseX(3,I)+LatMz)/LatDz)*(LatNx*LatNy)

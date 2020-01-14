@@ -67,6 +67,13 @@
         end if
     end if
 
+    if (islocalYORP) then
+        open(15,FILE='../Data/YORP.txt')
+        if (Time.LE.Tcrit) then
+            write(15,'(3(1XE20.8E4))') Time,localYORPOmega,localYORPTnext
+        end if
+    end if
+
     if (Time .GE. CheckPointTnext) then
         !  Update next check point time
         CheckPointTnext = CheckPointTnext + CheckPointDt

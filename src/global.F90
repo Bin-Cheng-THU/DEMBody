@@ -267,7 +267,7 @@
     type(Nodelink),pointer :: HeadBiDisperse(:)  !  For contact between BiDisperse particles
 
     !  Define structure for particle-biParticle contact
-    integer :: biDisperseScale  !  biDisperseR/LatDx == biDisperseR/Rmax/2.5
+    !integer :: biDisperseScale  !  biDisperseR/LatDx == biDisperseR/Rmax/2.5
     !  Define bidisperse in lattice
     type :: biDisperseLattice
         integer :: No
@@ -279,7 +279,7 @@
     !  Define refresh structure, inheriting from MixBiMesh
     logical :: refreshBiDisperseLattice
     integer :: refreshBiDisperseNum
-    real(8) :: verletBiDisperse
+    real(8) :: verletBiDisperse  !  (LatDx-Rmax)/2 = (2.5Rmax-Rmax)/2
     
     !******************************************** v8.0 ***********************************************
         
@@ -291,6 +291,14 @@
     
     !  Define parameters of Rotary system
     real(8) :: sysOmega
+
+    !  Define parameters of YORP evolution in local Frame
+    integer :: islocalYORP
+    real(8) :: localYORPTstart,localYORPTend
+    real(8) :: localYORPOmega
+    real(8) :: localYORPIncrement,localYORPDt
+    real(8) :: localYORPTnext
+    real(8) :: localYORPdensity
     
     !  Define parameters of Gravity
     real(8) :: G(3)

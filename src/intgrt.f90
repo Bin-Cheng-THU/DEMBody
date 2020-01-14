@@ -88,6 +88,17 @@
         !    end do
         !end do
     end if
+
+    if (islocalYORP) then
+        Tmoving = Time - localYORPTstart
+        if (Tmoving.GE.0.0D0 .AND. Tmoving.LT.(localYORPTend-localYORPTstart)) then
+            !  refresh YORP oemga
+            if (Time .GE. localYORPTnext) then
+                localYORPOmega = localYORPOmega + localYORPIncrement
+                localYORPTnext = localYORPTnext + localYORPDt
+            end if
+        end if
+    end if
     
     if (isBondedWall) then
         call intgrtBondedWalls

@@ -54,7 +54,8 @@
     read (1000,*) Dt                   !  time step of second-step integral
     read (1000,*)                                            
     read (1000,*) isPlanet             !  whether use Planet Gravity function
-    read (1000,*) isRotSystem          !  whether use Rotary System function 
+    read (1000,*) isRotSystem          !  whether use Rotary System function
+    read (1000,*) islocalYORP          !  whether use local YORP funcsion
     read (1000,*) isQuaternion         !  whether intergrate Quaternion
     read (1000,*) isContactWall        !  whether use Contactable Walls
     read (1000,*) isMovingWall         !  whether use Moving Walls
@@ -371,7 +372,7 @@
         write(*,*) '< is Bi-Disperse, loading...'
         read (1000,*)
         read (1000,*) biDisperseNum
-        read (1000,*) biDisperseScale  !  biDisperseR/LatDx == biDisperseR/Rmax/2.5
+        !read (1000,*) biDisperseScale  !  biDisperseR/LatDx == biDisperseR/Rmax/2.5
 
         read (1000,*) verletBiDisperse  !  0.75Rmax
         verletBiDisperse = verletBiDisperse**2
@@ -426,6 +427,20 @@
         write(*,*) '< is Rotary System, loading...'
         read (1000,*)
         read (1000,*) sysOmega
+    else
+        read (1000,*)
+        read (1000,*)
+    end if
+
+    !  initial the rotary system
+    if (islocalYORP) then
+        write(*,*) '< is YORP System in local frame, loading...'
+        read (1000,*)
+        read (1000,*) localYORPTstart,localYORPTend
+        read (1000,*) localYORPOmega
+        read (1000,*) localYORPIncrement,localYORPDt
+        read (1000,*) localYORPdensity
+        localYORPTnext = localYORPTstart
     else
         read (1000,*)
         read (1000,*)

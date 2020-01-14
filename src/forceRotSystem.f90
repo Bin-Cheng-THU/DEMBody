@@ -8,8 +8,6 @@
     !     @Convected inertial force
     !     @Coriolis force
     !
-    !     Note that here we use a simply sphere to conduct the gravity of
-    !     the TriMesh. It should be replaced with polyhedral method instead.
     !
     !********************************************************************
     subroutine forceRotSystem()
@@ -21,7 +19,7 @@
     
     real(8) :: dist(3),distS,distL,center
 
-    !$OMP PARALLEL DO PRIVATE(I,K,distS,distL,center)
+    !$OMP PARALLEL DO PRIVATE(I,K,dist,distS,distL,center)
     do I = 1,N
         !  Centrifugal force
         do K = 1,2
