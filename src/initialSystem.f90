@@ -55,7 +55,7 @@
     read (1000,*)                                            
     read (1000,*) isPlanet             !  whether use Planet Gravity function
     read (1000,*) isRotSystem          !  whether use Rotary System function
-    read (1000,*) islocalYORP          !  whether use local YORP funcsion
+    read (1000,*) islocalYORP          !  whether use local YORP function
     read (1000,*) isQuaternion         !  whether intergrate Quaternion
     read (1000,*) isContactWall        !  whether use Contactable Walls
     read (1000,*) isMovingWall         !  whether use Moving Walls

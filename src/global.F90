@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 8.0
+    !     DEMBody 8.2
     !     ***********
     !
     !     Global parameters.
@@ -32,7 +32,7 @@
     !  Parameters
     real(8),parameter :: GravConst = 6.674184D-11
     real(8),parameter :: PI = 3.141592653589793D0
-    character(10),parameter :: VERSION = '8.0'
+    character(10),parameter :: VERSION = '8.2'
 
     !  Define control parameters of Program
     character(10) :: vsDEMBody
@@ -293,7 +293,7 @@
     real(8) :: sysOmega
 
     !  Define parameters of YORP evolution in local Frame
-    integer :: islocalYORP
+    logical :: islocalYORP
     real(8) :: localYORPTstart,localYORPTend
     real(8) :: localYORPOmega
     real(8) :: localYORPIncrement,localYORPDt

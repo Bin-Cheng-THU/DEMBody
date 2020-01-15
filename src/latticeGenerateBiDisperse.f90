@@ -51,7 +51,7 @@
         !  Note that for phobos simulations, large particles are only in inner region, so lots of calculation are useless. We could add a condition for this part (only outer particles enter this part) to reduce time consuming.
         
         !  calculate biDisperseScale
-        biDisperseScale = round(biDisperseR(I)/LatDx)
+        biDisperseScale = ceiling(biDisperseR(I)/LatDx)
 
         !  should we move this part to parallel region and use variables to store them?
         !  find id range
