@@ -82,7 +82,7 @@
             IDBiDisperse = NodeBiDisperse%No    
 
             !if (I.EQ.PP) then
-            !    write(124,'(F15.5,2X,3I5,2X)',advance='no') Time,I,biDisperseTag(IDBiDisperse),IDBiDisperse
+            !    write(123,'(F15.5,2X,3I5,2X)',advance='no') Time,I,biDisperseTag(IDBiDisperse),IDBiDisperse
             !end if
             
             do K = 1,3
@@ -125,7 +125,7 @@
                     end if
                 end do      
                 !if (I.EQ.PP) then
-                !    write(124,'(F15.5,2X)',advance='no') Dn
+                !    write(123,'(F15.5,2X)',advance='no') Dn
                 !end if
                 !  When collision calculate the repulsive restoring spring force which is generated along the normal and tangential according to Hooke's law
                 if (Dn .GT. 0.0D0) then
@@ -446,6 +446,7 @@
     !$OMP END PARALLEL DO
     !oend = omp_get_wtime()
     !write(*,*) "forceBiDisperse",(oend-ostart)
+    !close(123)
     
     !  calculate forces (including self-gravity) between biDisperse particles using Traverse.
     call forceBiDisperseTraverse
@@ -482,7 +483,6 @@
     !    write(10000,'(3F30.15)') (biDisperseF(K,I),K=1,3)
     !end do
     !close(10000)
-    !close(123)
     !pause
     !
     !stop

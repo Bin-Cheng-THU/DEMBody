@@ -75,7 +75,7 @@
         end do
 
         ERR = DistL - biDisperseR(I) - gravBodyR
-        if (ERR .LE. 2.0D0*biDisperseScale*LatDx) then
+        if (ERR .LE. 2.0D0*biDisperseR(I)) then
             touching = .false.
             slipping = .false.
             rolling = .false.        

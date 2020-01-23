@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 8.2
+    !     DEMBody 8.3
     !     ***********
     !
     !     Global parameters.
@@ -32,7 +32,7 @@
     !  Parameters
     real(8),parameter :: GravConst = 6.674184D-11
     real(8),parameter :: PI = 3.141592653589793D0
-    character(10),parameter :: VERSION = '8.2'
+    character(10),parameter :: VERSION = '8.3'
 
     !  Define control parameters of Program
     character(10) :: vsDEMBody
@@ -299,6 +299,11 @@
     real(8) :: localYORPIncrement,localYORPDt
     real(8) :: localYORPTnext
     real(8) :: localYORPdensity
+    !******************************************** v8.3 ***********************************************
+    !  biDisperse Particles + local YORP
+    real(8) :: localYORPcenter(3)
+    real(8) :: localYORPradius
+    real(8) :: localYORPmass
     
     !  Define parameters of Gravity
     real(8) :: G(3)

@@ -70,7 +70,7 @@
     if (islocalYORP) then
         open(15,FILE='../Data/YORP.txt')
         if (Time.LE.Tcrit) then
-            write(15,'(3(1XE20.8E4))') Time,localYORPOmega,localYORPTnext
+            write(15,'(6(1XE20.8E4))') Time,localYORPOmega,localYORPTnext,(localYORPcenter(K),K=1,3)
         end if
     end if
 

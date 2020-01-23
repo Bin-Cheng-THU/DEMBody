@@ -550,7 +550,7 @@ DEMBody-MixTraverse   8.1    1/1/2020上线
     本版本不采用以上所有方案！！！
 
 *********************************************************************
-DEMBody-MixTraverse   8.2    1/13/2020上线
+DEMBody-MixTraverse   8.2    1/14/2020上线
 
 修复forceRotSystem的bug
 
@@ -562,3 +562,20 @@ DEMBody-MixTraverse   8.2    1/13/2020上线
     -使用球形引力场近似self-gravity
     -设置一定步数之后更新，类似于之前文章中的设置
     -修改包括global, initialSystem, force, intgrt, output
+
+*********************************************************************
+DEMBody-MixTraverse   8.3    1/22/2020上线
+
+修复biDisperse相关bug，即将biDisperseScale动态计算之后，所有相关的运算均需要利用当前颗粒计算。包括forceBiDisperseContactWalls、forceBiDisperseGravBody、forceBiDisperseMovingWalls、forceBiDisperseTraverse。
+
+修复biDisperse相关输出错误，即open Head文件时的ID标签错误
+
+测试：
+    2万颗粒，单步受力计算误差1e-15,计算约400步后所有受力误差相加0.002，在计算误差之内【但是重复两次运算的计算误差比这个小，看来确实是两种计算方式所引起的误差，尚在可接受范围之类，因此忽略不计】。
+
+屏蔽forceLocalYORP中biDisperse所受引力，增加biDisperse质心的计算，用以提供外层颗粒的引力；并输出质心位置。
+
+测试后发现系统还是不断旋转，而且通过改变omega形式的YORP仿真发现误差比较大，难以复现真实的动力学演化过程；因此localYORP不作过多改变，准备inertiaYORP版本。
+
+修改质心后发现系统不仅开始旋转，还往-Z方向运动。。。
+全部self-gravity计算，同时保持恒定转速，发现系统还是旋转，但不出现质心运动了。

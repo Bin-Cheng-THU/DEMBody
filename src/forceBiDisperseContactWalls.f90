@@ -62,7 +62,7 @@
                 RV(K) = biDisperseX(K,I) - OMP_contactWallPoint(K)
             end do
             ERR = RV(1)*OMP_contactWallVector(1) + RV(2)*OMP_contactWallVector(2) + RV(3)*OMP_contactWallVector(3)
-            if (ERR .LE. 2.0D0*biDisperseScale*LatDx) then      
+            if (ERR .LE. 2.0D0*biDisperseR(I)) then      
                 !  normal vector
                 do K = 1,3
                     Dist(K) = ERR*OMP_contactWallVector(K)

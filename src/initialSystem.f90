@@ -441,6 +441,9 @@
         read (1000,*) localYORPIncrement,localYORPDt
         read (1000,*) localYORPdensity
         localYORPTnext = localYORPTstart
+        read (1000,*) localYORPradius
+        localYORPmass = 4.0D0/3.0D0*PI*localYORPradius**3*localYORPdensity
+        localYORPcenter = 0.0D0
     else
         read (1000,*)
         read (1000,*)

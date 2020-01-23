@@ -137,12 +137,12 @@
     end if
 
     if (isBiDisperse) then
-        !ostart = omp_get_wtime()
         if (refreshBiDisperseLattice) then
+            !ostart = omp_get_wtime()
             call latticeGenerateBiDisperse
+            !oend = omp_get_wtime()
+            !write(*,*) 'bidisperse lattice', (oend-ostart)
         end if    
-        !oend = omp_get_wtime()
-        !write(*,*) 'bidisperse lattice', (oend-ostart)
     end if
 #endif
     
