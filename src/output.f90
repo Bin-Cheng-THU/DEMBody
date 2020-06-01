@@ -74,6 +74,13 @@
         end if
     end if
 
+    if (isinertialYORP) then
+        open(16,FILE='../Data/YORP.txt')
+        if (Time.LE.Tcrit) then
+            write(16,'(6(1XE20.8E4))') Time,inertialYORPOmega,inertialYORPTnext,(inertialYORPcenter(K),K=1,3)
+        end if
+    end if
+
     if (Time .GE. CheckPointTnext) then
         !  Update next check point time
         CheckPointTnext = CheckPointTnext + CheckPointDt

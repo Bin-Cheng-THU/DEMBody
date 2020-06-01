@@ -56,6 +56,7 @@
     read (1000,*) isPlanet             !  whether use Planet Gravity function
     read (1000,*) isRotSystem          !  whether use Rotary System function
     read (1000,*) islocalYORP          !  whether use local YORP function
+    read (1000,*) isinertialYORP       !  whether use inertial YORP function
     read (1000,*) isQuaternion         !  whether intergrate Quaternion
     read (1000,*) isContactWall        !  whether use Contactable Walls
     read (1000,*) isMovingWall         !  whether use Moving Walls
@@ -432,18 +433,36 @@
         read (1000,*)
     end if
 
-    !  initial the rotary system
+    !  initial the localYORP system
     if (islocalYORP) then
         write(*,*) '< is YORP System in local frame, loading...'
         read (1000,*)
         read (1000,*) localYORPTstart,localYORPTend
         read (1000,*) localYORPOmega
         read (1000,*) localYORPIncrement,localYORPDt
-        read (1000,*) localYORPdensity
         localYORPTnext = localYORPTstart
+        read (1000,*) localYORPdensity
         read (1000,*) localYORPradius
         localYORPmass = 4.0D0/3.0D0*PI*localYORPradius**3*localYORPdensity
         localYORPcenter = 0.0D0
+    else
+        read (1000,*)
+        read (1000,*)
+    end if
+
+    !  initial the inertialYORP system
+    if (isinertialYORP) then
+        write(*,*) '< is YORP System in inertial frame, loading...'
+        read (1000,*)
+        read (1000,*) inertialYORPTstart,inertialYORPTend
+        read (1000,*) inertialYORPOmega
+        read (1000,*) inertialYORPIncrement,inertialYORPDt
+        inertialYORPTnext = inertialYORPTstart
+        read (1000,*) inertialYORPdensity
+        read (1000,*) inertialYORPradius
+        read (1000,*) inertialYORPAllmass
+        inertialYORPmass = 4.0D0/3.0D0*PI*inertialYORPradius**3*inertialYORPdensity
+        inertialYORPcenter = 0.0D0
     else
         read (1000,*)
         read (1000,*)

@@ -21,6 +21,7 @@
     !     @Using Planet force when enable Planet
     !     @Using forceRotSystem when enbale RotSystem
     !     @Using forceLocalYORP when enbale localYORP
+    !     @Using forceInertialYORP when enbale inertialYORP
     !     @Using forceGravTriMesh when enable GravTriMesh
     !
     !********************************************************************
@@ -189,8 +190,17 @@
     end if
     !oend = omp_get_wtime()
     !write(*,*) 'YORP system in local framte', (oend-ostart)
+
+    !################         Part 16: localYORP forces          ###################
+    !ostart = omp_get_wtime()
+    !  calculate forces if in inertialYORP system
+    if (isinertialYORP) then
+        call forceInertialYORP
+    end if
+    !oend = omp_get_wtime()
+    !write(*,*) 'YORP system in inertial framte', (oend-ostart)
     
-    !################         Part 16: GravTriMesh forces          ###################
+    !################         Part 17: GravTriMesh forces          ###################
     !ostart = omp_get_wtime()
     !  calculate force of gravity body if using GravTriMesh
     if (isGravTriMesh) then

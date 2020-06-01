@@ -32,7 +32,7 @@
     !  Parameters
     real(8),parameter :: GravConst = 6.674184D-11
     real(8),parameter :: PI = 3.141592653589793D0
-    character(10),parameter :: VERSION = '8.3'
+    character(10),parameter :: VERSION = '8.4'
 
     !  Define control parameters of Program
     character(10) :: vsDEMBody
@@ -304,6 +304,19 @@
     real(8) :: localYORPcenter(3)
     real(8) :: localYORPradius
     real(8) :: localYORPmass
+
+    !******************************************** v8.4 ***********************************************
+    !  Define parameters of YORP evolution in inertial Frame
+    logical :: isinertialYORP
+    real(8) :: inertialYORPTstart,inertialYORPTend
+    real(8) :: inertialYORPOmega
+    real(8) :: inertialYORPIncrement,inertialYORPDt
+    real(8) :: inertialYORPTnext
+    real(8) :: inertialYORPdensity
+    real(8) :: inertialYORPcenter(3)
+    real(8) :: inertialYORPradius
+    real(8) :: inertialYORPmass
+    real(8) :: inertialYORPAllmass
     
     !  Define parameters of Gravity
     real(8) :: G(3)

@@ -99,6 +99,61 @@
             end if
         end if
     end if
+
+    if (isinertialYORP) then
+
+        if (isBiDisperse) then
+            !  COM of biDisperse particles
+            inertialYORPcenter = 0.0D0
+            !$OMP PARALLEL DO PRIVATE(I,K) REDUCTION(+:inertialYORPcenter)
+            do I = 1,biDisperseNum
+                do K = 1,3
+                    inertialYORPcenter(K) = inertialYORPcenter(K) + biDisperseX(K,I)*biDisperseBody(I)
+                end do
+            end do
+            !$OMP END PARALLEL DO
+            !$OMP PARALLEL DO PRIVATE(I,K) REDUCTION(+:inertialYORPcenter)
+            do I = 1,N
+                do K = 1,3
+                    inertialYORPcenter(K) = inertialYORPcenter(K) + X(K,I)*Body(I)
+                end do
+            end do
+            !$OMP END PARALLEL DO
+            do K = 1,3
+                inertialYORPcenter(K) = inertialYORPcenter(K)/inertialYORPAllmass
+            end do
+        end if
+
+        Tmoving = Time - inertialYORPTstart
+        if (Tmoving.GE.0.0D0 .AND. Tmoving.LT.(inertialYORPTend-inertialYORPTstart)) then
+            !  refresh YORP oemga
+            if (Time .GE. inertialYORPTnext) then
+                inertialYORPOmega = inertialYORPOmega + inertialYORPIncrement
+                inertialYORPTnext = inertialYORPTnext + inertialYORPDt
+
+                !  spin-up
+                !$OMP PARALLEL DO PRIVATE(I)
+                do I = 1,biDisperseNum
+                    !  omega
+                    biDisperseW(3,I) = biDisperseW(3,I) + inertialYORPIncrement
+                    !  velocity
+                    biDisperseXdot(1,I) = biDisperseXdot(1,I) - inertialYORPIncrement*biDisperseX(2,I)
+                    biDisperseXdot(2,I) = biDisperseXdot(2,I) + inertialYORPIncrement*biDisperseX(1,I)
+                end do
+                !$OMP END PARALLEL DO
+                !$OMP PARALLEL DO PRIVATE(I)
+                do I = 1,N
+                    !  omega
+                    W(3,I) = W(3,I) + inertialYORPIncrement
+                    !  velocity
+                    Xdot(1,I) = Xdot(1,I) - inertialYORPIncrement*X(2,I)
+                    Xdot(2,I) = Xdot(2,I) + inertialYORPIncrement*X(1,I)
+                end do
+                !$OMP END PARALLEL DO                    
+                end do
+            end if
+        end if
+    end if
     
     if (isBondedWall) then
         call intgrtBondedWalls

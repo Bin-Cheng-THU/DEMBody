@@ -30,13 +30,13 @@ DEMBody: global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o initia
 	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
 	force.o forceLattice.o forcePBC.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
 	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseTraverse.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forceBiDisperseGravBody.o \
-	forcePlanet.o forceRotSystem.o forceLocalYORP.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
+	forcePlanet.o forceRotSystem.o forceLocalYORP.o forceInertialYORP.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
 	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o intgrtBiDisperse.o
 	$(COMPILER)  -o DEMBody global.o loadFile.o main.o start.o initialSystem.o attitudeQ2M.o initialTriMesh.o initialBondedTriMesh.o \
 	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
 	force.o forceLattice.o forcePBC.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
 	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseTraverse.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forceBiDisperseGravBody.o \
-	forcePlanet.o forceRotSystem.o forceLocalYORP.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
+	forcePlanet.o forceRotSystem.o forceLocalYORP.o forceInertialYORP.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
 	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o intgrtBiDisperse.o
 
 global.mod: global.o global.f90
@@ -115,6 +115,8 @@ forceRotSystem.o: global.mod forceRotSystem.f90
 	$(COMPILER)  -c forceRotSystem.f90
 forceLocalYORP.o: global.mod forceLocalYORP.f90
 	$(COMPILER)  -c forceLocalYORP.f90
+forceInertialYORP.o: global.mod forceInertialYORP.f90
+	$(COMPILER)  -c forceInertialYORP.f90
 forceGravTriMesh.o: global.mod forceGravTriMesh.f90
 	$(COMPILER)  -c forceGravTriMesh.f90
 forceParticleLattice.o: global.mod forceParticleLattice.f90
@@ -141,6 +143,6 @@ clean:
 	initialBiDisperse.o initialLattice.o latticeXY2ID.o loadRestartData.o loadData.o periodic.o meshGenerate.o latticeGenerate.o latticeGenerateBiDisperse.o \
 	force.o forceLattice.o forcePBC.o forceContactWalls.o forceMovingWalls.o forceBondedWalls.o forceTriMeshWalls.o forceBondedTriMeshWalls.o \
 	forceFunnelWalls.o forceGravBody.o forceSphereBody.o forceBiDisperse.o forceBiDisperseTraverse.o forceBiDisperseContactWalls.o forceBiDisperseMovingWalls.o forceBiDisperseGravBody.o \
-	forcePlanet.o forceRotSystem.o forceLocalYORP.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
+	forcePlanet.o forceRotSystem.o forceLocalYORP.o forceInertialYORP.o forceGravTriMesh.o forceParticleLattice.o forceTraverse.o \
 	output.o intgrt.o attitude.o intgrtBondedWalls.o intgrtGravBody.o intgrtSphereBody.o intgrtBiDisperse.o
 # End of the makefile
