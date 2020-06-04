@@ -1,5 +1,5 @@
     !********************************************************************
-    !     DEMBody 6.0
+    !     DEMBody 6.4
     !     ***********
     !
     !     Initialization of global scalars.
@@ -66,6 +66,7 @@
     read (1000,*) isGravBody           !  whether use Gravity Body
     read (1000,*) isSphereBody         !  whether use Sphere Body
     read (1000,*) isGravTriMesh        !  whether use Gravity TriMesh
+    read (1000,*) isPenetrator         !  whether use Penetrators
     read (1000,*) MAX_ACC              !  maximum contact acceleration
     read (1000,*)                         
     read (1000,*) G(1),G(2),G(3)       !  the totle gravity    
@@ -363,7 +364,40 @@
         read (1000,*)
         read (1000,*)
     end if
-    
+
+    !  initial the penetrators
+    if (isPenetrator) then
+        write(*,*) '< is Penetrator, loading...'
+        read (1000,*)
+        read (1000,*) peneType
+        read (1000,*) (peneX(K),K=1,3),(peneXdot(K),K=1,3),(peneW(K),K=1,3)
+        read (1000,*) (peneQ(K),K=1,4)
+        read (1000,*) peneBody,(peneInertia(K),K=1,3)
+        call attitudeQ2M(peneQ,peneMatI,peneMatB)
+        !  unified input parameters
+        do K = 1,3
+            peneWB(K) = peneMatI(K,1)*peneW(1) + peneMatI(K,2)*peneW(2) + peneMatI(K,3)*peneW(3)
+            peneVector(K) = peneMatB(K,3)
+        end do
+        !  allocate Tag for the penetrator
+        peneTag = NMAX + wallFlag
+        wallFlag = wallFlag + 1
+        !  gemetry of the penetrator
+        if (peneType .EQ. 1) then
+            !  cylinderical penetrator
+            read (1000,*) peneCylinderR,peneCylinderL
+        end if
+        !  load penetrator wall mesh
+        read (1000,*)
+        open (1500,File="../Input/penetratorPoint.vtk")
+        nRow = GetFileN(1500)
+        allocate (penetratorPoint(3,nRow))
+        do I = 1,nRow
+            read (1500,*) (penetratorPoint(K,I),K=1,3)
+        end do
+        close(1500)
+    end if
+
     !  initial the properties of Saturn and Pan
     if (isPlanet) then
         write(*,*) '< is Planet system, loading'

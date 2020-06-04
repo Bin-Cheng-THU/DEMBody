@@ -1,4 +1,4 @@
-DEMBody 5.1
+DEMBody 6.4
 *---Parallel params
 5.0	5.0	5.0												// Meshgrid interval, 2.5Rmax
 120	120	61												// Meshgrid number
@@ -25,6 +25,15 @@ False	# whether use Gravity TriMesh 					// Gravity Trimesh (phlyhedron gravity)
 1e6		# maximun contact acceleration					// Max acc
 *---Gravity
 0.0	0.0	-0.0098											// Gravity vector
+*---Material Properties
+ 5000
+ 0.200E+09  0.30
+  0.80  0.80
+  0.50
+  1.00
+  0.00  1.00
+  3.00
+  0.30  0.20
 *---Contactable Walls 									// Infinite contact walls	
 5														// Num
 0.0	0.0	0.0	0.0	0.0	1.0									// point, vector

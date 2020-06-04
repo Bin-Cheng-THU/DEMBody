@@ -17,9 +17,11 @@
     character(20) :: FileNameX
     character(20) :: FileNameF
     character(25) :: FileNameW
+    character(50) :: FileNameP
     integer(4) :: result
     integer,external :: systemqq
     real(8) :: temp_bondedWallMeshPoint(3)
+    real(8) :: temp_penePoint(3)
     integer :: days,hours,minutes,seconds
 
     !################         Projectile          ################### 
@@ -63,6 +65,14 @@
             do J = 1,sphereBodyNum
                 write(14,'(20(1XE20.8E4))') Time,(sphereBodyX(K,J),K=1,3),(sphereBodyXdot(K,J),K=1,3),(sphereBodyW(K,J),K=1,3),(sphereBodyF(K,J),K=1,3),(sphereBodyFM(K,J),K=1,3),(sphereBodyQ(K,J),K=1,4)
             end do
+        end if
+    end if
+
+    if (isPenetrator) then
+        !  Output the position, velocity and angular velocity of the Penetrator
+        open(15,FILE='../Data/Penetrator.txt')
+        if (Time.LE.Tcrit) then
+            write(15,'(20(1XE20.8E4))') Time,(peneX(K),K=1,3),(peneXdot(K),K=1,3),(peneW(K),K=1,3),(peneQ(K),K=1,4),(peneF(K),K=1,3),(peneFM(K),K=1,3)
         end if
     end if
 
@@ -143,6 +153,28 @@
                     temp_bondedWallMeshPoint(K) = bondedWallX(K) + bondedWallMatB(K,1)*bondedWallMeshPoint(1,J) + bondedWallMatB(K,2)*bondedWallMeshPoint(2,J) + bondedWallMatB(K,3)*bondedWallMeshPoint(3,J)
                 end do
                 write(Step+1000,'(3F10.4)') (temp_bondedWallMeshPoint(K),K=1,3)
+            end do  
+            close(Step+1000)
+        end if
+
+        !  Output the Penetrator Meshfile
+        if (isPenetrator) then
+            write(FileNameP,'(I4)') Step+1000
+#ifdef Linux
+            FileNameP = '../Data/Penetrator/'//FileNameP
+            FileNameP = trim(FileNameP)//'P.vtk'            
+            result = systemqq("cp ../Input/penetratorMesh.vtk "//FileNameP)
+#elif Windows
+            FileNameP = '..\Data\Penetrator\'//FileNameP
+            FileNameP = trim(FileNameP)//'P.vtk'   
+            result = systemqq("copy ..\Input\penetratorMesh.vtk "//FileNameP)
+#endif
+            open(Step+1000,FILE=FileNameP,position='Append')
+            do J=1,size(penetratorPoint,2)
+                do K = 1,3
+                    temp_penePoint(K) = peneX(K) + peneMatB(K,1)*penetratorPoint(1,J) + peneMatB(K,2)*penetratorPoint(2,J) + peneMatB(K,3)*penetratorPoint(3,J)
+                end do
+                write(Step+1000,'(3F10.4)') (temp_penePoint(K),K=1,3)
             end do  
             close(Step+1000)
         end if

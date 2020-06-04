@@ -31,7 +31,7 @@
     !  Parameters
     real(8),parameter :: GravConst = 6.674184D-11
     real(8),parameter :: PI = 3.141592653589793D0
-    character(10),parameter :: VERSION = '6.3'
+    character(10),parameter :: VERSION = '6.4'
 
     !  Define control parameters of Program
     character(10) :: vsDEMBody
@@ -48,6 +48,7 @@
     logical :: isGravBody
     logical :: isSphereBody
     logical :: isGravTriMesh
+    logical :: isPenetrator
     real(8) :: Max_ACC
 
     !  Define parameters of Program
@@ -247,7 +248,22 @@
     real(8),allocatable :: sphereBodyQ(:,:)
     real(8),allocatable :: sphereBodyBody(:),sphereBodyR(:),sphereBodyInertia(:)
     real(8),allocatable :: sphereBodyF(:,:),sphereBodyFM(:,:)
-        
+
+    !  Define parameters of Penetrators
+    integer :: peneType
+    integer :: peneTag
+    real(8) :: peneX(3),peneXdot(3),peneW(3)
+    real(8) :: peneQ(4),peneMatI(3,3),peneMatB(3,3)
+    real(8) :: peneVector(3)
+    real(8) :: peneBody,peneInertia(3)
+    real(8) :: peneF(3),peneFM(3)
+    real(8) :: peneWB(3),peneWdotB(3)
+    real(8),allocatable :: penetratorPoint(:,:)
+    !  1-cylinder
+    real(8) :: peneCylinderR,peneCylinderL
+    !  2-cone
+    !  3-hemisphere
+
     !  Define parameters of Saturn and Pan
     real(8) :: muS
     real(8) :: muP

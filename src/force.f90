@@ -16,6 +16,7 @@
     !     @Using forceFunnelWalls when enable FunnelWall
     !     @Using forceGravBody when enable GravBody
     !     @Using forceSphereBody when enable SphereBody
+    !     @Using forcePenetrator when enable Penetrator
     !     @force to acceleration
     !     @Using Planet force when enable Planet
     !     @Using forceRotSystem when enbale RotSystem
@@ -131,8 +132,17 @@
     end if
     !oend = omp_get_wtime()
     !write(*,*) "Sphere bodies",(oend-ostart)
+
+    !################         Part 11: Penetrator forces          ###################
+    !ostart = omp_get_wtime()
+    !  calculate force of penetrator if using Penetrator
+    if (isPenetrator) then
+        call forcePenetrator
+    end if
+    !oend = omp_get_wtime()
+    !write(*,*) "Penetrator",(oend-ostart)    
     
-    !################         Part 11: Force to Acceleration          ###################
+    !################         Part 12: Force to Acceleration          ###################
     !ostart = omp_get_wtime()
     !$OMP PARALLEL DO PRIVATE(I,K,accMag)
     do I = 1,N
@@ -152,7 +162,7 @@
     !oend = omp_get_wtime()
     !write(*,*) 'accelerate', (oend-ostart)    
 
-    !################         Part 12: Planet forces          ###################
+    !################         Part 13: Planet forces          ###################
     !ostart = omp_get_wtime()
     !  calculate Planet force if in Planet system
     if (isPlanet) then
@@ -161,7 +171,7 @@
     !oend = omp_get_wtime()
     !write(*,*) 'Planet', (oend-ostart)  
     
-    !################         Part 13: Rotsystem forces          ###################
+    !################         Part 14: Rotsystem forces          ###################
     !ostart = omp_get_wtime()
     !  calculate Noninertial force if in Rotary system
     if (isRotSystem) then
@@ -170,7 +180,7 @@
     !oend = omp_get_wtime()
     !write(*,*) 'Rot system', (oend-ostart)  
     
-    !################         Part 14: GravTriMesh forces          ###################
+    !################         Part 15: GravTriMesh forces          ###################
     !ostart = omp_get_wtime()
     !  calculate force of gravity body if using GravTriMesh
     if (isGravTriMesh) then

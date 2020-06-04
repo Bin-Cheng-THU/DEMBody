@@ -458,3 +458,19 @@ DEMBody   6.3    12/31/2019上线
     将材料参数读取移至initialSystem
     修复forceRotSystem中忘记设置dist变量为private的bug
 
+*********************************************************************
+DEMBody   6.4    6/1/2020上线
+
+系统：
+    修改input_points.txt与systemControl.dembody的模板文件
+    修改global.F90为global.f90
+    修改makefile为-qopenmp
+    修改batch文件为srun
+
+柱状侵入物：
+    添加侵入物，未来可能包括cylindrical、Conical、HemiSpherical等形状，以描述其与的接触问题
+    isPenetrator描述侵入物，type用来选择某一形状的侵入物
+    forcePeneCylinder柱形侵入物，包括圆面、柱面以及角接触。
+    测试：
+        2,000,000 颗粒 单步长 64CPU（A区节点） 0.2s
+

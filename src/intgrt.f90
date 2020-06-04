@@ -100,6 +100,10 @@
     if (isSphereBody) then
         call intgrtSphereBody
     end if
+
+    if (isPenetrator) then
+        call intgrtPenetrator
+    end if
         
 #ifdef LatticeSearch    
     if (refreshLattice) then    
@@ -165,6 +169,16 @@
             end do
         end do
     end if
+
+    if (isPenetrator) then
+        do I = 1,3
+            peneXdot(K) = peneXdot(K) + peneF(K) * Dt /2.0D0
+            peneWB(K) = peneWB(K) + peneWdotB(K) * Dt /2.0D0
+        end do
+        do K = 1,3
+            peneW(K) = peneMatB(K,1)*peneWB(1) + peneMatB(K,2)*peneWB(2) + peneMatB(K,3)*peneWB(3)
+        end do
+    end if
     
     !o2 = omp_get_wtime()
     !write(*,*) 'intgrt',(o2-o1)
@@ -177,7 +191,6 @@
     else
         go to 1
     end if
-
 
 50  return
 
