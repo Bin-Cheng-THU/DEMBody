@@ -31,7 +31,7 @@
     !  Parameters
     real(8),parameter :: GravConst = 6.674184D-11
     real(8),parameter :: PI = 3.141592653589793D0
-    character(10),parameter :: VERSION = '6.4'
+    character(10),parameter :: VERSION = '6.5'
 
     !  Define control parameters of Program
     character(10) :: vsDEMBody

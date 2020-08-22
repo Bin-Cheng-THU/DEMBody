@@ -1,6 +1,6 @@
 # DEMBody
 
-Copyright (c) 2016-2019 by The School of Aerospace Enginnering, Tsinghua University.
+Copyright (c) 2016-2020 by The School of Aerospace Enginnering, Tsinghua University.
  
 Investigation of geological features, surface evolution and in-situ exploration on celestrial bodies, e.g., size sorting/segregation on asteroid, mass creep/wasting during geological processes and locomotion dynamics of asteroid lander on granular layer.  
 
