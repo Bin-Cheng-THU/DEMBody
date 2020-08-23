@@ -396,6 +396,9 @@
             read (1500,*) (penetratorPoint(K,I),K=1,3)
         end do
         close(1500)
+    else
+        read (1000,*)
+        read (1000,*)
     end if
 
     !  initial the properties of Saturn and Pan
