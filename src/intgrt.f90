@@ -150,7 +150,7 @@
                     Xdot(2,I) = Xdot(2,I) + inertialYORPIncrement*X(1,I)
                 end do
                 !$OMP END PARALLEL DO                    
-                end do
+                
             end if
         end if
     end if

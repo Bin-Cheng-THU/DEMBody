@@ -375,7 +375,7 @@
         read (1000,*) biDisperseNum
         !read (1000,*) biDisperseScale  !  biDisperseR/LatDx == biDisperseR/Rmax/2.5
 
-        read (1000,*) verletBiDisperse  !  0.75Rmax
+        read (1000,*) verletBiDisperse  !  0.75Rmax  !  but the refresh rate of smaller particles is larger, so 1.3Rmax is enough. （2.5 - 1.0 - 0.2）
         verletBiDisperse = verletBiDisperse**2
        
         allocate (biDisperseTag(biDisperseNum))

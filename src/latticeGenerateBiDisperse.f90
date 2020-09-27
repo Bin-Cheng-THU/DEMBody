@@ -60,6 +60,7 @@
         !idCenter(3) = int((TagCenter-1)/(LatNx*LatNy))+1
         !idCenter(2) = int((TagCenter-(idCenter(3)-1)*(LatNx*LatNy)-1)/LatNx)+1
         !idCenter(1) = TagCenter-(idCenter(3)-1)*(LatNx*LatNy)-(idCenter(2)-1)*LatNx
+        
         !  Point2ID
         idCenter(3) = floor((biDisperseX(3,I)+LatMz)/LatDz) + 1
         idCenter(2) = floor((biDisperseX(2,I)+LatMy)/LatDy) + 1

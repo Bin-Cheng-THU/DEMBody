@@ -17,7 +17,7 @@
     integer :: thread_num
     
     write(*,*) '**************************************************'
-    write(*,*) 'Copyright (c) 2016-2019 by The School of Aerospace'
+    write(*,*) 'Copyright (c) 2016-2020 by The School of Aerospace'
     write(*,*) 'Enginnering, Tsinghua University'
     write(*,*) 
     write(*,*) 'DEMBody'
